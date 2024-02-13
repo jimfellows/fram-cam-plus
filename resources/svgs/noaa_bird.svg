@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg23239"
+   sodipodi:version="0.32"
+   inkscape:version="0.46+pre4"
+   sodipodi:docname="noaa bird.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <defs
+     id="defs23241">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath2568">
+      <path
+         d="M 36,25.755 L 245.959,25.755 L 245.959,62.25 L 36,62.25 L 36,25.755 z"
+         id="path2570" />
+    </clipPath>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective23247" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="67.334187"
+     inkscape:cy="688.74357"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1280"
+     inkscape:window-height="751"
+     inkscape:window-x="-4"
+     inkscape:window-y="-4" />
+  <metadata
+     id="metadata23244">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g2616"
+       transform="matrix(11.454755,0,0,11.736169,1333.2762,511.06476)">
+      <path
+         d="M -106.421,-18.502 C -100.116,-18.502 -97.513,-18.336 -90.577,-8.081 C -90.577,-8.081 -86.837,-3.122 -82.298,-3.374 C -82.298,-3.374 -79.186,-2.704 -76.415,-9.089 C -73.641,-15.477 -71.372,-19.007 -64.311,-18.083 C -64.311,-18.083 -67.589,-15.226 -68.052,-14.007 C -68.514,-12.788 -76.022,-3.711 -80.126,-3.081 C -79.524,-2.913 -78.682,-2.704 -77.257,-2.956 C -77.257,-2.956 -75.786,-2.87 -75.554,-2.157 C -77.003,-2.282 -81.794,-0.853 -82.802,-0.096 C -83.809,0.663 -87.266,2.683 -90.036,0.622 C -89.444,0.535 -86.126,-0.076 -84.591,-1.555 C -87.173,-1.525 -91.458,-2.366 -94.655,-5.349 C -97.846,-8.333 -105.581,-17.327 -109.7,-17.999 L -106.421,-18.502"
+         style="fill:#31b2e3;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path2618" />
+    </g>
+  </g>
+</svg>

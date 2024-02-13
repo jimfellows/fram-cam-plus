@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fram-cam-plus"
+dynamic = ["version"]
+version = "2024.0.0"
+readme = "README.md"
+authors = [
+  {name = "Jim Fellows", email = "james.fellows@noaa.gov"}
+]
+maintainers = [
+  {name = "Jim Fellows", email = "james.fellows@noaa.gov"}
+]
+
+description = "PySide + Qt + QML tablet app for intelligent image capture at sea."
+dependencies = []
+requires-python = ">= 3.10"
+classifiers = [
+  # How mature is this project? Common values are
+  #   3 - Alpha
+  #   4 - Beta
+  #   5 - Production/Stable
+  "Development Status :: 3 - Alpha",
+
+  # Indicate who your project is intended for
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+
+  # Pick your license as you wish (see also "license" above)
+  "License :: OSI Approved :: MIT License",
+
+  # Specify the Python versions you support here.
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11"
+  "Programming Language :: Python :: 3.12"
+]
+
+[project.urls]
+Repository = "https://github.com/jimfellows/fram-cam-plus"
