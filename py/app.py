@@ -10,8 +10,10 @@ from PySide6.QtSql import QSqlDatabase
 
 from py.logger import Logger
 from py.trawl_backdeck_db import backdeck_db
-import py.config as config
+import config
 from py.settings import Settings
+
+from qrc import qresources
 
 # from py.camera import Camera
 
@@ -22,13 +24,12 @@ def run():
     logger.info('-------------------------------------------------------------------------------------------')
     logger.info(f'~~><(((*>  ~~><(((*> ~~><(((*>  | FRAMCam Started |  ~~><(((*>  ~~><(((*> ~~><(((*>')
     logger.info('-------------------------------------------------------------------------------------------')
-    logger.info(f"PYTHON DIR = {config.PYTHON_DIR}")
     logger.info(f"HOME DIR = {config.HOME_DIR}")
     logger.info(f"PYTHON DIR = {config.DATA_DIR}")
 
     # setup main db connections to be shared globally in app
-    backdeck_db = QSqlDatabase.addDatabase('QSQLITE', 'backdeck_db')
-    backdeck_db.setDatabaseName(config.LOCAL_DB_PATH)
+    _backdeck_db = QSqlDatabase.addDatabase('QSQLITE', 'backdeck_db')
+    _backdeck_db.setDatabaseName(config.LOCAL_DB_PATH)
     if backdeck_db.open():
         logger.info(f"Successfully opened connection to {backdeck_db.databaseName()}")
     else:

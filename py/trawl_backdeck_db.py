@@ -3,7 +3,7 @@
 import os
 import sqlite3
 
-from py.config import LOCAL_DB_PATH
+from config import LOCAL_DB_PATH
 from PySide6.QtCore import QObject
 from PySide6.QtSql import QSqlDatabase
 from py.logger import Logger

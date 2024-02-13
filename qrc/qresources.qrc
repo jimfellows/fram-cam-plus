@@ -1,0 +1,41 @@
+<RCC>
+    <qresource prefix="/">
+        <file>../resources/icons/svgs/aperture_1.svg</file>
+        <file>../resources/icons/svgs/boat-icon.svg</file>
+        <file>../resources/icons/svgs/check_basic.svg</file>
+        <file>../resources/icons/svgs/close_icon.svg</file>
+        <file>../resources/icons/svgs/collapse_left.svg</file>
+        <file>../resources/icons/svgs/collapse_right.svg</file>
+        <file>../resources/icons/svgs/coral_1.svg</file>
+        <file>../resources/icons/svgs/double_down_arrow.svg</file>
+        <file>../resources/icons/svgs/double_up_arrow.svg</file>
+        <file>../resources/icons/svgs/down_arrow.svg</file>
+        <file>../resources/icons/svgs/eye_closed_1.svg</file>
+        <file>../resources/icons/svgs/file_upload_icon.svg</file>
+        <file>../resources/icons/svgs/graph-icon.svg</file>
+        <file>../resources/icons/svgs/graph-icon-2.svg</file>
+        <file>../resources/icons/svgs/home_icon.svg</file>
+        <file>../resources/icons/svgs/icon_app_top.svg</file>
+        <file>../resources/icons/svgs/location_icon.svg</file>
+        <file>../resources/icons/svgs/magnifying_glass.svg</file>
+        <file>../resources/icons/svgs/maximize_icon.svg</file>
+        <file>../resources/icons/svgs/menu_icon.svg</file>
+        <file>../resources/icons/svgs/minimize_icon.svg</file>
+        <file>../resources/icons/svgs/noaa.svg</file>
+        <file>../resources/icons/svgs/noaa_bird.svg</file>
+        <file>../resources/icons/svgs/NOAA_logo_mobile.svg</file>
+        <file>../resources/icons/svgs/octopus_1.svg</file>
+        <file>../resources/icons/svgs/open_icon.svg</file>
+        <file>../resources/icons/svgs/plug_icon.svg</file>
+        <file>../resources/icons/svgs/qc_icon.svg</file>
+        <file>../resources/icons/svgs/record.svg</file>
+        <file>../resources/icons/svgs/report_1.svg</file>
+        <file>../resources/icons/svgs/resize_icon.svg</file>
+        <file>../resources/icons/svgs/restore_icon.svg</file>
+        <file>../resources/icons/svgs/satellite-dish.svg</file>
+        <file>../resources/icons/svgs/satellite-icon.svg</file>
+        <file>../resources/icons/svgs/save_icon.svg</file>
+        <file>../resources/icons/svgs/settings_icon.svg</file>
+        <file>../resources/icons/svgs/up_arrow.svg</file>
+    </qresource>
+</RCC>
