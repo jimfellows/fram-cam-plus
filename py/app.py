@@ -13,7 +13,7 @@ from py.trawl_backdeck_db import backdeck_db
 import config
 from py.settings import Settings
 
-from qrc import qresources
+from qrc import qresources  # need this to import compiled qrc resources
 
 # from py.camera import Camera
 
@@ -39,11 +39,12 @@ def run():
 
     settings = Settings(backdeck_db)
 
-    exit()
+    # exit()
 
     app = QGuiApplication(sys.argv)
     engine = QQmlApplicationEngine()
-    engine.load(os.fspath(Path(__file__).resolve().parent / "qml/main.qml"))
+    engine.load(os.path.join(config.QML_DIR, 'MainWindow.qml'))
+    # engine.load(os.fspath(Path(__file__).resolve().parent / "qml/MainWindow.qml"))
     context = engine.rootContext()
 
     if not engine.rootObjects():

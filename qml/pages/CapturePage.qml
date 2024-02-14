@@ -3,7 +3,7 @@ import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
 
-import '../controls'
+import './qml/controls'
 
 
 Item {
@@ -45,7 +45,7 @@ Item {
                     width: 100
                     height: 100
                     anchors.verticalCenter: parent.verticalCenter
-                    source: "../../resources/images/svgs/eye_closed_1.svg"
+                    source: "qrc:/svgs/eye_closed.svg"
                     anchors.horizontalCenter: parent.horizontalCenter
                     fillMode: Image.PreserveAspectFit
                 }
@@ -93,10 +93,10 @@ Item {
                             onFinished: {
                                 if (rectControls.height > 75) {
                                     rectMoveControls.anchors.topMargin = 0
-                                    imgMoveControls.source = "../../resources/images/svgs/down_arrow.svg"
+                                    imgMoveControls.source = "qrc:/svgs/down_arrow.svg"
                                 } else {
                                     rectMoveControls.anchors.topMargin = -40
-                                    imgMoveControls.source = "../../resources/images/svgs/up_arrow.svg"
+                                    imgMoveControls.source = "qrc:/svgs/up_arrow.svg"
                                 }
                             }
                         }
@@ -105,7 +105,7 @@ Item {
                         Image {
                             id: imgMoveControls
                             anchors.fill: parent
-                            source: "../../resources/images/svgs/down_arrow.svg"
+                            source: "qrc:/svgs/down_arrow.svg"
                             fillMode: Image.PreserveAspectFit
                         }
 
@@ -137,7 +137,7 @@ Item {
                         anchors.rightMargin: 5
                         anchors.leftMargin: 5
 
-                        ControlSwitch {
+                        FramCamSwitch {
                             id: switchPreview
                             width: 100
                             spacing: 6
@@ -186,7 +186,7 @@ Item {
                         radius: 10
                         Image {
                             id: imgButtonCapture
-                            source: '../../resources/images/svgs/record.svg'
+                            source: 'qrc:/svgs/record.svg'
                             sourceSize.height: 40
                             sourceSize.width: 40
                             anchors.left: parent.left
@@ -294,7 +294,7 @@ Item {
             anchors.topMargin: 0
 
             Row {
-                DropDown {
+                FramCamComboBox {
                     id: ddTows
                     backgroundColor: "#003087"
 

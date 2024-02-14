@@ -68,7 +68,7 @@ ComboBox {
 
 //                Layout.alignment: Qt.AlignVCenter
 //                Layout.rightMargin: 10
-                source: "../../resources/images/svgs/check_basic.svg"
+                source: "qrc:/svgs/check_basic.svg"
             }
 /*
             ColorOverlay {

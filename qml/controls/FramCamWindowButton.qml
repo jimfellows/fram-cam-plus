@@ -16,7 +16,7 @@ Button {
     property color colorPressed: '#55aaff';
     property color iconColor: '#000000';
 
-    property url iconSource: "../../resources/images/svgs/minimize_icon.svg"
+    property url iconSource: "qrc:/svgs/minimize_icon.svg"
 
     QtObject {
         id: internal

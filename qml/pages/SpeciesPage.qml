@@ -11,7 +11,7 @@ Item {
             width: 100
             height: 100
             anchors.verticalCenter: parent.verticalCenter
-            source: "../../resources/images/svgs/coral_1.svg"
+            source: "qrc:/svgs/coral_1.svg"
             anchors.horizontalCenter: parent.horizontalCenter
             fillMode: Image.PreserveAspectFit
         }

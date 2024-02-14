@@ -28,7 +28,6 @@ class BackdeckDB(QObject):
             raise Exception(msg)
 
 
-print('CONNECTING!!!')
 logger = Logger.get_root()
 backdeck_db = QSqlDatabase.addDatabase('QSQLITE', 'localdb')
 backdeck_db.setDatabaseName(LOCAL_DB_PATH)

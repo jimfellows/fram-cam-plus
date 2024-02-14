@@ -11,7 +11,7 @@ Item {
             width: 100
             height: 100
             anchors.verticalCenter: parent.verticalCenter
-            source: "../../resources/images/svgs/magnifying_glass.svg"
+            source: "qrc:/svgs/magnifying_glass.svg"
             anchors.horizontalCenter: parent.horizontalCenter
             fillMode: Image.PreserveAspectFit
         }

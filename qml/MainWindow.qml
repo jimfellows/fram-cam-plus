@@ -4,6 +4,7 @@ import QtQuick.Controls 6.0
 import Qt5Compat.GraphicalEffects
 //import QtGraphicalEffects 1.15
 
+import "./pages"
 import "./controls"
 
 Window {
@@ -21,7 +22,7 @@ Window {
     //removing default title bar
     flags: Qt.Window | Qt.FramelessWindowHint
 
-    // internal object to hold functs
+    // internal object to hold funcs
     QtObject {
         id: internal
         function maximizeRestore(){
@@ -29,12 +30,12 @@ Window {
                 isWindowMaximized = true
                 hideMargins()
                 windowMain.showMaximized()
-                btnMaximize.iconSource = '../../resources/images/svgs/restore_icon.svg'
+                btnMaximize.iconSource = 'qrc:/svgs/restore.svg'
             }else {
                 isWindowMaximized = false
                 restoreMargins()
                 windowMain.showNormal()
-                btnMaximize.iconSource = '../../resources/images/svgs/maximize_icon.svg'
+                btnMaximize.iconSource = 'qrc:/svgs/maximize.svg'
             }
 
         }
@@ -43,7 +44,7 @@ Window {
                 windowMain.showNormal()
                 isWindowMaximized = false
                 restoreMargins()
-                btnMaximize.iconSource = '../../resources/images/svgs/maximize_icon.svg'
+                btnMaximize.iconSource = 'qrc:/svgs/maximize.svg'
             }
         }
 
@@ -51,7 +52,7 @@ Window {
             restoreMargins()
             isWindowMaximized = false
             windowMain.showMinimized()
-            btnMaximize.iconSource = '../../resources/images/svgs/maximize_icon.svg'
+            btnMaximize.iconSource = 'qrc:/svgs/maximize.svg'
         }
 
         function hideMargins() {
@@ -96,7 +97,7 @@ Window {
                 anchors.leftMargin: 5
                 anchors.topMargin: 5
 
-                ToggleButton {
+                FramCamMenuButton {
                     id: btnToggleNavBar
                     width: 70
                     height: 60
@@ -184,32 +185,32 @@ Window {
                         anchors.bottomMargin: 0
                         anchors.rightMargin: 0
 
-                        WindowControlButton {
+                        FramCamWindowButton {
                             id: btnMinimize
                             width: 35
                             height: 35
-                            iconSource: "../../resources/images/svgs/minimize_icon.svg"
+                            iconSource: "qrc:/svgs/minimize.svg"
                             iconColor: "white"
                             colorDefault: "#00000000"
                             onClicked: internal.minimizeWindow()
                         }
 
-                        WindowControlButton {
+                        FramCamWindowButton {
                             id: btnMaximize
                             width: 35
                             height: 35
-                            iconSource: "../../resources/images/svgs/maximize_icon.svg"
+                            iconSource: "qrc:/svgs/maximize.svg"
                             iconColor: "white"
                             colorDefault: "#00000000"
                             onClicked: internal.maximizeRestore()
 
                         }
 
-                        WindowControlButton {
+                        FramCamWindowButton {
                             id: btnClose
                             width: 35
                             height: 35
-                            iconSource: "../../resources/images/svgs/close_icon.svg"
+                            iconSource: "qrc:/svgs/close.svg"
                             iconColor: "white"
                             colorDefault: "#00000000"
                             onClicked: windowMain.close()
@@ -287,20 +288,15 @@ Window {
                         anchors.topMargin: 0
                         anchors.rightMargin: 0
                         anchors.leftMargin: 0
-                        LeftMenuButton {
+                        FramCamNavButton {
                             id: btnCaptureScreen
                             width: rectLeftNavBar.width
                             height: 75
                             text: "Image Capture"
-                            anchors.left: parent.left
-                            anchors.top: parent.top
                             colorDefault: "#003087"
                             font.bold: true
                             font.pointSize: 13
-                            anchors.topMargin: 0
-                            anchors.leftMargin: 0
-                            iconSource: "../../resources/images/svgs/aperture_1.svg"
-                            //                            text: qsTr("Button")
+                            iconSource: "qrc:/svgs/aperture.svg"
 
                             onClicked: {
                                 if (!isActive) {
@@ -308,63 +304,55 @@ Window {
                                     btnSpeciesSelect.isActive = false;
                                     btnSettingsMenu.isActive = false;
                                     btnSummary.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('screens/captureScreen.qml'))
+                                    stackView.push(Qt.resolvedUrl('qrc:/qml/CapturePage.qml'))
                                 }
 
                             }
                         }
 
-                        LeftMenuButton {
+                        FramCamNavButton {
                             id: btnSpeciesSelect
                             width: rectLeftNavBar.width
                             text: 'Species Select'
                             height: 75
-                            anchors.left: parent.left
-                            anchors.top: btnCaptureScreen.bottom
                             colorDefault: "#003087"
                             font.bold: true
                             font.pointSize: 13
                             isActive: false
-                            anchors.topMargin: 0
-                            iconSource: "../../resources/images/svgs/coral_1.svg"
-                            anchors.leftMargin: 0
+                            iconSource: "qrc:/svgs/coral.svg"
                             onClicked: {
                                 if (!isActive) {
                                     isActive = true;
                                     btnCaptureScreen.isActive = false;
                                     btnSettingsMenu.isActive = false;
                                     btnSummary.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('screens/speciesScreen.qml'))
+                                    stackView.push(Qt.resolvedUrl('qrc:/qml/SpeciesPage.qml'))
                                 }
                             }
                         }
-                        LeftMenuButton {
+                        FramCamNavButton {
                             id: btnSummary
                             width: rectLeftNavBar.width
                             text: "Image Summary"
                             height: 75
-                            anchors.left: parent.left
-                            anchors.top: btnSpeciesSelect.bottom
                             colorDefault: "#003087"
                             font.bold: true
                             font.pointSize: 13
                             isActive: false
-                            anchors.topMargin: 0
-                            iconSource: "../../resources/images/svgs/report_1.svg"
-                            anchors.leftMargin: 0
+                            iconSource: "qrc:/svgs/report.svg"
                             onClicked: {
                                 if (!isActive) {
                                     isActive = true;
                                     btnSpeciesSelect.isActive = false;
                                     btnSettingsMenu.isActive = false;
                                     btnCaptureScreen.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('screens/reportScreen.qml'))
+                                    stackView.push(Qt.resolvedUrl('qrc:/qml/ImageManagerPage.qml'))
                                 }
                             }
                         }
                     }
 
-                    LeftMenuButton {
+                    FramCamNavButton {
                         id: btnSettingsMenu
                         y: 0
                         width: rectLeftNavBar.width
@@ -378,14 +366,14 @@ Window {
                         font.bold: true
                         font.pointSize: 13
                         isActive: false
-                        iconSource: "../../resources/images/svgs/settings_icon.svg"
+                        iconSource: "qrc:/svgs/settings.svg"
                         onClicked: {
                             if (!isActive) {
                             isActive = true;
                             btnSpeciesSelect.isActive = false;
                             btnSummary.isActive = false;
                             btnCaptureScreen.isActive = false;
-                            stackView.push(Qt.resolvedUrl('screens/settingsScreen.qml'))
+                            stackView.push(Qt.resolvedUrl('qrc:/qml/SettingsPage.qml'))
                          }
                         }
                     }
@@ -407,8 +395,8 @@ Window {
                     StackView {
                         id: stackView
                         anchors.fill: parent
-                        initialItem: Qt.resolvedUrl('screens/captureScreen.qml')
-                        Component.onCompleted: push(Qt.resolvedUrl('screens/captureScreen.qml'))
+                        initialItem: Qt.resolvedUrl('qrc:/qml/CapturePage.qml')
+                        Component.onCompleted: push(Qt.resolvedUrl('qrc:/qml/CapturePage.qml'))
                     }
                 }
 

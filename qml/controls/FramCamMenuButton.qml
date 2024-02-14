@@ -30,7 +30,7 @@ Button {
 
         Image {
             id: imgMenuIcon
-            source: '../../resources/images/svgs/menu_icon.svg'
+            source: 'qrc:/svgs/menu.svg'
             anchors.verticalCenter: parent.verticalCenter
             anchors.horizontalCenter: parent.horizontalCenter
             height: 40

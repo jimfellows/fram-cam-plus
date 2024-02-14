@@ -16,7 +16,7 @@ Button {
     property color colorPressed: '#55aaff';
     property int iconWidth: 35;
     property int iconHeight: 35;
-    property url iconSource: '../../resources/images/svgs/menu_icon.svg'
+    property url iconSource: 'qrc:/svgs/menu_icon.svg'
     property color activeColor: '#12cb06'
     property bool isActive: true
 
