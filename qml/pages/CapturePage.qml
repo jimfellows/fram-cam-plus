@@ -148,10 +148,10 @@ Item {
                             checkedColor: "#0085ca"
                             onPositionChanged: {
                                 if(position === 1) {
-                                    camDefault.start()
+                                    image_capture.start_camera()
                                 }
                                 else {
-                                    camDefault.stop()
+                                    image_capture.stop_camera()
                                 }
                             }
                         }
@@ -263,14 +263,16 @@ Item {
             ListModel {
                 id: imagePaths
             }
+            /*
             Camera {
                 id: camDefault
             }
+            */
 
             CaptureSession {
                 id: captureSession
                 videoOutput: videoOutput
-                camera: camDefault
+                camera: image_capture.camera
                 imageCapture: ImageCapture {
                     onImageSaved: function (id, path) {
                         console.info("IMAGE TAKEN!!!")
@@ -294,10 +296,49 @@ Item {
             anchors.topMargin: 0
 
             Row {
+                anchors.fill: parent
+                spacing: 10
+                anchors.rightMargin: 50
                 FramCamComboBox {
-                    id: ddTows
+                    id: comboHauls
                     backgroundColor: "#003087"
-
+                    height: parent.height
+                    width: parent.width * 0.2
+                    fontSize: 14
+                    model: data_selector.hauls_model
+                    onCurrentIndexChanged: {
+                        model.current_index = currentIndex
+                    }
+                }
+                FramCamComboBox {
+                    id: comboCatch
+                    backgroundColor: "#003087"
+                    height: parent.height
+                    width: parent.width * 0.3
+                    model: data_selector.catch_options_model
+                    fontSize: 14
+                    onCurrentIndexChanged: {
+                        model.current_index = currentIndex
+                    }
+                }
+                FramCamComboBox {
+                    id: comboProject
+                    backgroundColor: "#003087"
+                    height: parent.height
+                    width: parent.width * 0.3
+                    model: data_selector.project_options_model
+                    fontSize: 14
+                    onCurrentIndexChanged: {
+                        model.current_index = currentIndex
+                    }
+                }
+                FramCamComboBox {
+                    id: comboBiolabel
+                    backgroundColor: "#003087"
+                    height: parent.height
+                    width: parent.width * 0.2
+                    model: data_selector.bio_options_model
+                    fontSize: 14
                 }
             }
         }

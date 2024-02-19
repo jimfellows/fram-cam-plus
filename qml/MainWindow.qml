@@ -136,12 +136,15 @@ Window {
                         anchors.left: parent.left
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
-                        source: "../resources/images/svgs/octopus_1.svg"
+                        source: "qrc:/svgs/nautilus.svg"
+                        sourceSize.width: 32
+                        sourceSize.height: 32
                         anchors.bottomMargin: 3
-                        anchors.leftMargin: 4
+                        anchors.leftMargin: 5
                         anchors.topMargin: 5
                         fillMode: Image.PreserveAspectFit
                         antialiasing: false
+                        smooth: true
                     }
 
                     ColorOverlay {
@@ -171,7 +174,7 @@ Window {
                         font.pointSize: 12
                         anchors.bottomMargin: 8
                         anchors.topMargin: 11
-                        anchors.leftMargin: 10
+                        //anchors.leftMargin: 1
                     }
 
                     Row {

@@ -1,10 +1,10 @@
 
 import sys
-from py import app
+from py.app import FramCamPlus
 
 
 def run_app():
-    sys.exit(app.run())
+    sys.exit(FramCamPlus())
 
 
 if __name__ == '__main__':
