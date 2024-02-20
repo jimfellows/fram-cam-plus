@@ -3,6 +3,8 @@ import QtQuick.Controls 6.3
 import QtQuick.Layouts 1.3
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
+import QtQuick.Controls.Material
+
 
 //https://www.youtube.com/watch?v=RUWMHhPqwnw&t=751s
 
@@ -10,19 +12,19 @@ ComboBox {
     id: root
     implicitWidth: 200
     implicitHeight: 55
-    model: [
-        '202303008001',
-        '202303008002',
-        '202303008003',
-        '202303008004'
-    ]
+    currentIndex: -1
 
-    //custo props
+    Material.theme: Material.Dark
+    Material.accent: Material.Purple
+
+    //custom props
     property color backgroundColor: "transparent";
     property color borderColor: "black"
     property color fontColor: "white"
     property int fontSize: 18
     property real radius: 12;
+    property string placeholderText: "";
+    property bool italicDisplay: false;
 
     delegate: ItemDelegate {
         id: itemDelegate
@@ -42,6 +44,7 @@ ComboBox {
             Label {
                 id: mylbl
                 opacity: 0.9
+                //text: root.currentIndex === -1 ? root.placeholderText : modelData
                 text: modelData
                 color: root.fontColor
                 font.bold: true
@@ -82,7 +85,8 @@ ComboBox {
             spacing: 10
             Label {
                 opacity: 0.9
-                text: root.displayText
+                text: root.currentIndex === -1 ? root.placeholderText : root.displayText
+                font.italic: root.currentIndex === -1
                 color: root.fontColor
                 font.bold: true
                 font.pixelSize: root.fontSize

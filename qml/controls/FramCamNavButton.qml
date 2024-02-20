@@ -2,8 +2,12 @@ import QtQuick 2.15
 //import QtQuick3D 6.3
 import Qt5Compat.GraphicalEffects
 import QtQuick.Controls 6.0
+import QtQuick.Controls.Material
 
 Button {
+    Material.theme: Material.Dark
+    Material.accent: Material.Purple
+
     id: btnLeftMenu
     text: qsTr("Left Menu Button Text")
     implicitWidth: 250

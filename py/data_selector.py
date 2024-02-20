@@ -1,13 +1,14 @@
 
 
 from PySide6.QtSql import QSqlQueryModel, QSqlRelationalTableModel, QSqlRelation, QSqlQuery, QSqlRecord
-from PySide6.QtCore import QObject, PyClassProperty, Property, Slot, Signal
+from PySide6.QtCore import QObject, PyClassProperty, Property, Slot, Signal, QSortFilterProxyModel
 from py.logger import Logger
 
 
 class FramCamQueryModel(QSqlQueryModel):
 
     current_index_changed = Signal(int, arguments=['i'])
+    py_index_update = Signal(int, arguments=['i'])
 
     def __init__(self, db):
         super().__init__()
@@ -16,6 +17,7 @@ class FramCamQueryModel(QSqlQueryModel):
         self._sql = None
         self._query = QSqlQuery(db)
         self._current_index = -1
+
 
     @Property(int)
     def current_index(self):
@@ -27,12 +29,27 @@ class FramCamQueryModel(QSqlQueryModel):
             self._current_index = i
             self.current_index_changed.emit(i)
 
-    @Slot(int, str, name='getRowValue', result="QVariant")
+    def get_ix_by_value(self, field_name, value):
+        for i in range(0, self.rowCount()):
+            if value == self.record(i).value(field_name):
+                return i
+
+        return -1
+
+    def set_index_from_py(self, i):
+        print(f"Emitting index {i} to qml")
+        self.py_index_update.emit(i)
+
+
+    @Slot(int, str, result="QVariant")
     def getRowValue(self, i, col_name):
         """
         Slot for qml to retrieve value given index and col name.
         model.record(i).value(name) doesnt appear to work as a slot
         directly from QSQLQueryModel, so this wrapper fills that need
+
+        TODO: is this hitting the db or memory?
+
         :param i: row/model index
         :param col_name: name of column (Is this case sensitive?)
         :return: int/str/db type val
@@ -95,18 +112,13 @@ class CatchOptionsModel(FramCamQueryModel):
         self._query.exec()
         self.setQuery(self._query)
 
-    @property
-    def cur_catch_id(self):
-        return self.getRowValue(self._current_index, 'CATCH_ID')
-
-
 class ProjectOptionsModel(FramCamQueryModel):
 
     def __init__(self, db):
         super().__init__(db)
         self._sql = '''
             select      distinct
-                        sp.plan_name
+                        sp.plan_name as project
             from        specimen s
             join        species_sampling_plan_lu sp
                         on s.species_sampling_plan_id = sp.species_sampling_plan_id
@@ -149,6 +161,7 @@ class BioOptionsModel(FramCamQueryModel):
                         ,tl.subtype
                         ,coalesce(alpha_value, numeric_value)
         '''
+        # self.setHeaderData(0, not Qt)
 
     # overloaded slot with two decorators for optional param
     @Slot(int, name="populate")
@@ -209,68 +222,123 @@ class SpecimensModel(QSqlQueryModel):
 
 
 class DataSelector(QObject):
+
+    haulIndexReset = Signal(int, arguments=['i'])
+
     def __init__(self, db, app=None):
         super().__init__()
         self._app = app
         self._logger = Logger.get_root()
-        self._hauls_model = HaulsModel(db)
-        self._catch_options_model = CatchOptionsModel(db)
-        self._project_options_model = ProjectOptionsModel(db)
-        self._bio_options_model = BioOptionsModel(db)
 
-        # wanted to handle this within each model, but weird race conditions happening...
-        self._cur_haul_id = None
-        self._cur_catch_id = None
-        self._cur_project = None
-        self._cur_bio_label = None
+        # setup hauls model
+        # TODO: proxy models for in memory sorting?
+        self._hauls_model = HaulsModel(db)
+        self._catches_model = CatchOptionsModel(db)
+        self._projects_model = ProjectOptionsModel(db)
+        self._bios_model = BioOptionsModel(db)
+
+        # vars to hold rec qml model item that is currently selected
+        self._cur_haul_rec = None
+        self._cur_catch_rec = None
+        self._cur_project_rec = None
+        self._cur_bio_label_rec = None
 
         # when haul changes populate the other models
-        self._hauls_model.current_index_changed.connect(lambda i: self._handle_changed_haul(i))
-        self._catch_options_model.current_index_changed.connect(lambda i: self._handle_changed_catch(i))
-        self._project_options_model.current_index_changed.connect(lambda i: self._handle_changed_project(i))
+        self._hauls_model.current_index_changed.connect(lambda i: self._on_haul_changed(i))
+        self._catches_model.current_index_changed.connect(lambda i: self._on_catch_changed(i))
+        self._projects_model.current_index_changed.connect(lambda i: self._on_project_changed(i))
+        self._bios_model.current_index_changed.connect(lambda i: self._on_bio_changed(i))
 
-    def _handle_changed_haul(self, new_haul_index):
+        # if we have pre-selected vals from db, set them now, in order (haul,catch,project,bio)
+        _haul_model_ix = self._hauls_model.get_ix_by_value('HAUL_ID', self._app.settings.cur_haul_id)
+        self._hauls_model._current_index = _haul_model_ix
+        self._on_haul_changed(_haul_model_ix)
+
+        _catch_model_ix = self._catches_model.get_ix_by_value('CATCH_ID', self._app.settings.cur_catch_id)
+        self._catches_model._current_index = _catch_model_ix
+        self._on_catch_changed(_catch_model_ix)
+
+        _projects_model_ix = self._projects_model.get_ix_by_value('PROJECT', self._app.settings.cur_project)
+        self._projects_model._current_index = _projects_model_ix
+        self._on_project_changed(_projects_model_ix)
+
+        _bios_model_ix = self._bios_model.get_ix_by_value('BIO_LABEL', self._app.settings.cur_bio_label)
+        print(f"bio model index is {_bios_model_ix} (biolabel = {self._app.settings.cur_bio_label})")
+        self._bios_model._current_index = _bios_model_ix
+        self._on_bio_changed(_bios_model_ix)
+
+
+    def _get_haul_ix_by_id_v2(self, haul_id):
+        """
+        Find the position of the value field for a given parameter.
+        Using the index we can get or set the param value at the returned address
+        :param parameter: str, name of param
+        :return: QModelIndex
+
+        TODO: error handling, what to return if something doesnt work out here?
+        """
+        haul_field_ix = 0#self._hauls_model.field_index('HAUL_ID')
+        self._hauls_proxy_model.set_filter_key_column(haul_field_ix)
+        self._hauls_proxy_model.set_filter_fixed_string(haul_id)
+
+        if self._hauls_proxy_model.row_count() > 0:
+            proxy_ix = self._hauls_proxy_model.index(0, haul_field_ix)
+            return self._hauls_proxy_model.map_to_source(proxy_ix)[0]
+
+
+    def _on_haul_changed(self, new_haul_index):
         # TODO: set cur haul id here?
-        self._cur_haul_id = self._hauls_model.getRowValue(new_haul_index, 'HAUL_ID')
-        self._logger.info(f"Selected haul id changed to {self._cur_haul_id}")
-        self._catch_options_model.populate(self._cur_haul_id)
-        self._project_options_model.clear()
-        self._bio_options_model.clear()
-        self._app.settings.set_param_value('Current Haul ID', self._cur_haul_id)
+        self._cur_haul_rec = self._hauls_model.record(new_haul_index)
+        # self._logger.info(f"Selected haul id changed to {self._cur_haul_rec}")
+        self._catches_model.populate(self._cur_haul_rec.value('HAUL_ID'))
+        self._projects_model.clear()
+        self._bios_model.clear()
+        self._app.settings.set_param_value('Current Haul ID', self._cur_haul_rec.value('HAUL_ID'))
+        self._app.settings.set_param_value('Current Haul Number', self._cur_haul_rec.value('HAUL_NUMBER'))
 
-    def _handle_changed_catch(self, new_catch_index):
+    def _on_catch_changed(self, new_catch_index):
         """
         things to do when user changes the drop down for catch options.
         :param new_catch_index: new model index
         :return:
         """
-        self._cur_catch_id = self._catch_options_model.getRowValue(new_catch_index, 'CATCH_ID')
+        self._cur_catch_id = self._catches_model.getRowValue(new_catch_index, 'CATCH_ID')
+        self._cur_catch = self._catches_model.record(new_catch_index)
         self._logger.info(f"Selected catch changed to {self._cur_catch_id}")
-        self._project_options_model.populate(self._cur_catch_id)
-        self._bio_options_model.populate(self._cur_catch_id)
+        self._projects_model.populate(self._cur_catch_id)
+        self._bios_model.populate(self._cur_catch_id)
         self._app.settings.set_param_value('Current Catch ID', self._cur_catch_id)
+        self._app.settings.set_param_value('Current Catch Display', self._catches_model.record(new_catch_index).value('DISPLAY_NAME'))
 
-    def _handle_changed_project(self, new_project_index):
-        self._cur_project_name = self._project_options_model.getRowValue(new_project_index, 'PLAN_NAME')
+    def _on_project_changed(self, new_project_index):
+        self._cur_project_name = self._projects_model.getRowValue(new_project_index, 'PROJECT')
         self._logger.info(f"Selected project changed to {self._cur_project_name}")
-        self._bio_options_model.populate(self._cur_catch_id, self._cur_project_name)
+        self._bios_model.populate(self._cur_catch_id, self._cur_project_name)
         self._app.settings.set_param_value('Current Project', self._cur_project_name)
+
+    def _on_bio_changed(self, new_bio_index):
+        self._cur_bio_label = self._bios_model.getRowValue(new_bio_index, 'BIO_LABEL')
+        self._logger.info(f"Selected bio label changed to {self._cur_bio_label}")
+        self._app.settings.set_param_value('Current Bio Label', self._cur_bio_label)
 
     @Property(QObject)
     def hauls_model(self):
         return self._hauls_model
 
-    @Property(QObject)
-    def catch_options_model(self):
-        return self._catch_options_model
+    def get_haul_num_from_id(self, haul_id):
+        return self._hauls_model.record()
 
     @Property(QObject)
-    def project_options_model(self):
-        return self._project_options_model
+    def catches_model(self):
+        return self._catches_model
 
     @Property(QObject)
-    def bio_options_model(self):
-        return self._bio_options_model
+    def projects_model(self):
+        return self._projects_model
+
+    @Property(QObject)
+    def bios_model(self):
+        return self._bios_model
 
     # def _set_cur_haul_number(self):
     #     self._current_haul_number = self._hauls_model.getRowValue(self._h)

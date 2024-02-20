@@ -3,11 +3,14 @@ import QtQuick.Window
 import QtQuick.Controls 6.0
 import Qt5Compat.GraphicalEffects
 //import QtGraphicalEffects 1.15
+import QtQuick.Controls.Material
 
 import "./pages"
 import "./controls"
 
 Window {
+    Material.theme: Material.Dark
+    Material.accent: Material.Purple
     id: windowMain
     width: 1200
     height: 700

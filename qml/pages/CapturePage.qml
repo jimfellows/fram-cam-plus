@@ -176,6 +176,7 @@ Item {
                         x = captureSession.imageCapture.captureToFile('pic.jpeg')
                         //                    captureSession.imageCapture.imageSaved()
                         console.info(x)
+                        image_capture.capture_image_to_file()
                     }
 
                     background: Rectangle{
@@ -306,8 +307,12 @@ Item {
                     width: parent.width * 0.2
                     fontSize: 14
                     model: data_selector.hauls_model
+                    placeholderText: 'Select Haul...'
                     onCurrentIndexChanged: {
                         model.current_index = currentIndex
+                    }
+                    Component.onCompleted: {  // set ix based on settings saved value
+                        comboHauls.currentIndex = data_selector.hauls_model.current_index
                     }
                 }
                 FramCamComboBox {
@@ -315,10 +320,15 @@ Item {
                     backgroundColor: "#003087"
                     height: parent.height
                     width: parent.width * 0.3
-                    model: data_selector.catch_options_model
+                    model: data_selector.catches_model
+                    placeholderText: 'Select Catch...'
                     fontSize: 14
                     onCurrentIndexChanged: {
+                        console.info("CATCH COMBO INDEX CHANGED to " + currentIndex)
                         model.current_index = currentIndex
+                    }
+                    Component.onCompleted: {  // set ix based on settings saved value
+                        comboCatch.currentIndex = data_selector.catches_model.current_index
                     }
                 }
                 FramCamComboBox {
@@ -326,10 +336,14 @@ Item {
                     backgroundColor: "#003087"
                     height: parent.height
                     width: parent.width * 0.3
-                    model: data_selector.project_options_model
+                    model: data_selector.projects_model
                     fontSize: 14
+                    placeholderText: 'Select Project...'
                     onCurrentIndexChanged: {
                         model.current_index = currentIndex
+                    }
+                    Component.onCompleted: {  // set ix based on settings saved value
+                        comboProject.currentIndex = data_selector.projects_model.current_index
                     }
                 }
                 FramCamComboBox {
@@ -337,8 +351,15 @@ Item {
                     backgroundColor: "#003087"
                     height: parent.height
                     width: parent.width * 0.2
-                    model: data_selector.bio_options_model
+                    model: data_selector.bios_model
                     fontSize: 14
+                    placeholderText: 'Select Bio Label...'
+                    onCurrentIndexChanged: {
+                        model.current_index = currentIndex
+                    }
+                    Component.onCompleted: {  // set ix based on settings saved value
+                        comboBiolabel.currentIndex = data_selector.bios_model.current_index
+                    }
                 }
             }
         }

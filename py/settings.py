@@ -95,6 +95,32 @@ class Settings(QObject):
     def ui_theme(self):
         return self.get_param_value('UI Theme', default_value='NOAA')
 
+    @Property(int)
+    def cur_haul_id(self):
+        haul_id_str = self.get_param_value('Current Haul ID')
+        return int(haul_id_str) if haul_id_str else None
+
+    @Property(int)
+    def cur_haul_number(self):
+        return self.get_param_value('Current Haul Number')
+
+    @Property(int)
+    def cur_catch_id(self):
+        catch_id_str = self.get_param_value('Current Catch ID')
+        return int(catch_id_str) if catch_id_str else None
+
+    @Property(int)
+    def cur_catch_display(self):
+        return self.get_param_value('Current Catch Display')
+
+    @Property(str)
+    def cur_project(self):
+        return self.get_param_value('Current Project')
+
+    @Property(str)
+    def cur_bio_label(self):
+        return self.get_param_value('Current Bio Label')
+
 
 if __name__ == '__main__':
     print("Running settings")

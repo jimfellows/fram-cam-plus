@@ -6,7 +6,9 @@ from PySide6.QtMultimedia import (QAudioInput, QCamera, QCameraDevice,
                                   QMediaDevices, QMediaMetaData,
                                   QMediaRecorder)
 from py.logger import Logger
+from config import IMAGES_DIR
 from __feature__ import snake_case  # convert Qt methods to snake
+
 
 class ImageCapture(QObject):
 
@@ -21,7 +23,7 @@ class ImageCapture(QObject):
         self._is_capturing = False
         self._camera.start()
 
-    @Property(QCamera)
+    @Property(QObject)
     def camera(self):
         return self._camera
 
@@ -34,12 +36,19 @@ class ImageCapture(QObject):
     def stop_camera(self):
         self._camera.stop()
 
+    def get_image_name(self):
+        haul_number = self._app.settings.cur_haul_number if self._app.settings.cur_haul_number else ''
+        catch_display = self._app.settings.cur_catch_display if self._app.settings.cur_catch_display else ''
+        project = self._app.settings.cur_project if self._app.settings.cur_project else ''
+        bio_label = self._app.settings.cur_bio_label if self._app.settings.cur_bio_label else ''
+        print(f"{haul_number}_{catch_display}_{project}_{bio_label}")
+
+
     @Slot()
     def capture_image_to_file(self):
-        pass
+        self.get_image_name()
 
 
 if __name__ == '__main__':
-    fc = FramCamera()
-    fc.start()
+    pass
 
