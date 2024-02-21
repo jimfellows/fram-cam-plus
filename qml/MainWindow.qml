@@ -125,6 +125,11 @@ Window {
                     anchors.topMargin: 0
                     anchors.leftMargin: 0
 
+                    //double click top bar to min/max window
+                    MouseArea {
+                        anchors.fill: parent
+                        onDoubleClicked: internal.maximizeRestore()
+                    }
                     //allow dragging of window from this bar
                     DragHandler {
                         onActiveChanged: if (active){

@@ -2,12 +2,17 @@ import QtQuick.Controls 6.3
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
+import com.library.name 1.0
 
 import './qml/controls'
 
 
 Item {
     property alias lvThumbnails: lvThumbnails
+    Component.onCompleted: {
+        image_capture.set_video_output(videoOutput)
+        switchPreview.position = image_capture.is_camera_active ? 1 : 0
+    }
 
     Rectangle {
         id: rectBg
@@ -147,7 +152,7 @@ Item {
                             titleColor: "#ffffff"
                             checkedColor: "#0085ca"
                             onPositionChanged: {
-                                if(position === 1) {
+                                if (position === 1) {
                                     image_capture.start_camera()
                                 }
                                 else {
@@ -170,10 +175,10 @@ Item {
                     anchors.rightMargin: 10
                     flat:true
                     onClicked: {
-                        console.info("BUTTON CLICKED, is camera ready?")
-                        console.info(captureSession.imageCapture.readyForCapture)
-                        var x
-                        x = captureSession.imageCapture.captureToFile('pic.jpeg')
+                        //console.info("BUTTON CLICKED, is camera ready?")
+                        //console.info(captureSession.imageCapture.readyForCapture)
+                        //var x
+                        //x = captureSession.imageCapture.captureToFile('pic.jpeg')
                         //                    captureSession.imageCapture.imageSaved()
                         console.info(x)
                         image_capture.capture_image_to_file()
@@ -269,11 +274,13 @@ Item {
                 id: camDefault
             }
             */
-
-            CaptureSession {
+            /*
+            FramCamCaptureSession {
                 id: captureSession
                 videoOutput: videoOutput
                 camera: image_capture.camera
+                imageCapture: image_capture.image_capture
+
                 imageCapture: ImageCapture {
                     onImageSaved: function (id, path) {
                         console.info("IMAGE TAKEN!!!")
@@ -281,7 +288,9 @@ Item {
                         lvThumbnails.positionViewAtEnd()
                     }
                 }
+
             }
+            */
 
         }
 
@@ -307,7 +316,7 @@ Item {
                     width: parent.width * 0.2
                     fontSize: 14
                     model: data_selector.hauls_model
-                    placeholderText: 'Select Haul...'
+                    placeholderText: data_selector.hauls_model.row_count === 0 ? 'N/A' : 'Select Haul...'
                     onCurrentIndexChanged: {
                         model.current_index = currentIndex
                     }
@@ -321,7 +330,7 @@ Item {
                     height: parent.height
                     width: parent.width * 0.3
                     model: data_selector.catches_model
-                    placeholderText: 'Select Catch...'
+                    placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
                     fontSize: 14
                     onCurrentIndexChanged: {
                         console.info("CATCH COMBO INDEX CHANGED to " + currentIndex)
@@ -338,12 +347,19 @@ Item {
                     width: parent.width * 0.3
                     model: data_selector.projects_model
                     fontSize: 14
-                    placeholderText: 'Select Project...'
+                    placeholderText: data_selector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
                     onCurrentIndexChanged: {
                         model.current_index = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboProject.currentIndex = data_selector.projects_model.current_index
+                    }
+                    Connections {
+                        target: data_selector.projects_model
+                        onPy_index_update: {
+                            comboProject.currentIndex = i
+                        }
+
                     }
                 }
                 FramCamComboBox {
@@ -353,7 +369,7 @@ Item {
                     width: parent.width * 0.2
                     model: data_selector.bios_model
                     fontSize: 14
-                    placeholderText: 'Select Bio Label...'
+                    placeholderText: data_selector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
                     onCurrentIndexChanged: {
                         model.current_index = currentIndex
                     }

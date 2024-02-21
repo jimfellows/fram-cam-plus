@@ -9,6 +9,7 @@ class FramCamQueryModel(QSqlQueryModel):
 
     current_index_changed = Signal(int, arguments=['i'])
     py_index_update = Signal(int, arguments=['i'])
+    model_loaded = Signal()
 
     def __init__(self, db):
         super().__init__()
@@ -17,7 +18,12 @@ class FramCamQueryModel(QSqlQueryModel):
         self._sql = None
         self._query = QSqlQuery(db)
         self._current_index = -1
+        self.model_loaded.connect(self._on_model_loaded)
 
+    def _on_model_loaded(self):
+        self._logger.info(f"{__name__} MODEL LOADED")
+        if self.rowCount() == 1:
+            self.set_index_from_py(0)
 
     @Property(int)
     def current_index(self):
@@ -39,6 +45,10 @@ class FramCamQueryModel(QSqlQueryModel):
     def set_index_from_py(self, i):
         print(f"Emitting index {i} to qml")
         self.py_index_update.emit(i)
+
+    @property
+    def row_count(self):
+        return self.rowCount()
 
 
     @Slot(int, str, result="QVariant")
@@ -82,6 +92,7 @@ class HaulsModel(FramCamQueryModel):
         self._query.prepare(self._sql)
         self._query.exec()
         self.setQuery(self._query)
+        self.model_loaded.emit()
 
     @property
     def cur_haul_number(self):
@@ -111,6 +122,7 @@ class CatchOptionsModel(FramCamQueryModel):
         self._query.bindValue(':operation_id', operation_id)
         self._query.exec()
         self.setQuery(self._query)
+        self.model_loaded.emit()
 
 class ProjectOptionsModel(FramCamQueryModel):
 
@@ -135,6 +147,7 @@ class ProjectOptionsModel(FramCamQueryModel):
         self._query.bindValue(':catch_id', catch_id)
         self._query.exec()
         self.setQuery(self._query)
+        self.model_loaded.emit()
 
     @property
     def cur_project(self):
@@ -173,6 +186,7 @@ class BioOptionsModel(FramCamQueryModel):
         self._query.bindValue(':plan_name', plan_name)
         self._query.exec()
         self.setQuery(self._query)
+        self.model_loaded.emit()
 
 
 class SpecimensModel(QSqlQueryModel):
@@ -249,6 +263,10 @@ class DataSelector(QObject):
         self._projects_model.current_index_changed.connect(lambda i: self._on_project_changed(i))
         self._bios_model.current_index_changed.connect(lambda i: self._on_bio_changed(i))
 
+        """
+        Below we select model rows pulled from database on startup.  Note that we set _current_index, not
+        current_index to avoid signaling to UI directly.  We use this backchannel because...
+        """
         # if we have pre-selected vals from db, set them now, in order (haul,catch,project,bio)
         _haul_model_ix = self._hauls_model.get_ix_by_value('HAUL_ID', self._app.settings.cur_haul_id)
         self._hauls_model._current_index = _haul_model_ix
@@ -263,7 +281,6 @@ class DataSelector(QObject):
         self._on_project_changed(_projects_model_ix)
 
         _bios_model_ix = self._bios_model.get_ix_by_value('BIO_LABEL', self._app.settings.cur_bio_label)
-        print(f"bio model index is {_bios_model_ix} (biolabel = {self._app.settings.cur_bio_label})")
         self._bios_model._current_index = _bios_model_ix
         self._on_bio_changed(_bios_model_ix)
 

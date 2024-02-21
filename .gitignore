@@ -162,4 +162,5 @@ cython_debug/
 # data stuff
 logs/
 data/trawl_backdeck.db
+data/images/*
 *.db
