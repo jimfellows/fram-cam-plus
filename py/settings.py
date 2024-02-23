@@ -121,6 +121,10 @@ class Settings(QObject):
     def cur_bio_label(self):
         return self.get_param_value('Current Bio Label')
 
+    @Property(str)
+    def cur_specimen_id(self):
+        return self.get_param_value('Current Specimen ID')
+
 
 if __name__ == '__main__':
     print("Running settings")
