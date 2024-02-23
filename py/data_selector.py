@@ -21,7 +21,7 @@ class FramCamQueryModel(QSqlQueryModel):
         self.model_loaded.connect(self._on_model_loaded)
 
     def _on_model_loaded(self):
-        self._logger.info(f"{__name__} MODEL LOADED")
+        self._logger.info(f"{self.__class__.__name__} model loaded")
         if self.rowCount() == 1:
             self.set_index_from_py(0)
 
@@ -158,8 +158,8 @@ class BioOptionsModel(FramCamQueryModel):
         super().__init__(db)
         self._sql = '''
             select
-                        coalesce(alpha_value, floor(numeric_value)) || ' - ' || coalesce(tl.subtype, tl.type) as display
-                        ,coalesce(alpha_value, floor(numeric_value)) as bio_label
+                        coalesce(alpha_value, cast(cast(numeric_value as int) as text)) || ' - ' || coalesce(tl.subtype, tl.type) as display
+                        ,coalesce(alpha_value, cast(cast(numeric_value as int) as text)) as bio_label
                         ,specimen_id
                         ,parent_specimen_id
             from        specimen s
@@ -236,7 +236,7 @@ class SpecimensModel(QSqlQueryModel):
 
 
 class DataSelector(QObject):
-
+    unusedSignal = Signal()
     haulIndexReset = Signal(int, arguments=['i'])
 
     def __init__(self, db, app=None):
@@ -338,22 +338,22 @@ class DataSelector(QObject):
         self._logger.info(f"Selected bio label changed to {self._cur_bio_label}")
         self._app.settings.set_param_value('Current Bio Label', self._cur_bio_label)
 
-    @Property(QObject)
+    @Property(QObject, notify=unusedSignal)
     def hauls_model(self):
         return self._hauls_model
 
     def get_haul_num_from_id(self, haul_id):
         return self._hauls_model.record()
 
-    @Property(QObject)
+    @Property(QObject, notify=unusedSignal)
     def catches_model(self):
         return self._catches_model
 
-    @Property(QObject)
+    @Property(QObject, notify=unusedSignal)
     def projects_model(self):
         return self._projects_model
 
-    @Property(QObject)
+    @Property(QObject, notify=unusedSignal)
     def bios_model(self):
         return self._bios_model
 

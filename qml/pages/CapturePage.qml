@@ -2,7 +2,7 @@ import QtQuick.Controls 6.3
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
-import com.library.name 1.0
+//import com.library.name 1.0
 
 import './qml/controls'
 
@@ -127,7 +127,6 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: animationControls.running = true
-
                         }
                     }
 

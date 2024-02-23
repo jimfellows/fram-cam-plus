@@ -5,7 +5,7 @@ import sqlite3
 
 from config import LOCAL_DB_PATH
 from PySide6.QtCore import QObject
-from PySide6.QtSql import QSqlDatabase
+from PySide6.QtSql import QSqlDatabase, QSqlQuery
 from py.logger import Logger
 
 
@@ -16,8 +16,7 @@ class BackdeckDB(QObject):
         self._db_path = db_path
         self._db = QSqlDatabase.addDatabase('QSQLITE', db_name)
         self._db.setDatabaseName(db_path)
-
-
+        self._query = None
 
     def open_connection(self):
         if self._db.open():
@@ -27,16 +26,43 @@ class BackdeckDB(QObject):
             self._logger.error(msg)
             raise Exception(msg)
 
+    def execute_query(self, sql):
+        results = []
+        self._query = QSqlQuery(self._db)
+        self._query.prepare(sql)
+        success = self._query.exec()
+        if success:
+            while self._query.next():
+                results.append(self._query.record())
+        else:
+            self._logger.error(f"Error executing SQL {sql}; {self._db.lastError()}")
 
-logger = Logger.get_root()
-backdeck_db = QSqlDatabase.addDatabase('QSQLITE', 'localdb')
-backdeck_db.setDatabaseName(LOCAL_DB_PATH)
-if backdeck_db.open():
-    logger.info(f"Successfully connected to {backdeck_db.databaseName()}")
-else:
-    msg = f"Unable to connect to local db: {backdeck_db.databaseName()}"
-    logger.error(msg)
-    raise Exception(msg)
+        return results
+
+    def get_vessel_from_id(self):
+        pass
+
+
+if __name__ == '__main__':
+    Logger().configure()
+    db = BackdeckDB(LOCAL_DB_PATH, 'TEST')
+    db.open_connection()
+    results = db.execute_query('select * from equipment')
+    print(results)
+
+
+
+# logger = Logger.get_root()
+# backdeck_db = QSqlDatabase.addDatabase('QSQLITE', 'localdb')
+# backdeck_db.setDatabaseName(LOCAL_DB_PATH)
+# if backdeck_db.open():
+#     logger.info(f"Successfully connected to {backdeck_db.databaseName()}")
+# else:
+#     msg = f"Unable to connect to local db: {backdeck_db.databaseName()}"
+#     logger.error(msg)
+#     raise Exception(msg)
+
+
 
 #
 # def open_connection(self):

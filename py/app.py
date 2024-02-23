@@ -10,12 +10,13 @@ from PySide6.QtSql import QSqlDatabase
 from PySide6.QtCore import QObject
 
 from py.logger import Logger
-from py.trawl_backdeck_db import backdeck_db
+# from py.trawl_backdeck_db import backdeck_db
 import config
 from py.settings import Settings
 from py.specimens import Specimens
 from py.data_selector import DataSelector
 from py.image_capture import ImageCapture
+from py.image_manager import ImageManager
 
 from qrc import qresources  # need this to import compiled qrc resources
 
@@ -84,6 +85,7 @@ class FramCamPlus(QObject):
         self.settings = Settings(self.db, app=self)
         self.data_selector = DataSelector(self.db, app=self)
         self.image_capture = ImageCapture(self.db, app=self)
+        self.image_manager = ImageManager(app=self)
 
         # create qml engine, make python classes available to qml context
         self.app = QGuiApplication(sys.argv)
@@ -92,6 +94,7 @@ class FramCamPlus(QObject):
         self.context.setContextProperty('settings', self.settings)
         self.context.setContextProperty('data_selector', self.data_selector)
         self.context.setContextProperty('image_capture', self.image_capture)
+        self.context.setContextProperty('image_manager', self.image_manager)
 
         # lastly, load up qml
         self.engine.load(os.path.join(config.QML_DIR, 'MainWindow.qml'))
