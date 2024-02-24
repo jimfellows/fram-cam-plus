@@ -268,19 +268,19 @@ class DataSelector(QObject):
         current_index to avoid signaling to UI directly.  We use this backchannel because...
         """
         # if we have pre-selected vals from db, set them now, in order (haul,catch,project,bio)
-        _haul_model_ix = self._hauls_model.get_ix_by_value('HAUL_ID', self._app.settings.cur_haul_id)
+        _haul_model_ix = self._hauls_model.get_ix_by_value('HAUL_ID', self._app.state.cur_haul_id)
         self._hauls_model._current_index = _haul_model_ix
         self._on_haul_changed(_haul_model_ix)
 
-        _catch_model_ix = self._catches_model.get_ix_by_value('CATCH_ID', self._app.settings.cur_catch_id)
+        _catch_model_ix = self._catches_model.get_ix_by_value('CATCH_ID', self._app.state.cur_catch_id)
         self._catches_model._current_index = _catch_model_ix
         self._on_catch_changed(_catch_model_ix)
 
-        _projects_model_ix = self._projects_model.get_ix_by_value('PROJECT', self._app.settings.cur_project)
+        _projects_model_ix = self._projects_model.get_ix_by_value('PROJECT', self._app.state.cur_project)
         self._projects_model._current_index = _projects_model_ix
         self._on_project_changed(_projects_model_ix)
 
-        _bios_model_ix = self._bios_model.get_ix_by_value('BIO_LABEL', self._app.settings.cur_bio_label)
+        _bios_model_ix = self._bios_model.get_ix_by_value('BIO_LABEL', self._app.state.cur_bio_label)
         self._bios_model._current_index = _bios_model_ix
         self._on_bio_changed(_bios_model_ix)
 
@@ -310,8 +310,8 @@ class DataSelector(QObject):
         self._catches_model.populate(self._cur_haul_rec.value('HAUL_ID'))
         self._projects_model.clear()
         self._bios_model.clear()
-        self._app.settings.set_param_value('Current Haul ID', self._cur_haul_rec.value('HAUL_ID'))
-        self._app.settings.set_param_value('Current Haul Number', self._cur_haul_rec.value('HAUL_NUMBER'))
+        self._app.state.set_state_value('Current Haul ID', self._cur_haul_rec.value('HAUL_ID'))
+        self._app.state.set_state_value('Current Haul Number', self._cur_haul_rec.value('HAUL_NUMBER'))
 
     def _on_catch_changed(self, new_catch_index):
         """
@@ -324,19 +324,19 @@ class DataSelector(QObject):
         self._logger.info(f"Selected catch changed to {self._cur_catch_id}")
         self._projects_model.populate(self._cur_catch_id)
         self._bios_model.populate(self._cur_catch_id)
-        self._app.settings.set_param_value('Current Catch ID', self._cur_catch_id)
-        self._app.settings.set_param_value('Current Catch Display', self._catches_model.record(new_catch_index).value('DISPLAY_NAME'))
+        self._app.state.set_state_value('Current Catch ID', self._cur_catch_id)
+        self._app.state.set_state_value('Current Catch Display', self._catches_model.record(new_catch_index).value('DISPLAY_NAME'))
 
     def _on_project_changed(self, new_project_index):
         self._cur_project_name = self._projects_model.getRowValue(new_project_index, 'PROJECT')
         self._logger.info(f"Selected project changed to {self._cur_project_name}")
         self._bios_model.populate(self._cur_catch_id, self._cur_project_name)
-        self._app.settings.set_param_value('Current Project', self._cur_project_name)
+        self._app.state.set_state_value('Current Project', self._cur_project_name)
 
     def _on_bio_changed(self, new_bio_index):
         self._cur_bio_label = self._bios_model.getRowValue(new_bio_index, 'BIO_LABEL')
         self._logger.info(f"Selected bio label changed to {self._cur_bio_label}")
-        self._app.settings.set_param_value('Current Bio Label', self._cur_bio_label)
+        self._app.state.set_state_value('Current Bio Label', self._cur_bio_label)
 
     @Property(QObject, notify=unusedSignal)
     def hauls_model(self):

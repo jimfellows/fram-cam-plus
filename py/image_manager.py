@@ -1,5 +1,5 @@
 
-from __future__ import annotations
+# from __future__ import annotations
 
 from PySide6.QtCore import QObject, Slot, QFile, QTextStream, QMimeDatabase, QFileInfo, QStandardPaths, Property, QAbstractListModel, QModelIndex, Qt, Signal
 from PySide6.QtWidgets import QFileSystemModel

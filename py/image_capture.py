@@ -75,12 +75,12 @@ class ImageCapture(QObject):
         :param ext: str, extension specified, default to jpg
         :return: str, name of image file
         """
-        haul_number = self._app.settings.cur_haul_number if self._app.settings.cur_haul_number else ''
+        haul_number = self._app.state.cur_haul_number if self._app.state.cur_haul_number else ''
         vessel_code = Utils.get_vessel_code_from_haul(haul_number)
         vessel_haul = vessel_code + haul_number[-3:]
-        catch_display = Utils.scrub_str_for_file_name(self._app.settings.cur_catch_display) if self._app.settings.cur_catch_display else ''
-        project = Utils.scrub_str_for_file_name(self._app.settings.cur_project) if self._app.settings.cur_project else ''
-        bio_label = self._app.settings.cur_bio_label if self._app.settings.cur_bio_label else ''
+        catch_display = Utils.scrub_str_for_file_name(self._app.state.cur_catch_display) if self._app.state.cur_catch_display else ''
+        project = Utils.scrub_str_for_file_name(self._app.state.cur_project) if self._app.state.cur_project else ''
+        bio_label = self._app.state.cur_bio_label if self._app.state.cur_bio_label else ''
         return f"{vessel_haul}_{catch_display}_{project}_{bio_label}.{ext}"
 
     def increment_file_path(self, full_path, i=1):

@@ -5,13 +5,13 @@ from py.logger import Logger
 from __feature__ import snake_case  # convert Qt methods to snake
 
 
-class Settings(QObject):
+class FramCamState(QObject):
     def __init__(self, db, app=None):
         super().__init__()
         self._app = app
         self._logger = Logger.get_root()
         self._model = QSqlTableModel(db=db)
-        self._model.set_table('FRAM_CAM_SETTINGS')
+        self._model.set_table('FRAM_CAM_STATE')
         # weirdness with getting model to update after db insert is why Im using manualSubmit
         # self._model.set_edit_strategy(QSqlTableModel.OnFieldChange)
         self._model.set_edit_strategy(QSqlTableModel.OnManualSubmit)
@@ -39,7 +39,7 @@ class Settings(QObject):
             return self._proxy_model.map_to_source(proxy_ix)
 
     @Slot(str, result=str)
-    def get_param_value(self, parameter, default_value=None):
+    def get_state_value(self, parameter, default_value=None):
         """
         retrieve VALUE field associated with matching PARAMETER value
         from table model.  If val doesnt exist yet and we assigna default val,
@@ -59,7 +59,7 @@ class Settings(QObject):
             return default_value
 
     @Slot(str, str, result=bool)
-    def set_param_value(self, parameter, value):
+    def set_state_value(self, parameter, value):
         """
         update val in model and db, and create new one if param doesnt yet exist
         :param parameter: str, name of PARAMETER in settings table
@@ -81,7 +81,7 @@ class Settings(QObject):
 
     @Property(str)
     def vessel_subnet(self):
-        return self.get_param_value('Vessel Subnet', default_value='127.0.0')
+        return self.get_state_value('Vessel Subnet', default_value='127.0.0')
 
     @Property(str)
     def backdeck_ip(self):
@@ -93,61 +93,41 @@ class Settings(QObject):
 
     @Property(str)
     def ui_theme(self):
-        return self.get_param_value('UI Theme', default_value='NOAA')
+        return self.get_state_value('UI Theme', default_value='NOAA')
 
     @Property(int)
     def cur_haul_id(self):
-        haul_id_str = self.get_param_value('Current Haul ID')
+        haul_id_str = self.get_state_value('Current Haul ID')
         return int(haul_id_str) if haul_id_str else None
 
     @Property(int)
     def cur_haul_number(self):
-        return self.get_param_value('Current Haul Number')
+        return self.get_state_value('Current Haul Number')
 
     @Property(int)
     def cur_catch_id(self):
-        catch_id_str = self.get_param_value('Current Catch ID')
+        catch_id_str = self.get_state_value('Current Catch ID')
         return int(catch_id_str) if catch_id_str else None
 
     @Property(int)
     def cur_catch_display(self):
-        return self.get_param_value('Current Catch Display')
+        return self.get_state_value('Current Catch Display')
 
     @Property(str)
     def cur_project(self):
-        return self.get_param_value('Current Project')
+        return self.get_state_value('Current Project')
 
     @Property(str)
     def cur_bio_label(self):
-        return self.get_param_value('Current Bio Label')
+        return self.get_state_value('Current Bio Label')
 
     @Property(str)
     def cur_specimen_id(self):
-        return self.get_param_value('Current Specimen ID')
+        return self.get_state_value('Current Specimen ID')
 
 
 if __name__ == '__main__':
-    print("Running settings")
-    from PySide6.QtSql import QSqlDatabase
-    from config import LOCAL_DB_PATH
-    backdeck_db = QSqlDatabase.add_database('QSQLITE', 'backdeck_db')
-    backdeck_db.set_database_name(LOCAL_DB_PATH)
-    backdeck_db.open()
-    s = Settings(backdeck_db)
-    w = s.get_param_value('Wheelhouse Data Directory')
-    print(f"Orig dir = {w}")
-    w = s.set_param_value('Wheelhouse Data Directory', 'alksjdlaksjdflkj')
-    w = s.get_param_value('Wheelhouse Data Directory')
-    print(f"New dir = {w}")
-    print(s.ui_theme)
-    #C:\pycollector\data
-    # r = s.get_settings_value('Vessel Subnet Address')
-
-    # print(r)
-    # print(w)
-
-
-
+    pass
 
 
 

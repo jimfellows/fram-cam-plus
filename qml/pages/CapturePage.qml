@@ -10,8 +10,8 @@ import './qml/controls'
 Item {
     property alias lvThumbnails: lvThumbnails
     Component.onCompleted: {
-        image_capture.set_video_output(videoOutput)
-        switchPreview.position = image_capture.is_camera_active ? 1 : 0
+        camera_manager.set_video_output(videoOutput)
+        switchPreview.position = camera_manager.is_camera_active ? 1 : 0
     }
 
     Rectangle {
@@ -152,10 +152,10 @@ Item {
                             checkedColor: "#0085ca"
                             onPositionChanged: {
                                 if (position === 1) {
-                                    image_capture.start_camera()
+                                    camera_manager.start_camera()
                                 }
                                 else {
-                                    image_capture.stop_camera()
+                                    camera_manager.stop_camera()
                                 }
                             }
                         }
@@ -180,7 +180,7 @@ Item {
                         //x = captureSession.imageCapture.captureToFile('pic.jpeg')
                         //                    captureSession.imageCapture.imageSaved()
                         console.info(x)
-                        image_capture.capture_image_to_file()
+                        camera_manager.capture_image_to_file()
                     }
 
                     background: Rectangle{
@@ -250,16 +250,16 @@ Item {
                     anchors.rightMargin: 0
                     anchors.topMargin: 0
 
-
-                    orientation: ListView.Horizontal
+                    orientation: ListView.Vertical
                     spacing: 10
 
-                    model: imagePaths
+                    model: camera_manager.images_view_model
 
                     delegate: Image {
-                        required property string path
-                        height: 100
-                        source: path
+                        source: "file:///" + camera_manager.images_view_model.get_value(model.index, 'full_path')
+                        width: lvThumbnails.width - 10
+                        //height: 100
+                        //source: path
                         fillMode: Image.PreserveAspectFit
                     }
                 }
@@ -277,8 +277,8 @@ Item {
             FramCamCaptureSession {
                 id: captureSession
                 videoOutput: videoOutput
-                camera: image_capture.camera
-                imageCapture: image_capture.image_capture
+                camera: camera_manager.camera
+                imageCapture: camera_manager.image_capture
 
                 imageCapture: ImageCapture {
                     onImageSaved: function (id, path) {
