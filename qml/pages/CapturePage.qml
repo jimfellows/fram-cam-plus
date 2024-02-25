@@ -253,10 +253,11 @@ Item {
                     orientation: ListView.Vertical
                     spacing: 10
 
-                    model: camera_manager.images_view_model
+                    model: [1, 2, 3]
+                    //model: camera_manager.images_view_model
 
                     delegate: Image {
-                        source: "file:///" + camera_manager.images_view_model.get_value(model.index, 'full_path')
+                        //source: "file:///" + camera_manager.images_view_model.get_value(model.index, 'full_path')
                         width: lvThumbnails.width - 10
                         //height: 100
                         //source: path
