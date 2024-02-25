@@ -16,7 +16,8 @@ from PySide6.QtCore import (
     Slot,
     Property,
     Signal,
-    Qt
+    Qt,
+    QAbstractListModel
 )
 from PySide6.QtMultimedia import (
     QAudioInput,
@@ -32,6 +33,45 @@ from PySide6.QtMultimedia import (
 
 from PySide6.QtSql import QSqlTableModel, QSqlQueryModel, QSqlQuery
 from __feature__ import snake_case  # convert Qt methods to snake
+
+
+class ImagesListModel(QAbstractListModel):
+
+    def __init__(self, db, parent=None):
+        super().__init__(parent)
+        self._db = db
+        self._query_model = QSqlQueryModel()
+        self._query = QSqlQuery(self._db)
+        self._sql = 'select * from images_vw'
+        self._records = []
+
+    def populate(self):
+        self._query.prepare(self._sql)
+        self._query.exec()
+        self._query_model.set_query(self._query)
+
+    def row_count(self, index):
+        return len(self._records)
+
+    def data(self, index, role: int):
+        if not index.is_valid():
+            return
+
+        if role == Qt.DisplayRole:
+            try:
+                val = self._records[index.row()].value(self.role_names()[role].decode('utf-8'))
+                return self._records[index.row()].value(self.role_names()[role].decode('utf-8'))
+            except:
+                return None
+
+    def get_value(self, i, key):
+        return self._records[i].value(key)
+
+    def role_names(self):
+        _rec = self._query_model.record()
+        _fields = [_rec.field(f).name().lower() for f in range(0, _rec.count())]
+        return {Qt.DisplayRole + i: r.encode("utf-8") for i, r in enumerate(_fields)}
+    
 
 class ImagesViewModel(QSqlQueryModel):
 
