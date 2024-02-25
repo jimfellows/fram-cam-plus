@@ -71,7 +71,7 @@ class ImagesListModel(QAbstractListModel):
         _rec = self._query_model.record()
         _fields = [_rec.field(f).name().lower() for f in range(0, _rec.count())]
         return {Qt.DisplayRole + i: r.encode("utf-8") for i, r in enumerate(_fields)}
-    
+
 
 class ImagesViewModel(QSqlQueryModel):
 
@@ -185,23 +185,10 @@ class CameraManager(QObject):
         self._is_camera_running = None
 
         self._images_model = ImagesModel(self._db)
-        self._images_view_model = ImagesViewModel(self._db)
-        self._load_images_view_model()
+        # self._images_view_model = ImagesViewModel(self._db)
+        self._images_view_model = ImagesListModel(self._db)
 
         self._image_capture.imageSaved.connect(lambda ix, path: self.create_new_image_record(path))  # image save is async, so hooking to signal
-        self.images_model_changed.connect(self._on_images_model_changed)  # anytime images model changed, call wrapper func
-
-    def _load_images_view_model(self):
-        self._images_view_model.load(
-            haul_id=self._app.state.cur_haul_id,
-            catch_id=self._app.state.cur_catch_id,
-            project_name=self._app.state.cur_project,
-            bio_label=self._app.state.cur_bio_label,
-        )
-
-    def _on_images_model_changed(self):
-        self._logger.info('Images model changed!')
-        self._load_images_view_model()
 
     @Property(QObject, notify=images_model_changed)
     def images_view_model(self):
