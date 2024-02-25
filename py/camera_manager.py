@@ -187,6 +187,7 @@ class CameraManager(QObject):
         self._images_model = ImagesModel(self._db)
         # self._images_view_model = ImagesViewModel(self._db)
         self._images_view_model = ImagesListModel(self._db)
+        self._images_view_model.populate()
 
         self._image_capture.imageSaved.connect(lambda ix, path: self.create_new_image_record(path))  # image save is async, so hooking to signal
 
