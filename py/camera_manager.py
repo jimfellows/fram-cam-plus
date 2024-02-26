@@ -47,13 +47,14 @@ class ImagesListModel(QAbstractListModel):
         self._query_model = QSqlQueryModel()
         self._query = QSqlQuery(self._db)
         self._sql = '''
-            select  *
-            from    IMAGES_VW
-            where   coalesce(:haul_id, haul_id) = haul_id
-                    and coalesce(:catch_id, catch_id) = catch_id
-                    and coalesce(:project_name, project_name) = project_name
-                    and coalesce(:bio_label, bio_label) = bio_label
-                    and coalesce(:image_id, image_id) = image_id
+            select      *
+            from        IMAGES_VW
+            where       coalesce(:haul_id, haul_id) = haul_id
+                        and coalesce(:catch_id, catch_id) = catch_id
+                        and coalesce(:project_name, project_name) = project_name
+                        and coalesce(:bio_label, bio_label) = bio_label
+                        and coalesce(:image_id, image_id) = image_id
+            order by    image_id desc
         '''
         self._query.prepare(self._sql)
         self._records = []
@@ -112,7 +113,7 @@ class ImagesListModel(QAbstractListModel):
         self._logger.info(f"New IMAGES record created with IMAGE_ID = {_img_id}")
         return _img_id
 
-    def load_image_from_view(self, image_id):
+    def load_image_from_view(self, image_id, index=0):
         """
         following insert to IMAGES table, use image_id to get denormalized version from view
         and put it into view model / list view
@@ -124,11 +125,13 @@ class ImagesListModel(QAbstractListModel):
         self._query.bindValue(':image_id', image_id)
         self._query.exec()
         self._query_model.setQuery(self._query)
-        self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())  # tells model/ui about updates
+        self.beginInsertRows(QModelIndex(), index, index)  # tells model/ui about updates
         for i in range(self._query_model.rowCount()):
-            self._records.append(self.record_to_dict(self._query_model.record(i)))
+            self._records.insert(index, self.record_to_dict(self._query_model.record(i)))
         self.endInsertRows()  # tells model/ui we're done
         self._logger.info(f"image_id {image_id} loaded to list model")
+        for ix, item in enumerate(self._records):
+            print(ix, item)
 
     @staticmethod
     def record_to_dict(rec: QSqlRecord):
