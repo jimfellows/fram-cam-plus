@@ -2,7 +2,6 @@
 from PySide6.QtCore import QObject, Slot, Signal, QSortFilterProxyModel, QModelIndex, Property
 from PySide6.QtSql import QSqlTableModel, QSqlRecord
 from py.logger import Logger
-from __feature__ import snake_case  # convert Qt methods to snake
 
 
 class FramCamState(QObject):
@@ -11,16 +10,16 @@ class FramCamState(QObject):
         self._app = app
         self._logger = Logger.get_root()
         self._model = QSqlTableModel(db=db)
-        self._model.set_table('FRAM_CAM_STATE')
+        self._model.setTable('FRAM_CAM_STATE')
         # weirdness with getting model to update after db insert is why Im using manualSubmit
         # self._model.set_edit_strategy(QSqlTableModel.OnFieldChange)
-        self._model.set_edit_strategy(QSqlTableModel.OnManualSubmit)
+        self._model.setEditStrategy(QSqlTableModel.OnManualSubmit)
         self._model.select()
         self._proxy_model = QSortFilterProxyModel()
-        self._proxy_model.set_source_model(self._model)
+        self._proxy_model.setSourceModel(self._model)
 
-        self._param_field_pos = self._model.field_index('PARAMETER')
-        self._value_field_pos = self._model.field_index('VALUE')
+        self._param_field_pos = self._model.fieldIndex('PARAMETER')
+        self._value_field_pos = self._model.fieldIndex('VALUE')
 
     def _get_value_index(self, parameter):
         """
@@ -31,12 +30,12 @@ class FramCamState(QObject):
 
         TODO: error handling, what to return if something doesnt work out here?
         """
-        self._proxy_model.set_filter_key_column(self._param_field_pos)
-        self._proxy_model.set_filter_fixed_string(parameter)
+        self._proxy_model.setFilterKeyColumn(self._param_field_pos)
+        self._proxy_model.setFilterFixedString(parameter)
 
-        if self._proxy_model.row_count() > 0:
+        if self._proxy_model.rowCount() > 0:
             proxy_ix = self._proxy_model.index(0, self._value_field_pos)
-            return self._proxy_model.map_to_source(proxy_ix)
+            return self._proxy_model.mapToSource(proxy_ix)
 
     @Slot(str, result=str)
     def get_state_value(self, parameter, default_value=None):
@@ -55,7 +54,7 @@ class FramCamState(QObject):
             rec = self._model.record()
             rec.set_value(self._param_field_pos, parameter)
             rec.set_value(self._value_field_pos, default_value)
-            self._model.insert_record(-1, rec)
+            self._model.insertRecord(-1, rec)
             return default_value
 
     @Slot(str, str, result=bool)
@@ -68,14 +67,14 @@ class FramCamState(QObject):
         """
         value_ix = self._get_value_index(parameter)
         if value_ix:
-            result = self._model.set_data(value_ix, value)
+            result = self._model.setData(value_ix, value)
         else:
             rec = self._model.record()
             rec.set_value(self._param_field_pos, parameter)
             rec.set_value(self._value_field_pos, value)
-            result = self._model.insert_record(-1, rec)
+            result = self._model.insertRecord(-1, rec)
 
-        self._model.submit_all()
+        self._model.submitAll()
         self._logger.info(f"{parameter}={value}, success={result}")
         return result
 

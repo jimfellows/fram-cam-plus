@@ -17,7 +17,6 @@ from PySide6.QtCore import (
     QModelRoleData
 )
 from py.logger import Logger
-from __feature__ import snake_case  # convert Qt methods to snake
 
 
 class FramCamQueryModel(QSqlQueryModel):
@@ -107,7 +106,7 @@ class FramCamQueryModel(QSqlQueryModel):
             self.current_index_changed.emit(i)
 
     def get_ix_by_value(self, field_name, value):
-        for i in range(0, self.row_count()):
+        for i in range(0, self.rowCount()):
             if value == self.record(i).value(field_name):
                 return i
 

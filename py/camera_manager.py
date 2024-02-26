@@ -17,7 +17,8 @@ from PySide6.QtCore import (
     Property,
     Signal,
     Qt,
-    QAbstractListModel
+    QAbstractListModel,
+    QModelIndex
 )
 from PySide6.QtMultimedia import (
     QAudioInput,
@@ -32,7 +33,7 @@ from PySide6.QtMultimedia import (
 )
 
 from PySide6.QtSql import QSqlTableModel, QSqlQueryModel, QSqlQuery
-from __feature__ import snake_case  # convert Qt methods to snake
+
 
 
 class ImagesListModel(QAbstractListModel):
@@ -48,26 +49,25 @@ class ImagesListModel(QAbstractListModel):
     def populate(self):
         self._query.prepare(self._sql)
         self._query.exec()
-        self._query_model.set_query(self._query)
+        self._query_model.setQuery(self._query)
 
-    def row_count(self, index):
+    def rowCount(self, index):
         return len(self._records)
 
     def data(self, index, role: int):
-        if not index.is_valid():
+        if not index.isValid():
             return
 
         if role == Qt.DisplayRole:
             try:
-                val = self._records[index.row()].value(self.role_names()[role].decode('utf-8'))
-                return self._records[index.row()].value(self.role_names()[role].decode('utf-8'))
+                return self._records[index.row()].value(self.roleNames()[role].decode('utf-8'))
             except:
                 return None
 
     def get_value(self, i, key):
         return self._records[i].value(key)
 
-    def role_names(self):
+    def roleNames(self):
         _rec = self._query_model.record()
         _fields = [_rec.field(f).name().lower() for f in range(0, _rec.count())]
         return {Qt.DisplayRole + i: r.encode("utf-8") for i, r in enumerate(_fields)}
@@ -122,8 +122,8 @@ class ImagesModel(QSqlTableModel):
 
     def __init__(self, db):
         super().__init__(db=db)
-        self.set_table('IMAGES')
-        self.set_edit_strategy(QSqlTableModel.OnManualSubmit)
+        self.setTable('IMAGES')
+        self.setEditStrategy(QSqlTableModel.OnManualSubmit)
         self.select()  # load me, should this be in INIT?
 
 class ImagesViewModelV1(FramCamQueryModel):
@@ -175,11 +175,11 @@ class CameraManager(QObject):
         self._logger = Logger.get_root()
         self._devices = QMediaDevices()
         print(self._devices)
-        self._camera = QCamera(QMediaDevices.default_video_input())
+        self._camera = QCamera(QMediaDevices.defaultVideoInput())
         self._image_capture = QImageCapture()
         self._capture_session = QMediaCaptureSession()
-        self._capture_session.set_camera(self._camera)
-        self._capture_session.set_image_capture(self._image_capture)
+        self._capture_session.setCamera(self._camera)
+        self._capture_session.setImageCapture(self._image_capture)
         self._is_capturing = False
         # self.start_camera()
         self._is_camera_running = None
@@ -187,8 +187,8 @@ class CameraManager(QObject):
         self._images_model = ImagesModel(self._db)
         # self._images_view_model = ImagesViewModel(self._db)
         self._images_view_model = ImagesListModel(self._db)
-        self._images_view_model.populate()
-
+        # self._images_view_model.populate()
+        # self._images_view_model = MyList()
         self._image_capture.imageSaved.connect(lambda ix, path: self.create_new_image_record(path))  # image save is async, so hooking to signal
 
     @Property(QObject, notify=images_model_changed)
@@ -209,7 +209,7 @@ class CameraManager(QObject):
 
     @Slot(QObject)
     def set_video_output(self, output):
-        self._capture_session.set_video_output(output)
+        self._capture_session.setVideoOutput(output)
 
     @Property(QObject)
     def capture_session(self):
@@ -217,7 +217,7 @@ class CameraManager(QObject):
 
     @Slot()
     def start_camera(self):
-        self._logger.info(f"Starting camera {self._camera.camera_device().description()}")
+        self._logger.info(f"Starting camera {self._camera.cameraDevice().description()}")
         self._camera.start()
         # self._is_camera_running = True
 
@@ -228,7 +228,7 @@ class CameraManager(QObject):
 
     @Property(bool)
     def is_camera_active(self):
-        return self._camera.is_active()
+        return self._camera.isActive()
 
     def get_image_name(self, ext='jpg'):
         """
@@ -276,60 +276,21 @@ class CameraManager(QObject):
         """
         img_name = self.get_image_name()
         full_path = Path(self.increment_file_path(os.path.join(IMAGES_DIR, img_name))).as_posix()
-        img_result = self._image_capture.capture_to_file(full_path)
+        img_result = self._image_capture.captureToFile(full_path)
         self._logger.info(f"Capturing image to {full_path}, capture result={img_result}")
 
     def create_new_image_record(self, image_path):
         self._logger.info(f"Creating new image here: {image_path}")
         img = self._images_model.record()
-        img.set_value(self._images_model.field_index('FILE_PATH'), os.path.dirname(image_path))
-        img.set_value(self._images_model.field_index('FILE_NAME'), os.path.basename(image_path))
-        img.set_value(self._images_model.field_index('HAUL_ID'), self._app.state.cur_haul_id)
-        img.set_value(self._images_model.field_index('CATCH_ID'), self._app.state.cur_catch_id)
-        img.set_value(self._images_model.field_index('SPECIMEN_ID'), self._app.state.cur_specimen_id)
-        self._images_model.insert_record(-1, img)
-        self._images_model.submit_all()
+        img.set_value(self._images_model.fieldIndex('FILE_PATH'), os.path.dirname(image_path))
+        img.set_value(self._images_model.fieldIndex('FILE_NAME'), os.path.basename(image_path))
+        img.set_value(self._images_model.fieldIndex('HAUL_ID'), self._app.state.cur_haul_id)
+        img.set_value(self._images_model.fieldIndex('CATCH_ID'), self._app.state.cur_catch_id)
+        img.set_value(self._images_model.fieldIndex('SPECIMEN_ID'), self._app.state.cur_specimen_id)
+        self._images_model.insertRecord(-1, img)
+        self._images_model.submitAll()
         self.images_model_changed.emit()
 
 
 if __name__ == '__main__':
-    logger = Logger().configure()
-    from config import LOCAL_DB_PATH
-    from py.qsqlite import QSqlite, QSqlQuery
-    from PySide6.QtSql import QSqlQueryModel
-
-    class Test(QSqlQueryModel):
-
-        def __init__(self):
-            super().__init__()
-            self.roles = [
-                'file_name',
-                'file_path'
-            ]
-
-        def role_names2(self):
-            pass
-        def role_names(self):
-            return {Qt.UserRole + i: r for i, r in enumerate(self.roles)}
-
-            # roles = {
-            #     Qt.UserRole + 1: 'file_name',
-            #     Qt.UserRole + 2: 'file_path',
-            # }
-            # return roles
-
-    sqlite = QSqlite(LOCAL_DB_PATH, 'test')
-    sqlite.open_connection()
-    m = Test()
-    q = QSqlQuery(sqlite.db)
-    q.prepare('select file_name, file_path from images_vw')
-    q.exec()
-    m.set_query(q)
-    # m.set_header_data(0, Qt.Horizontal, 'file_name')
-    # m.set_header_data(1, Qt.Horizontal, 'file_path')
-    # print(m.record())
-    print(m.role_names())
-    # print(m.row_count())
-    # print(m.header_data())
-
-
+    pass
