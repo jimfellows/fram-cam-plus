@@ -254,6 +254,16 @@ Item {
                         width: lvThumbnails.width - 10
                         fillMode: Image.PreserveAspectFit
                     }
+
+                    add: Transition {
+                        PropertyAction { property: "transformOrigin"; value: Item.Top}
+                        NumberAnimation { property: "opacity"; from: 0; to: 1.0; duration: 200 }
+                        NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 200 }
+                    }
+                    displaced: Transition {
+                        PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
+                        NumberAnimation { properties: "x,y"; duration: 200 }
+                    }
                 }
             }
 
