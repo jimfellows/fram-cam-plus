@@ -77,12 +77,20 @@ class ImagesListModel(QAbstractListModel):
         self._query_model.setQuery(self._query)
         self._logger.info(f"Loading {self._query_model.rowCount()} records to images model...")
         for i in range(self._query_model.rowCount()):
-
             self._records.append(self.record_to_dict(self._query_model.record(i)))
 
-        print(self._records)
+        for x in self._records:
+            print(x)
 
     def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
+        """
+        method to create a new rec in IMAGES table and return newly generated IMAGE_ID pkey value
+        :param image_path: full str path to image
+        :param haul_id: int, pkey for HAULS table
+        :param catch_id: int, pkey for CATCH table
+        :param specimen_id: int, pkey for SPECIMEN table
+        :return: int, pkey for new IMAGES table rec
+        """
         if not os.path.exists(image_path):
             self._logger.error(f"Unable to add file to IMAGES table: newly image not found at {image_path}")
             return
@@ -116,14 +124,19 @@ class ImagesListModel(QAbstractListModel):
         self._query.bindValue(':image_id', image_id)
         self._query.exec()
         self._query_model.setQuery(self._query)
-        self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())
+        self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())  # tells model/ui about updates
         for i in range(self._query_model.rowCount()):
             self._records.append(self.record_to_dict(self._query_model.record(i)))
-        self.endInsertRows()
+        self.endInsertRows()  # tells model/ui we're done
         self._logger.info(f"image_id {image_id} loaded to list model")
 
     @staticmethod
     def record_to_dict(rec: QSqlRecord):
+        """
+        covert a QSQLrecord instances to a python dict.  Use me to append records to self._records
+        :param rec: QSqlRecord
+        :return: dictionary
+        """
         _keys = [rec.fieldName(k).lower() for k in range(rec.count())]
         _vals = [rec.value(k) for k in _keys]
         return dict(zip(_keys, _vals))
@@ -132,7 +145,6 @@ class ImagesListModel(QAbstractListModel):
         """
         In the event that the camera has saved an image to disk, this function performs what needs
         to happen immediately after with respect to the  list model
-
         1.) insert to database
         2.) retrieve denormalized rec from view
         3.) append to array aka listmodel
@@ -192,12 +204,12 @@ class CameraManager(QObject):
         self._is_capturing = False
         # self.start_camera()
         self._is_camera_running = None
-
         self._images_model = ImagesListModel(self._db)
         self._load_images_model()
+        print(self._images_model.roleNames())
         self._image_capture.imageSaved.connect(lambda ix, path: self._on_image_saved(path))  # image save is async, so hooking to signal
 
-    @Property(QObject, notify=images_view_changed)
+    @Property(QObject)
     def images_model(self):
         return self._images_model
 

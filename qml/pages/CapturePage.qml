@@ -247,7 +247,7 @@ Item {
                     orientation: ListView.Vertical
                     spacing: 10
 
-                    model: camera_manager.images_view_model
+                    model: camera_manager.images_model
 
                     delegate: Image {
                         source: "file:///" + model.full_path
