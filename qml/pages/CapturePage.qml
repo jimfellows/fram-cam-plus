@@ -241,26 +241,17 @@ Item {
                     id: lvThumbnails
                     x: 0
                     y: 0
-                    height: 75
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-
-                    anchors.top: parent.top
-                    anchors.leftMargin: 0
-                    anchors.rightMargin: 0
-                    anchors.topMargin: 0
-
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
                     orientation: ListView.Vertical
                     spacing: 10
 
-                    model: [1, 2, 3]
-                    //model: camera_manager.images_view_model
+                    model: camera_manager.images_view_model
 
                     delegate: Image {
-                        //source: "file:///" + camera_manager.images_view_model.get_value(model.index, 'full_path')
+                        source: "file:///" + model.full_path
                         width: lvThumbnails.width - 10
-                        //height: 100
-                        //source: path
                         fillMode: Image.PreserveAspectFit
                     }
                 }

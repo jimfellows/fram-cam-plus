@@ -11,8 +11,7 @@ Item {
 
         ListView {
             id: lvImages
-            //model: camera_manager.images_view_model
-            model: [1, 2, 3]
+            model: camera_manager.images_view_model
             anchors.fill: parent
             delegate: ItemDelegate {
                 id: delegate
@@ -38,8 +37,7 @@ Item {
                                 }
                             }
                             Label {
-                                //text: camera_manager.images_view_model.get_value(index, 'file_name')
-                                text: 'hello'
+                                text: model.file_name
                             }
                             Button {
                                 id: btnDelete

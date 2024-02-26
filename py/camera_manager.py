@@ -35,7 +35,6 @@ from PySide6.QtMultimedia import (
 from PySide6.QtSql import QSqlTableModel, QSqlQueryModel, QSqlQuery
 
 
-
 class ImagesListModel(QAbstractListModel):
 
     def __init__(self, db, parent=None):
@@ -43,43 +42,6 @@ class ImagesListModel(QAbstractListModel):
         self._db = db
         self._query_model = QSqlQueryModel()
         self._query = QSqlQuery(self._db)
-        self._sql = 'select * from images_vw'
-        self._records = []
-
-    def populate(self):
-        self._query.prepare(self._sql)
-        self._query.exec()
-        self._query_model.setQuery(self._query)
-
-    def rowCount(self, index):
-        return len(self._records)
-
-    def data(self, index, role: int):
-        if not index.isValid():
-            return
-
-        if role == Qt.DisplayRole:
-            try:
-                return self._records[index.row()].value(self.roleNames()[role].decode('utf-8'))
-            except:
-                return None
-
-    def get_value(self, i, key):
-        return self._records[i].value(key)
-
-    def roleNames(self):
-        _rec = self._query_model.record()
-        _fields = [_rec.field(f).name().lower() for f in range(0, _rec.count())]
-        return {Qt.DisplayRole + i: r.encode("utf-8") for i, r in enumerate(_fields)}
-
-
-class ImagesViewModel(QSqlQueryModel):
-
-    model_changed = Signal()
-
-    def __init__(self, db):
-        super().__init__()
-        self._db = db
         self._sql = '''
             select  *
             from    IMAGES_VW
@@ -88,60 +50,8 @@ class ImagesViewModel(QSqlQueryModel):
                     and coalesce(:project_name, project_name) = project_name
                     and coalesce(:bio_label, bio_label) = bio_label
         '''
-        self._query = QSqlQuery(db)
-        self._query.prepare(self._sql)
-        self._current_index = -1
+        self._records = []
 
-    def load(self, haul_id=None, catch_id=None, project_name=None, bio_label=None):
-        self._query.bind_value(':haul_id', haul_id)
-        self._query.bind_value(':catch_id', catch_id)
-        self._query.bind_value(':plan_name', project_name)
-        self._query.bind_value(':bio_label', bio_label)
-        self._query.exec()
-        self.set_query(self._query)
-        self.model_changed.emit()
-
-    def data(self):
-        pass
-
-    def row_count(self):
-        pass
-
-    def role_names(self):
-        pass
-
-    @Slot(int, str, result="QVariant")
-    def get_value(self, row_ix, field_name):
-        print(f"Trying to get value {field_name} at {row_ix}")
-        print(f"new val = {self.record(row_ix).value(field_name)}")
-        return self.record(row_ix).value(field_name)
-
-class ImagesModel(QSqlTableModel):
-
-    model_changed = Signal()
-
-    def __init__(self, db):
-        super().__init__(db=db)
-        self.setTable('IMAGES')
-        self.setEditStrategy(QSqlTableModel.OnManualSubmit)
-        self.select()  # load me, should this be in INIT?
-
-class ImagesViewModelV1(FramCamQueryModel):
-
-    def __init__(self, db):
-        super().__init__(db)
-        self._sql = '''
-            select  HAUL_NUMBER
-                    ,FILE_PATH
-                    ,FILE_NAME
-                    ,FULL_PATH
-            from    IMAGES_VW
-        '''
-        self._roles = ['haul_number', 'file_path', 'file_name', 'full_path']
-        self.populate()
-        # self.set_role_names = self._roles
-
-    @Slot(int, name="populate")
     def populate(self, haul_id=None, catch_id=None, project_name=None, bio_label=None):
         """
         custom query to load up denormalized image results.
@@ -152,15 +62,49 @@ class ImagesViewModelV1(FramCamQueryModel):
         :param project_name: str, name of project for sampling plan (SPECIES_SAMPLING_PLAN_LU.PLAN_NAME field)
         :param bio_label: str, name of bio label (SPECIMEN.ALPHA_VALUE/SPECIMEN.NUMERIC_VALUE)
         """
-        self.clear()
         self._query.prepare(self._sql)
-        self._query.bind_value(':haul_id', haul_id)
-        self._query.bind_value(':catch_id', catch_id)
-        self._query.bind_value(':plan_name', project_name)
-        self._query.bind_value(':bio_label', bio_label)
+        self._query.bindValue(':haul_id', haul_id)
+        self._query.bindValue(':catch_id', catch_id)
+        self._query.bindValue(':plan_name', project_name)
+        self._query.bindValue(':bio_label', bio_label)
         self._query.exec()
-        self.set_query(self._query)
-        self.model_changed.emit()
+        self._query_model.setQuery(self._query)
+        for i in range(self._query_model.rowCount()):
+            self._records.append(self._query_model.record(i))
+
+    def rowCount(self, index):
+        return len(self._records)
+
+    def columnCount(self, index):
+        return self._query_model.record().count()
+
+    def data(self, index, role: int):
+        if not index.isValid():
+            return
+
+        try:
+            return self._records[index.row()].value(self.roleNames()[role].decode('utf-8'))
+        except:
+            return None
+
+    def get_value(self, i, key):
+        return self._records[i].value(key)
+
+    def roleNames(self):
+        _rec = self._query_model.record()
+        _fields = [_rec.field(f).name().lower() for f in range(0, _rec.count())]
+        return {Qt.DisplayRole + i: r.encode("utf-8") for i, r in enumerate(_fields)}
+
+
+class ImagesModel(QSqlTableModel):
+
+    model_changed = Signal()
+
+    def __init__(self, db):
+        super().__init__(db=db)
+        self.setTable('IMAGES')
+        self.setEditStrategy(QSqlTableModel.OnManualSubmit)
+        self.select()  # load me, should this be in INIT?
 
 class CameraManager(QObject):
 
@@ -185,10 +129,14 @@ class CameraManager(QObject):
         self._is_camera_running = None
 
         self._images_model = ImagesModel(self._db)
-        # self._images_view_model = ImagesViewModel(self._db)
         self._images_view_model = ImagesListModel(self._db)
-        # self._images_view_model.populate()
-        # self._images_view_model = MyList()
+        self._images_view_model.populate(
+            self._app.state.cur_haul_id,
+            self._app.state.cur_catch_id,
+            self._app.state.cur_project,
+            self._app.state.cur_bio_label,
+
+        )
         self._image_capture.imageSaved.connect(lambda ix, path: self.create_new_image_record(path))  # image save is async, so hooking to signal
 
     @Property(QObject, notify=images_model_changed)
@@ -282,11 +230,11 @@ class CameraManager(QObject):
     def create_new_image_record(self, image_path):
         self._logger.info(f"Creating new image here: {image_path}")
         img = self._images_model.record()
-        img.set_value(self._images_model.fieldIndex('FILE_PATH'), os.path.dirname(image_path))
-        img.set_value(self._images_model.fieldIndex('FILE_NAME'), os.path.basename(image_path))
-        img.set_value(self._images_model.fieldIndex('HAUL_ID'), self._app.state.cur_haul_id)
-        img.set_value(self._images_model.fieldIndex('CATCH_ID'), self._app.state.cur_catch_id)
-        img.set_value(self._images_model.fieldIndex('SPECIMEN_ID'), self._app.state.cur_specimen_id)
+        img.setValue(self._images_model.fieldIndex('FILE_PATH'), os.path.dirname(image_path))
+        img.setValue(self._images_model.fieldIndex('FILE_NAME'), os.path.basename(image_path))
+        img.setValue(self._images_model.fieldIndex('HAUL_ID'), self._app.state.cur_haul_id)
+        img.setValue(self._images_model.fieldIndex('CATCH_ID'), self._app.state.cur_catch_id)
+        img.setValue(self._images_model.fieldIndex('SPECIMEN_ID'), self._app.state.cur_specimen_id)
         self._images_model.insertRecord(-1, img)
         self._images_model.submitAll()
         self.images_model_changed.emit()
