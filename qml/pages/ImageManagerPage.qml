@@ -11,8 +11,7 @@ Item {
 
         ListView {
             id: lvImages
-            model: image_manager.model
-            //model: [1, 2, 3]
+            model: camera_manager.images_model
             anchors.fill: parent
             delegate: ItemDelegate {
                 id: delegate

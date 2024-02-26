@@ -10,8 +10,8 @@ import './qml/controls'
 Item {
     property alias lvThumbnails: lvThumbnails
     Component.onCompleted: {
-        image_capture.set_video_output(videoOutput)
-        switchPreview.position = image_capture.is_camera_active ? 1 : 0
+        camera_manager.set_video_output(videoOutput)
+        switchPreview.position = camera_manager.is_camera_active ? 1 : 0
     }
 
     Rectangle {
@@ -152,10 +152,10 @@ Item {
                             checkedColor: "#0085ca"
                             onPositionChanged: {
                                 if (position === 1) {
-                                    image_capture.start_camera()
+                                    camera_manager.start_camera()
                                 }
                                 else {
-                                    image_capture.stop_camera()
+                                    camera_manager.stop_camera()
                                 }
                             }
                         }
@@ -180,7 +180,7 @@ Item {
                         //x = captureSession.imageCapture.captureToFile('pic.jpeg')
                         //                    captureSession.imageCapture.imageSaved()
                         console.info(x)
-                        image_capture.capture_image_to_file()
+                        camera_manager.capture_image_to_file()
                     }
 
                     background: Rectangle{
@@ -241,26 +241,28 @@ Item {
                     id: lvThumbnails
                     x: 0
                     y: 0
-                    height: 75
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-
-                    anchors.top: parent.top
-                    anchors.leftMargin: 0
-                    anchors.rightMargin: 0
-                    anchors.topMargin: 0
-
-
-                    orientation: ListView.Horizontal
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    orientation: ListView.Vertical
                     spacing: 10
 
-                    model: imagePaths
+                    model: camera_manager.images_model
 
                     delegate: Image {
-                        required property string path
-                        height: 100
-                        source: path
+                        source: "file:///" + model.full_path
+                        width: lvThumbnails.width - 10
                         fillMode: Image.PreserveAspectFit
+                    }
+
+                    add: Transition {
+                        PropertyAction { property: "transformOrigin"; value: Item.Top}
+                        NumberAnimation { property: "opacity"; from: 0; to: 1.0; duration: 200 }
+                        NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 200 }
+                    }
+                    displaced: Transition {
+                        PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
+                        NumberAnimation { properties: "x,y"; duration: 200 }
                     }
                 }
             }
@@ -277,8 +279,8 @@ Item {
             FramCamCaptureSession {
                 id: captureSession
                 videoOutput: videoOutput
-                camera: image_capture.camera
-                imageCapture: image_capture.image_capture
+                camera: camera_manager.camera
+                imageCapture: camera_manager.image_capture
 
                 imageCapture: ImageCapture {
                     onImageSaved: function (id, path) {
