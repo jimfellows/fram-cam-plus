@@ -161,6 +161,27 @@ class ImagesListModel(QAbstractListModel):
         _img_id = self.insert_to_db(image_path, haul_id, catch_id, specimen_id)
         self.load_image_from_view(_img_id)
 
+    def remove_from_db(self, image_id):
+        row = 0
+        for ix in range(self._table_model.rowCount()):
+            if self._table_model.record(ix).value('IMAGE_ID') == image_id:
+                break
+            else:
+                row += 1
+
+        self._table_model.removeRow(row)
+
+    def remove_from_model(self, index):
+        self.beginRemoveRows(QModelIndex(), index, index)
+        del self._records[index]
+        self.endRemoveRows()
+
+    @Slot(int)
+    def remove_image(self, row_index):
+        pass
+
+
+
     def rowCount(self, index=0):
         return len(self._records)
 

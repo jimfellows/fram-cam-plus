@@ -40,3 +40,12 @@ classifiers = [
 
 [project.urls]
 Repository = "https://github.com/jimfellows/fram-cam-plus"
+
+[tool.cxfreeze]
+executables = [
+    {script = "main.py", base="FramCam+"}
+]
+
+[tool.cxfreeze.build_exe]
+excludes = ["tkinter", "unittest"]
+zip_include_packages = ["encodings", "PySide6", "shiboken6"]
