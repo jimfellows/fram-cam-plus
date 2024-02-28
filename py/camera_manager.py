@@ -222,6 +222,7 @@ class CameraManager(QObject):
     unusedSignal = Signal()
     images_view_changed = Signal()
     images_model_changed = Signal()
+    activeCameraChanged = Signal()
 
 
     def __init__(self, db, app=None):
@@ -241,6 +242,34 @@ class CameraManager(QObject):
         self._images_model = ImagesListModel(self._db)
         self._load_images_model()
         self._image_capture.imageSaved.connect(lambda ix, path: self._on_image_saved(path))  # image save is async, so hooking to signal
+        print(self._camera.supportedFeatures())
+
+    @Property(str, notify=activeCameraChanged)
+    def active_camera_name(self):
+        return self._camera.cameraDevice().description()
+
+    @Slot()
+    def toggle_camera(self):
+        if not self._devices.videoInputs() or not self._camera:
+            self._logger.warning(f"Unable to get next device, none available")
+            return
+
+        if len(self._devices.videoInputs()) == 1:
+            self._logger.info(f"Only one video input device available")
+            return
+
+        try:
+            cur_index = [d.description() for d in self._devices.videoInputs()].index(self._camera.cameraDevice().description())
+            self.camera = QCamera(self._devices.videoInputs()[cur_index+1])
+
+        except ValueError as e:
+            self._logger.error(f"Error occurred while trying to get toggle camera device: {e}")
+            return
+
+        except IndexError:
+            self._logger.info("Setting camera to default device")
+            self.camera = QCamera(self._devices.videoInputs()[0])
+
 
     @Property(QObject)
     def images_model(self):
@@ -269,6 +298,27 @@ class CameraManager(QObject):
     @Property(QObject)
     def camera(self):
         return self._camera
+
+    @camera.setter
+    def camera(self, new_camera):
+        if self._camera.cameraDevice().description() != new_camera.cameraDevice().description():
+            self._camera = new_camera
+            self._capture_session.setCamera(self._camera)
+            self._camera.start()
+            self.activeCameraChanged.emit()
+            self._view_camera_features()
+
+    @Property("QVariant", notify=activeCameraChanged)
+    def isFlashSupported(self):
+        return self._camera.isFlashModeSupported(QCamera.FlashOn)
+
+    @Property("QVariant", notify=activeCameraChanged)
+    def isTorchSupported(self):
+        return self._camera.isTorchModeSupported(QCamera.TorchOn)
+
+    def _view_camera_features(self):
+        print(QCamera.FlashOn)
+        self._logger.info(f"Is flash on supported? {self._camera.isFlashModeSupported(QCamera.FlashOn)}")
 
     @Property(QObject)
     def image_capture(self):

@@ -59,7 +59,7 @@ ComboBox {
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                 sourceSize.height: 20
                 sourceSize.width: 20
-                source: "qrc:/svgs/fish.svg"
+                source: "qrc:/svgs/cam_scope.svg"
                 layer {
                     enabled: true
                     effect: ColorOverlay {

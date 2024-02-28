@@ -133,15 +133,20 @@ Item {
 
                     Row {
                         id: rowControls
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        anchors.topMargin: 0
-                        anchors.bottomMargin: 0
+                        anchors.fill: parent
                         anchors.rightMargin: 5
-                        anchors.leftMargin: 5
-
+                        anchors.leftMargin: 20
+                        anchors.topMargin: 30
+                        //anchors.verticalCenter: parent.verticalCenter
+                        spacing: 20
+                        FramCamButton {
+                            implicitWidth: 200
+                            implicitHeight: 50
+                            text: camera_manager.active_camera_name
+                            onClicked: camera_manager.toggle_camera()
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            rightIconSource: 'qrc:/svgs/change_camera.svg'
+                        }
                         FramCamSwitch {
                             id: switchPreview
                             width: 100
@@ -160,7 +165,82 @@ Item {
                                 }
                             }
                         }
+                        FramCamSwitch {
+                            id: switchFlash
+                            width: 100
+                            spacing: 6
+                            switchWidth: 100
+                            titleText: "Flash"
+                            titleFontSize: 12
+                            titleColor: "#ffffff"
+                            checkedColor: "#0085ca"
+                            visible: camera_manager.isFlashSupported
+                            onPositionChanged: {
+                                if (position === 1) {
+                                    console.info("Flash on!")
+                                }
+                                else {
+                                    console.info("Flash off!")
+                                }
+                            }
+                        }
+                        FramCamSwitch {
+                            id: switchTorch
+                            width: 100
+                            spacing: 6
+                            switchWidth: 100
+                            titleText: "Torch"
+                            titleFontSize: 12
+                            titleColor: "#ffffff"
+                            checkedColor: "#0085ca"
+                            visible: camera_manager.isTorchSupported
+                            onPositionChanged: {
+                                if (position === 1) {
+                                    console.info("Torch on!")
+                                }
+                                else {
+                                    console.info("Torch off!")
+                                }
+                            }
+                        }
+                        FramCamSwitch {
+                            id: switchBarcode
+                            width: 100
+                            spacing: 6
+                            switchWidth: 100
+                            titleText: "Barcode Scanner"
+                            titleFontSize: 12
+                            titleColor: "#ffffff"
+                            checkedColor: "#0085ca"
+                            onPositionChanged: {
+                                if (position === 1) {
+                                    console.info("Barcode scanner on!")
+                                }
+                                else {
+                                    console.info("Barcode scanner off!")
+                                }
+                            }
+                        }
+                        FramCamSwitch {
+                            id: switchTaxonScanner
+                            width: 100
+                            spacing: 6
+                            switchWidth: 100
+                            titleText: "Taxon Scanner"
+                            titleFontSize: 12
+                            titleColor: "#ffffff"
+                            checkedColor: "#0085ca"
+                            onPositionChanged: {
+                                if (position === 1) {
+                                    console.info("Taxon scanner on!")
+                                }
+                                else {
+                                    console.info("Taxon scanner off!")
+                                }
+                            }
+                        }
                     }
+
                 }
 
                 Button {

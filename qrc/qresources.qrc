@@ -16,6 +16,8 @@
     <qresource prefix="/svgs">
         <file alias="aperture.svg">../resources/svgs/aperture_1.svg</file>
         <file>../resources/svgs/boat-icon.svg</file>
+        <file alias="cam_scope.svg">../resources/svgs/cam_scope.svg</file>
+        <file alias="change_camera.svg">../resources/svgs/change_camera.svg</file>
         <file alias="check.svg">../resources/svgs/check_basic.svg</file>
         <file alias="close.svg">../resources/svgs/close_icon.svg</file>
         <file>../resources/svgs/collapse_left.svg</file>
