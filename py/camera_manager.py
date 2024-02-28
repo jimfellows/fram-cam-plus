@@ -138,8 +138,10 @@ class ImagesListModel(QAbstractListModel):
         self.beginInsertRows(QModelIndex(), index, index)  # tells model/ui about updates
         for i in range(self._query_model.rowCount()):
             self._records.insert(index, self.record_to_dict(self._query_model.record(i)))
+
+        self.currentIndex = index
         self.endInsertRows()  # tells model/ui we're done
-        self._logger.info(f"image_id {image_id} loaded to list model")
+        self._logger.info(f"image_id {image_id} loaded to list model at index {self._current_index}")
 
     @staticmethod
     def record_to_dict(rec: QSqlRecord):

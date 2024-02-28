@@ -282,12 +282,13 @@ Item {
                         }
                         Rectangle {
                             id: rectUnderline
-                            height: 1
+                            height: index === camera_manager.images_model.currentIndex ? 3 : 1
                             width: imgThumbnail.width - 10
                             color: "white"
                             anchors.topMargin: 10
                             anchors.left: imgThumbnail.left
                             anchors.leftMargin: 15
+
                         }
                     }
                     add: Transition {
