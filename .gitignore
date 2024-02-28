@@ -127,6 +127,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+venv*/
 
 # Spyder project settings
 .spyderproject
@@ -162,4 +163,7 @@ cython_debug/
 # data stuff
 logs/
 data/trawl_backdeck.db
+data/images/*
 *.db
+
+qrc/qresources.py

@@ -3,11 +3,14 @@ import QtQuick.Window
 import QtQuick.Controls 6.0
 import Qt5Compat.GraphicalEffects
 //import QtGraphicalEffects 1.15
+import QtQuick.Controls.Material
 
 import "./pages"
 import "./controls"
 
 Window {
+    Material.theme: Material.Dark
+    Material.accent: Material.Purple
     id: windowMain
     width: 1200
     height: 700
@@ -122,6 +125,11 @@ Window {
                     anchors.topMargin: 0
                     anchors.leftMargin: 0
 
+                    //double click top bar to min/max window
+                    MouseArea {
+                        anchors.fill: parent
+                        onDoubleClicked: internal.maximizeRestore()
+                    }
                     //allow dragging of window from this bar
                     DragHandler {
                         onActiveChanged: if (active){
@@ -136,12 +144,15 @@ Window {
                         anchors.left: parent.left
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
-                        source: "../resources/images/svgs/octopus_1.svg"
+                        source: "qrc:/svgs/nautilus.svg"
+                        sourceSize.width: 32
+                        sourceSize.height: 32
                         anchors.bottomMargin: 3
-                        anchors.leftMargin: 4
+                        anchors.leftMargin: 5
                         anchors.topMargin: 5
                         fillMode: Image.PreserveAspectFit
                         antialiasing: false
+                        smooth: true
                     }
 
                     ColorOverlay {
@@ -171,7 +182,7 @@ Window {
                         font.pointSize: 12
                         anchors.bottomMargin: 8
                         anchors.topMargin: 11
-                        anchors.leftMargin: 10
+                        //anchors.leftMargin: 1
                     }
 
                     Row {

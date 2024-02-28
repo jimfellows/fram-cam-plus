@@ -93,6 +93,8 @@ class Logger:
 
         QtCore.qInstallMessageHandler(self._qt_msg_handler)
 
+        return self.get_root()
+
     def _get_todays_log_file(self):
         """
         Get log file for today, define here so we can use when setting up log db file (or txt)

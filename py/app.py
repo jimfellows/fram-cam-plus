@@ -1,56 +1,55 @@
-# This Python file uses the following encoding: utf-8
+
+
+# standard imports
 import os
-from pathlib import Path
 import sys
-from datetime import datetime
 
-from PySide6.QtGui import QGuiApplication
-from PySide6.QtQml import QQmlApplicationEngine
-from PySide6.QtSql import QSqlDatabase
-
+# local imports
 from py.logger import Logger
-from py.trawl_backdeck_db import backdeck_db
-import config
-from py.settings import Settings
-
+from config import LOCAL_DB_PATH, QML_DIR
+from py.fram_cam_state import FramCamState
+from py.data_selector import DataSelector
+from py.camera_manager import CameraManager
+from py.qsqlite import QSqlite
 from qrc import qresources  # need this to import compiled qrc resources
 
-# from py.camera import Camera
+# 3rd party imports
+from PySide6.QtGui import QGuiApplication
+from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtCore import QObject
 
-def run():
-    Logger()
-    # setup main logger to be used globally in app
-    logger = Logger.get_root()  # return the main root logger
-    logger.info('-------------------------------------------------------------------------------------------')
-    logger.info(f'~~><(((*>  ~~><(((*> ~~><(((*>  | FRAMCam Started |  ~~><(((*>  ~~><(((*> ~~><(((*>')
-    logger.info('-------------------------------------------------------------------------------------------')
-    logger.info(f"HOME DIR = {config.HOME_DIR}")
-    logger.info(f"PYTHON DIR = {config.DATA_DIR}")
+class FramCamPlus(QObject):
 
-    # setup main db connections to be shared globally in app
-    _backdeck_db = QSqlDatabase.addDatabase('QSQLITE', 'backdeck_db')
-    _backdeck_db.setDatabaseName(config.LOCAL_DB_PATH)
-    if backdeck_db.open():
-        logger.info(f"Successfully opened connection to {backdeck_db.databaseName()}")
-    else:
-        msg = f"Unable to connect to local db: {backdeck_db.databaseName()}"
-        logger.error(msg)
-        raise Exception(msg)
+    def __init__(self):
+        super().__init__()
+        self._logger = Logger().configure()
 
-    settings = Settings(backdeck_db)
+        # create qml engine, make python classes available to qml context
+        self.app = QGuiApplication(sys.argv)
+        self.engine = QQmlApplicationEngine()
+        self.context = self.engine.rootContext()
 
-    # exit()
+        # setup main db connections to be shared globally in app
+        self.sqlite = QSqlite(LOCAL_DB_PATH, 'fram_cam_db')
+        self.sqlite.open_connection()
 
-    app = QGuiApplication(sys.argv)
-    engine = QQmlApplicationEngine()
-    engine.load(os.path.join(config.QML_DIR, 'MainWindow.qml'))
-    # engine.load(os.fspath(Path(__file__).resolve().parent / "qml/MainWindow.qml"))
-    context = engine.rootContext()
+        # init python classes
+        self.state = FramCamState(self.sqlite.db, app=self)
+        self.data_selector = DataSelector(self.sqlite.db, app=self)
+        self.camera_manager = CameraManager(self.sqlite.db, self)
 
-    if not engine.rootObjects():
-        sys.exit(-1)
-    sys.exit(app.exec_())
+        self.context.setContextProperty('state', self.state)
+        self.context.setContextProperty('data_selector', self.data_selector)
+        self.context.setContextProperty('camera_manager', self.camera_manager)
+
+        # lastly, load up qml
+        self.engine.load(os.path.join(QML_DIR, 'MainWindow.qml'))
+
+        if not self.engine.rootObjects():
+            sys.exit(-1)
+
+        sys.exit(self.app.exec_())
 
 if __name__ == "__main__":
-    run()
+    FramCamPlus()
 

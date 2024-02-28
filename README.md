@@ -43,6 +43,15 @@ in py/app.py.  Newly created QML files or images/svgs/icons should be added to t
 
 ## Environment Setup
 
+For now, notes for myself, used pyenv-win to setup venv:
+```commandline
+pyenv install 3.11.2
+pyenv shell 3.11.2
+pyenv exec python -m venv venv311
+.\venv311\scripts\activate
+python
+```
+
 ## Running the App
 
 ## Building the App

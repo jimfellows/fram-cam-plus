@@ -2,6 +2,7 @@ import QtQuick 2.15
 //import QtQuick3D 6.3
 import Qt5Compat.GraphicalEffects
 import QtQuick.Controls 6.0
+import QtQuick.Controls.Material
 
 Button {
     id: btnWindowControl
@@ -9,6 +10,9 @@ Button {
     implicitHeight: 35
     flat:true  //allows dynamic color to work properly
     highlighted: false  //allows dyanmic color to work
+
+    Material.theme: Material.Dark
+    Material.accent: Material.Purple
 
     //custom props
     property color colorDefault: '#55aaff';

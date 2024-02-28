@@ -2,12 +2,18 @@ import QtQuick.Controls 6.3
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
+//import com.library.name 1.0
 
 import './qml/controls'
+//import './qml/AppStyle'
 
 
 Item {
     property alias lvThumbnails: lvThumbnails
+    Component.onCompleted: {
+        camera_manager.set_video_output(videoOutput)
+        switchPreview.position = camera_manager.is_camera_active ? 1 : 0
+    }
 
     Rectangle {
         id: rectBg
@@ -38,7 +44,7 @@ Item {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                anchors.rightMargin: 100
+                anchors.rightMargin: 150
 
                 Image {
                     id: image
@@ -122,7 +128,6 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: animationControls.running = true
-
                         }
                     }
 
@@ -147,11 +152,11 @@ Item {
                             titleColor: "#ffffff"
                             checkedColor: "#0085ca"
                             onPositionChanged: {
-                                if(position === 1) {
-                                    camDefault.start()
+                                if (position === 1) {
+                                    camera_manager.start_camera()
                                 }
                                 else {
-                                    camDefault.stop()
+                                    camera_manager.stop_camera()
                                 }
                             }
                         }
@@ -170,12 +175,13 @@ Item {
                     anchors.rightMargin: 10
                     flat:true
                     onClicked: {
-                        console.info("BUTTON CLICKED, is camera ready?")
-                        console.info(captureSession.imageCapture.readyForCapture)
-                        var x
-                        x = captureSession.imageCapture.captureToFile('pic.jpeg')
+                        //console.info("BUTTON CLICKED, is camera ready?")
+                        //console.info(captureSession.imageCapture.readyForCapture)
+                        //var x
+                        //x = captureSession.imageCapture.captureToFile('pic.jpeg')
                         //                    captureSession.imageCapture.imageSaved()
                         console.info(x)
+                        camera_manager.capture_image_to_file()
                     }
 
                     background: Rectangle{
@@ -236,26 +242,63 @@ Item {
                     id: lvThumbnails
                     x: 0
                     y: 0
-                    height: 75
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-
-                    anchors.top: parent.top
-                    anchors.leftMargin: 0
-                    anchors.rightMargin: 0
-                    anchors.topMargin: 0
-
-
-                    orientation: ListView.Horizontal
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    anchors.topMargin: 20
+                    orientation: ListView.Vertical
                     spacing: 10
+                    model: camera_manager.images_model
 
-                    model: imagePaths
+                    delegate: Column {
+                        Image {
+                            id: imgThumbnail
+                            source: "file:///" + model.full_path
+                            width: lvThumbnails.width - 10
+                            height: 50
+                            fillMode: Image.PreserveAspectFit
+                            scale: camera_manager.images_model.currentIndex === index ? 1.2 : 1
+                            layer.enabled: camera_manager.images_model.currentIndex === index
+                            layer.effect: DropShadow {
+                                verticalOffset: 0
+                                horizontalOffset: 0
+                                //opacity: 0.5
+                                radius: 20
+                                color: "lightgray"
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: camera_manager.images_model.currentIndex = index
+                            }
+                        }
+                        Label {
+                            id: imgLabel
+                            text: model.catch_display_name
+                            font.pixelSize: 8
+                            font.bold: true
+                            font.family: 'roboto'
+                            color: "white"
+                            anchors.left: rectUnderline.left
+                        }
+                        Rectangle {
+                            id: rectUnderline
+                            height: index === camera_manager.images_model.currentIndex ? 3 : 1
+                            width: imgThumbnail.width - 10
+                            color: "white"
+                            anchors.topMargin: 10
+                            anchors.left: imgThumbnail.left
+                            anchors.leftMargin: 15
 
-                    delegate: Image {
-                        required property string path
-                        height: 100
-                        source: path
-                        fillMode: Image.PreserveAspectFit
+                        }
+                    }
+                    add: Transition {
+                        PropertyAction { property: "transformOrigin"; value: Item.Top}
+                        NumberAnimation { property: "opacity"; from: 0; to: 1.0; duration: 200 }
+                        NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 200 }
+                    }
+                    displaced: Transition {
+                        PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
+                        NumberAnimation { properties: "x,y"; duration: 200 }
                     }
                 }
             }
@@ -263,14 +306,18 @@ Item {
             ListModel {
                 id: imagePaths
             }
+            /*
             Camera {
                 id: camDefault
             }
-
-            CaptureSession {
+            */
+            /*
+            FramCamCaptureSession {
                 id: captureSession
                 videoOutput: videoOutput
-                camera: camDefault
+                camera: camera_manager.camera
+                imageCapture: camera_manager.image_capture
+
                 imageCapture: ImageCapture {
                     onImageSaved: function (id, path) {
                         console.info("IMAGE TAKEN!!!")
@@ -278,7 +325,9 @@ Item {
                         lvThumbnails.positionViewAtEnd()
                     }
                 }
+
             }
+            */
 
         }
 
@@ -294,10 +343,76 @@ Item {
             anchors.topMargin: 0
 
             Row {
+                anchors.fill: parent
+                spacing: 10
+                anchors.rightMargin: 50
                 FramCamComboBox {
-                    id: ddTows
+                    id: comboHauls
                     backgroundColor: "#003087"
+                    height: parent.height
+                    width: parent.width * 0.2
+                    fontSize: 14
+                    model: data_selector.hauls_model
+                    placeholderText: data_selector.hauls_model.row_count === 0 ? 'N/A' : 'Select Haul...'
+                    onCurrentIndexChanged: {
+                        model.current_index = currentIndex
+                    }
+                    Component.onCompleted: {  // set ix based on settings saved value
+                        comboHauls.currentIndex = data_selector.hauls_model.current_index
+                    }
+                }
+                FramCamComboBox {
+                    id: comboCatch
+                    backgroundColor: "#003087"
+                    height: parent.height
+                    width: parent.width * 0.3
+                    model: data_selector.catches_model
+                    placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
+                    fontSize: 14
+                    onCurrentIndexChanged: {
+                        console.info("CATCH COMBO INDEX CHANGED to " + currentIndex)
+                        model.current_index = currentIndex
+                    }
+                    Component.onCompleted: {  // set ix based on settings saved value
+                        comboCatch.currentIndex = data_selector.catches_model.current_index
+                    }
+                }
+                FramCamComboBox {
+                    id: comboProject
+                    backgroundColor: "#003087"
+                    height: parent.height
+                    width: parent.width * 0.3
+                    model: data_selector.projects_model
+                    fontSize: 14
+                    placeholderText: data_selector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
+                    onCurrentIndexChanged: {
+                        model.current_index = currentIndex
+                    }
+                    Component.onCompleted: {  // set ix based on settings saved value
+                        comboProject.currentIndex = data_selector.projects_model.current_index
+                    }
+                    Connections {
+                        target: data_selector.projects_model
+                        onPy_index_update: {
+                            comboProject.currentIndex = i
+                        }
 
+                    }
+                }
+                FramCamComboBox {
+                    id: comboBiolabel
+                    backgroundColor: "#003087"
+                    height: parent.height
+                    width: parent.width * 0.2
+                    model: data_selector.bios_model
+                    fontSize: 14
+                    placeholderText: data_selector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
+                    onCurrentIndexChanged: {
+                        model.current_index = currentIndex
+                    }
+                    Component.onCompleted: {  // set ix based on settings saved value
+                        comboBiolabel.currentIndex = data_selector.bios_model.current_index
+                    }
                 }
             }
         }

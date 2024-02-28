@@ -16,7 +16,7 @@
     <qresource prefix="/svgs">
         <file alias="aperture.svg">../resources/svgs/aperture_1.svg</file>
         <file>../resources/svgs/boat-icon.svg</file>
-        <file>../resources/svgs/check_basic.svg</file>
+        <file alias="check.svg">../resources/svgs/check_basic.svg</file>
         <file alias="close.svg">../resources/svgs/close_icon.svg</file>
         <file>../resources/svgs/collapse_left.svg</file>
         <file>../resources/svgs/collapse_right.svg</file>
@@ -25,7 +25,10 @@
         <file>../resources/svgs/double_up_arrow.svg</file>
         <file alias="down_arrow.svg">../resources/svgs/down_arrow.svg</file>
         <file alias="eye_closed.svg">../resources/svgs/eye_closed_1.svg</file>
+        <file alias="image_file.svg">../resources/svgs/image_file.svg</file>
         <file>../resources/svgs/file_upload_icon.svg</file>
+        <file alias="fish.svg">../resources/svgs/fish.svg</file>
+
         <file>../resources/svgs/graph-icon.svg</file>
         <file>../resources/svgs/graph-icon-2.svg</file>
         <file>../resources/svgs/home_icon.svg</file>
@@ -35,6 +38,7 @@
         <file alias="maximize.svg">../resources/svgs/maximize_icon.svg</file>
         <file alias="menu.svg">../resources/svgs/menu_icon.svg</file>
         <file alias="minimize.svg">../resources/svgs/minimize_icon.svg</file>
+        <file alias="nautilus.svg">../resources/svgs/nautilus.svg</file>
         <file>../resources/svgs/noaa.svg</file>
         <file>../resources/svgs/noaa_bird.svg</file>
         <file>../resources/svgs/NOAA_logo_mobile.svg</file>
