@@ -5,6 +5,7 @@ import QtMultimedia 6.3
 //import com.library.name 1.0
 
 import './qml/controls'
+//import './qml/AppStyle'
 
 
 Item {
@@ -244,32 +245,51 @@ Item {
                     anchors.fill: parent
                     anchors.leftMargin: 10
                     anchors.rightMargin: 10
+                    anchors.topMargin: 20
                     orientation: ListView.Vertical
                     spacing: 10
-
                     model: camera_manager.images_model
 
-                    delegate: Image {
-                        id: imgThumbnail
-                        source: "file:///" + model.full_path
-                        width: lvThumbnails.width - 10
-                        height: 50
-                        fillMode: Image.PreserveAspectFit
-                        scale: camera_manager.images_model.currentIndex === index ? 1.2 : 1
-                        layer.enabled: camera_manager.images_model.currentIndex === index
-                        layer.effect: DropShadow {
-                            verticalOffset: 0
-                            horizontalOffset: 0
-                            //opacity: 0.5
-                            radius: 20
-                            color: "lightgray"
+                    delegate: Column {
+                        Image {
+                            id: imgThumbnail
+                            source: "file:///" + model.full_path
+                            width: lvThumbnails.width - 10
+                            height: 50
+                            fillMode: Image.PreserveAspectFit
+                            scale: camera_manager.images_model.currentIndex === index ? 1.2 : 1
+                            layer.enabled: camera_manager.images_model.currentIndex === index
+                            layer.effect: DropShadow {
+                                verticalOffset: 0
+                                horizontalOffset: 0
+                                //opacity: 0.5
+                                radius: 20
+                                color: "lightgray"
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: camera_manager.images_model.currentIndex = index
+                            }
                         }
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: camera_manager.images_model.currentIndex = index
+                        Label {
+                            id: imgLabel
+                            text: model.catch_display_name
+                            font.pixelSize: 8
+                            font.bold: true
+                            font.family: 'roboto'
+                            color: "white"
+                            anchors.left: rectUnderline.left
+                        }
+                        Rectangle {
+                            id: rectUnderline
+                            height: 1
+                            width: imgThumbnail.width - 10
+                            color: "white"
+                            anchors.topMargin: 10
+                            anchors.left: imgThumbnail.left
+                            anchors.leftMargin: 15
                         }
                     }
-
                     add: Transition {
                         PropertyAction { property: "transformOrigin"; value: Item.Top}
                         NumberAnimation { property: "opacity"; from: 0; to: 1.0; duration: 200 }
