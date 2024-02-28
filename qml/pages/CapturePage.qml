@@ -43,7 +43,7 @@ Item {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                anchors.rightMargin: 100
+                anchors.rightMargin: 150
 
                 Image {
                     id: image
@@ -250,9 +250,24 @@ Item {
                     model: camera_manager.images_model
 
                     delegate: Image {
+                        id: imgThumbnail
                         source: "file:///" + model.full_path
                         width: lvThumbnails.width - 10
+                        height: 50
                         fillMode: Image.PreserveAspectFit
+                        scale: camera_manager.images_model.currentIndex === index ? 1.2 : 1
+                        layer.enabled: camera_manager.images_model.currentIndex === index
+                        layer.effect: DropShadow {
+                            verticalOffset: 0
+                            horizontalOffset: 0
+                            //opacity: 0.5
+                            radius: 20
+                            color: "lightgray"
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: camera_manager.images_model.currentIndex = index
+                        }
                     }
 
                     add: Transition {

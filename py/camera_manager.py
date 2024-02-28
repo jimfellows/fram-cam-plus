@@ -36,6 +36,8 @@ from PySide6.QtSql import QSqlTableModel, QSqlQueryModel, QSqlQuery, QSqlRecord
 
 class ImagesListModel(QAbstractListModel):
 
+    currentIndexChanged = Signal(int, arguments=['new_index'])
+
     def __init__(self, db, parent=None):
         super().__init__(parent)
         self._logger = Logger.get_root()
@@ -58,6 +60,17 @@ class ImagesListModel(QAbstractListModel):
         '''
         self._query.prepare(self._sql)
         self._records = []
+        self._current_index = -1
+
+    @Property(int, notify=currentIndexChanged)
+    def currentIndex(self):
+        return self._current_index
+
+    @currentIndex.setter
+    def currentIndex(self, new_index):
+        if self._current_index != new_index:
+            self._current_index = new_index
+            self.currentIndexChanged.emit(new_index)
 
     def populate(self, haul_id=None, catch_id=None, project_name=None, bio_label=None):
         """
@@ -79,9 +92,6 @@ class ImagesListModel(QAbstractListModel):
         self._logger.info(f"Loading {self._query_model.rowCount()} records to images model...")
         for i in range(self._query_model.rowCount()):
             self._records.append(self.record_to_dict(self._query_model.record(i)))
-
-        for x in self._records:
-            print(x)
 
     def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
         """
@@ -130,8 +140,6 @@ class ImagesListModel(QAbstractListModel):
             self._records.insert(index, self.record_to_dict(self._query_model.record(i)))
         self.endInsertRows()  # tells model/ui we're done
         self._logger.info(f"image_id {image_id} loaded to list model")
-        for ix, item in enumerate(self._records):
-            print(ix, item)
 
     @staticmethod
     def record_to_dict(rec: QSqlRecord):
@@ -195,7 +203,7 @@ class ImagesListModel(QAbstractListModel):
             # return self._records[index.row()].value(self.roleNames()[role].decode('utf-8'))  # before when we were using qsqlrecords
             return self._records[index.row()][self.roleNames()[role].decode('utf-8')]
         except Exception as e:
-            print(f"FAILED: {e}")
+            self._logger.error(f"FAILED: {e}")
             return None
 
     def get_value(self, i, key):
@@ -230,7 +238,6 @@ class CameraManager(QObject):
         self._is_camera_running = None
         self._images_model = ImagesListModel(self._db)
         self._load_images_model()
-        print(self._images_model.roleNames())
         self._image_capture.imageSaved.connect(lambda ix, path: self._on_image_saved(path))  # image save is async, so hooking to signal
 
     @Property(QObject)
