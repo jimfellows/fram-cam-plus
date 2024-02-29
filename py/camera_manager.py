@@ -91,7 +91,7 @@ class ImagesListModel(QAbstractListModel):
         self._query_model.setQuery(self._query)
         self._logger.info(f"Loading {self._query_model.rowCount()} records to images model...")
         for i in range(self._query_model.rowCount()):
-            self._records.append(self.record_to_dict(self._query_model.record(i)))
+            self._records.append(Utils.qrec_to_dict(self._query_model.record(i)))
 
     def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
         """
@@ -137,22 +137,11 @@ class ImagesListModel(QAbstractListModel):
         self._query_model.setQuery(self._query)
         self.beginInsertRows(QModelIndex(), index, index)  # tells model/ui about updates
         for i in range(self._query_model.rowCount()):
-            self._records.insert(index, self.record_to_dict(self._query_model.record(i)))
+            self._records.insert(index, Utils.qrec_to_dict(self._query_model.record(i)))
 
         self.currentIndex = index
         self.endInsertRows()  # tells model/ui we're done
         self._logger.info(f"image_id {image_id} loaded to list model at index {self._current_index}")
-
-    @staticmethod
-    def record_to_dict(rec: QSqlRecord):
-        """
-        covert a QSQLrecord instances to a python dict.  Use me to append records to self._records
-        :param rec: QSqlRecord
-        :return: dictionary
-        """
-        _keys = [rec.fieldName(k).lower() for k in range(rec.count())]
-        _vals = [rec.value(k) for k in _keys]
-        return dict(zip(_keys, _vals))
 
     def append_new_image(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
         """
