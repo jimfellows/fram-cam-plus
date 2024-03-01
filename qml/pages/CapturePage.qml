@@ -9,6 +9,9 @@ import './qml/controls'
 
 
 Item {
+
+    id: capturePage
+
     property alias lvThumbnails: lvThumbnails
     Component.onCompleted: {
         camera_manager.set_video_output(videoOutput)
@@ -429,29 +432,35 @@ Item {
                 FramCamComboBox {
                     id: comboHauls
                     backgroundColor: "#003087"
+                    // why does height affect the collapsed height, and implicit affect to popup?
                     height: parent.height
+                    implicitHeight: capturePage.height * 0.7
                     width: parent.width * 0.2
                     fontSize: 14
                     model: data_selector.hauls_model
+                    textRole: "haul_number"
                     placeholderText: data_selector.hauls_model.row_count === 0 ? 'N/A' : 'Select Haul...'
                     onCurrentIndexChanged: {
-                        model.current_index = currentIndex
+                        model.currentIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboHauls.currentIndex = data_selector.hauls_model.current_index
+                        comboHauls.currentIndex = data_selector.hauls_model.currentIndex
                     }
                 }
+
                 FramCamComboBox {
                     id: comboCatch
                     backgroundColor: "#003087"
                     height: parent.height
+                    implicitHeight: capturePage.height * 0.7
                     width: parent.width * 0.3
                     model: data_selector.catches_model
+                    textRole: "display_name"
                     placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
                     fontSize: 14
                     onCurrentIndexChanged: {
                         console.info("CATCH COMBO INDEX CHANGED to " + currentIndex)
-                        model.current_index = currentIndex
+                        model.currentIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboCatch.currentIndex = data_selector.catches_model.current_index
@@ -463,10 +472,11 @@ Item {
                     height: parent.height
                     width: parent.width * 0.3
                     model: data_selector.projects_model
+                    textRole: "project_name"
                     fontSize: 14
                     placeholderText: data_selector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
                     onCurrentIndexChanged: {
-                        model.current_index = currentIndex
+                        model.currentIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboProject.currentIndex = data_selector.projects_model.current_index
@@ -485,10 +495,11 @@ Item {
                     height: parent.height
                     width: parent.width * 0.2
                     model: data_selector.bios_model
+                    textRole: "bio_label"
                     fontSize: 14
                     placeholderText: data_selector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
                     onCurrentIndexChanged: {
-                        model.current_index = currentIndex
+                        model.currentIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboBiolabel.currentIndex = data_selector.bios_model.current_index
