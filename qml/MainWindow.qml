@@ -286,7 +286,6 @@ Window {
                         to: if(rectLeftNavBar.width === 70) return 250; else return 70;
                         duration:500
                         easing.type: Easing.InOutQuint
-//                        easing.type: Easing.OutBounce
                     }
 
                     Column {
