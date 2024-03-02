@@ -471,6 +471,7 @@ Item {
                     backgroundColor: "#003087"
                     height: parent.height
                     width: parent.width * 0.3
+                    implicitHeight: capturePage.height * 0.7
                     model: data_selector.projects_model
                     textRole: "project_name"
                     fontSize: 14
@@ -494,6 +495,7 @@ Item {
                     backgroundColor: "#003087"
                     height: parent.height
                     width: parent.width * 0.2
+                    implicitHeight: capturePage.height * 0.7
                     model: data_selector.bios_model
                     textRole: "bio_label"
                     fontSize: 14
