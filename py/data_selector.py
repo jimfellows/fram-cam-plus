@@ -3,7 +3,7 @@
 from PySide6.QtSql import QSqlQueryModel, QSqlRelationalTableModel, QSqlRelation, QSqlQuery, QSqlRecord
 from PySide6.QtCore import QObject, PyClassProperty, Property, Slot, Signal, QSortFilterProxyModel
 from py.logger import Logger
-from py.qt_models import FramCamSqlListModel, FramCamFilterableModel, HaulsModel, CatchesModel, ProjectsModel, BiosModel
+from py.qt_models import FramCamSqlListModel, FramCamFilterProxyModel, HaulsModel, CatchesModel, ProjectsModel, BiosModel
 
 
 class DataSelector(QObject):
@@ -20,11 +20,16 @@ class DataSelector(QObject):
         self._hauls_model = HaulsModel(db)
         self._hauls_model.loadModel()
         self._catches_model = CatchesModel(db)
-        self._catches_proxy = FramCamFilterableModel(self._catches_model)
+        self._catches_proxy = FramCamFilterProxyModel(self._catches_model)
         self._projects_model = ProjectsModel(db)
-        self._projects_proxy = FramCamFilterableModel(self._projects_model)
+        self._projects_proxy = FramCamFilterProxyModel(self._projects_model)
+        print(self._projects_model.roleNames())
+        print(self._hauls_model.roleNames())
+        print(self._catches_model.roleNames())
         self._bios_model = BiosModel(db)
-        self._bios_proxy = FramCamFilterableModel(self._bios_model)
+        self._bios_proxy = FramCamFilterProxyModel(self._bios_model)
+        # self._bios_proxy_l1 = FramCamFilterProxyModel(self._bios_model)
+        # self._bios_proxy_l2 = FramCamFilterProxyModel(self._bios_proxy_l1)
 
         # when haul changes populate the other models
         self._hauls_model.currentIndexChanged.connect(lambda i: self._on_haul_changed(i))
@@ -37,7 +42,7 @@ class DataSelector(QObject):
         current_index to avoid signaling to UI directly.  We use this backchannel because...
         """
         # if we have pre-selected vals from db, set them now, in order (haul,catch,project,bio)
-        # _haul_model_ix = self._hauls_model.get_ix_by_value('HAUL_ID', self._app.state.cur_haul_id)
+        _haul_model_ix = self._hauls_model.get_ix_by_value('HAUL_ID', self._app.state.cur_haul_id)
         # self._hauls_model._current_index = _haul_model_ix
         # self._on_haul_changed(_haul_model_ix)
 
@@ -54,7 +59,6 @@ class DataSelector(QObject):
         # self._on_bio_changed(_bios_model_ix)
 
     def _on_haul_changed(self, new_haul_index):
-        print(f"New haul changed to {new_haul_index}")
         # TODO: set cur haul id here?
         self._cur_haul_rec = self._hauls_model.getItem(new_haul_index)
         self._catches_model.setBindParam(':fram_cam_haul_id', self._cur_haul_rec['fram_cam_haul_id'])
@@ -62,6 +66,8 @@ class DataSelector(QObject):
         self._catches_model.loadModel()
         self._projects_model.clearModel()
         self._bios_model.clearModel()
+        self._app.state.set_state_value('Current Haul Number', self._cur_haul_rec['haul_number'])
+        self._app.state.set_state_value('Current Haul ID', self._cur_haul_rec['fram_cam_haul_id'])
 
     def _on_catch_changed(self, new_catch_index):
         """
@@ -70,26 +76,26 @@ class DataSelector(QObject):
         :return:
         """
         self._cur_catch_rec = self._catches_model.getItem(new_catch_index)
-        # self._logger.info(f"Selected catch changed to {self._cur_catch_id}")
+        self._logger.info(f"Selected catch changed to {self._cur_catch_rec['display_name']}")
         self._projects_model.setBindParam(':fram_cam_haul_id', self._cur_catch_rec['fram_cam_haul_id'])
         self._projects_model.loadModel()
-        self._projects_proxy.filterOnStrRole('display_name', self._cur_catch_rec['display_name'])
+        self._projects_proxy.filterRoleOnStr('display_name', self._cur_catch_rec['display_name'])
         self._bios_model.setBindParam(':fram_cam_haul_id', self._cur_catch_rec['fram_cam_haul_id'])
         self._bios_model.loadModel()
-        self._bios_proxy.filterOnStrRole('display_name', self._cur_catch_rec['display_name'])
-
+        self._bios_proxy.filterRoleOnRegex('bio_filter_str', f'"display_name":"{self._cur_catch_rec['display_name']}"')
         self._app.state.set_state_value('Current Catch ID', self._cur_catch_rec['fram_cam_catch_id'])
         self._app.state.set_state_value('Current Catch Display', self._cur_catch_rec['display_name'])
 
     def _on_project_changed(self, new_project_index):
         self._cur_project_rec = self._projects_model.getItem(new_project_index)
-        # self._logger.info(f"Selected project changed to {self._cur_project_name}")
-        self._bios_proxy.filterOnStrRole('project_name', self._cur_project_rec['project_name'])
+        self._logger.info(f"Selected project changed to {self._cur_project_rec['project_name']}")
+        _regex = f'"display_name":"{self._cur_catch_rec['display_name']}","project_name":"{self._cur_project_rec['project_name']}"'
+        self._bios_proxy.filterRoleOnRegex('bio_filter_str', _regex)
         self._app.state.set_state_value('Current Project', self._cur_project_rec['project_name'])
 
     def _on_bio_changed(self, new_bio_index):
         self._cur_bio_rec = self._bios_model.getItem(new_bio_index)
-        # self._logger.info(f"Selected bio label changed to {self._cur_bio_label}")
+        self._logger.info(f"Selected bio label changed to {self._cur_bio_rec['bio_label']}")
         self._app.state.set_state_value('Current Bio Label', self._cur_bio_rec['bio_label'])
 
     @Property(QObject, notify=unusedSignal)

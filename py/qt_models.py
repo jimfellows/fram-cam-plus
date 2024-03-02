@@ -64,7 +64,7 @@ class FramCamSqlListModel(QAbstractListModel):
         try:
             return self._data[index.row()][self.roleNames()[role].decode('utf-8')]
         except Exception as e:
-            self._logger.error(f"Failed to retrieve data from {__class__.__name__}: {e}")
+            self._logger.error(f"Failed to retrieve data from {self.__class__.__name__}: {e}")
             return None
 
     def roleNames(self):
@@ -115,9 +115,9 @@ class FramCamSqlListModel(QAbstractListModel):
             self._logger.info(f"Binding param {k}={v}")
             self._query.bindValue(k, v)
         self._query.exec()
-        self._logger.info(f"{__class__.__name__} loadModel query returned {self._query_model.rowCount()} results")
+        self._logger.info(f"{self.__class__.__name__} loadModel query returned {self._query_model.rowCount()} results")
         self._query_model.setQuery(self._query)
-        self.beginInsertRows(QModelIndex(), 0, self._query_model.rowCount())
+        self.beginInsertRows(QModelIndex(), 0, self._query_model.rowCount() - 1)
         for _i in range(self._query_model.rowCount()):
             self._data.append(Utils.qrec_to_dict(self._query_model.record(_i)))
         self.endInsertRows()
@@ -139,15 +139,16 @@ class FramCamSqlListModel(QAbstractListModel):
         try:
             return self._data[index][prop_name]
         except IndexError:
-            self._logger.error(f"Row {index} not found in model {__class__.__name__}, unable to getData")
+            self._logger.error(f"Row {index} not found in model {self.__class__.__name__}, unable to getData")
         except KeyError:
-            self._logger.error(f"{prop_name} not found in model {__class__.__name__}, unable to getData.")
+            self._logger.error(f"{prop_name} not found in model {self.__class__.__name__}, unable to getData.")
 
     def getItem(self, index):
         try:
+            print(f"Getting item at index {index} for {self.__class__.__name__}")
             return self._data[index]
         except IndexError:
-            self._logger.error(f"Row {index} not found in model {__class__.__name__}, unable to getItem")
+            self._logger.error(f"Row {index} not found in model {self.__class__.__name__}, unable to getItem")
 
     def removeItem(self, row_index):
         self.beginRemoveRows(QModelIndex(), row_index, row_index)
@@ -170,7 +171,17 @@ class HaulsModel(FramCamSqlListModel):
 class CatchesModel(FramCamSqlListModel):
     def __init__(self, db):
         super().__init__(db)
-        self.sql = 'select * from fram_cam_catch where fram_cam_haul_id = :fram_cam_haul_id'
+        self.sql = '''
+            select  distinct
+                    display_name
+                    ,haul_number
+                    ,fram_cam_haul_id
+                    ,fram_cam_catch_id
+                    
+            from    BIO_OPTIONS_VW
+            where   opt_instance = 1
+                    and fram_cam_haul_id = :fram_cam_haul_id
+        '''
 
 
 class ProjectsModel(FramCamSqlListModel):
@@ -180,39 +191,74 @@ class ProjectsModel(FramCamSqlListModel):
             select  distinct
                     project_name
                     ,project_scientist
-                    ,c.display_name
-            from    fram_cam_bios b
-            join    fram_cam_catch c
-                    on b.fram_cam_catch_id = c.fram_cam_catch_id
-            where   c.fram_cam_haul_id = :fram_cam_haul_id
+                    ,display_name
+            from    BIO_OPTIONS_VW
+            where   opt_instance = 1
+                    and fram_cam_haul_id = :fram_cam_haul_id
         '''
 
 class BiosModel(FramCamSqlListModel):
     def __init__(self, db):
         super().__init__(db)
         self.sql = '''
-            select  
-                    b.*
-                    ,c.display_name
-            from    fram_cam_bios b
-            join    fram_cam_catch c
-                    on b.fram_cam_catch_id = c.fram_cam_catch_id
-            where   c.fram_cam_haul_id = :fram_cam_haul_id
+            select 
+                    *
+            from    BIO_OPTIONS_VW
+            where   opt_instance = 1
+                    and fram_cam_haul_id = :fram_cam_haul_id
         '''
 
-class FramCamFilterableModel(QSortFilterProxyModel):
+class FramCamFilterProxyModel(QSortFilterProxyModel):
 
     currentIndexChanged = Signal()
 
     def __init__(self, source_model, parent=None):
         super().__init__(parent)
+        self._logger = Logger.get_root()
         self.setSourceModel(source_model)
 
-    def filterOnStrRole(self, role_name, value):
-        _role_num = self.sourceModel().getRoleByName(role_name)
+    @Slot(int)
+    def setSourceModelIndex(self, i):
+        """
+        allows us to translate selected row index of proxy model and convert it to the row index of the source
+        :param i: int, row index
+        :return:
+        """
+        _proxy_index = self.index(i, 0, QModelIndex())
+        _source_index = self.mapToSource(_proxy_index)
+        try:
+            self.sourceModel().currentIndex = _source_index.row()
+        except AttributeError:
+            self._logger.error(f"Source model of {self.__class__.__name__} does not have currentIndex property!")
+
+    def filterRoleOnStr(self, role_name: str, value: str):
+
+        try:
+            _role_num = self.sourceModel().getRoleByName(role_name)
+        except AttributeError:
+            self._logger.error(f"Source model of {self.__class__.__name__} does not have getRoleByName method!")
+            return
+
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterFixedString(value)
+
+    def filterRoleOnRegex(self, role_name: str, regex_pattern: str):
+        """
+        specify name of role and a regex pattern to filter proxy model with
+        :param role_name: name of field/role we'd like to filter on
+        :param regex_pattern: regular expression pattern that QT likes
+        """
+        try:
+            _role_num = self.sourceModel().getRoleByName(role_name)
+        except AttributeError:
+            self._logger.error(f"Source model of {self.__class__.__name__} does not have getRoleByName method!")
+            return
+
+        self.setFilterRole(_role_num)
+        self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.setFilterRegularExpression(regex_pattern)
+
 
 
 

@@ -120,6 +120,10 @@ ComboBox {
             model: root.popup.visible ? root.delegateModel : null
             currentIndex: root.highlightedIndex
             ScrollIndicator.vertical: ScrollIndicator { }
+            displaced: Transition {
+                //PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
+                NumberAnimation { properties: "x,y"; duration: 200 }
+            }
         }
         background: Rectangle {
             id: rectPopup
