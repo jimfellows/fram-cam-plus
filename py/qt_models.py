@@ -20,7 +20,7 @@ from PySide6.QtCore import (
 )
 from py.logger import Logger
 from py.utils import Utils
-
+import os
 
 class FramCamSqlListModel(QAbstractListModel):
     """
@@ -29,6 +29,7 @@ class FramCamSqlListModel(QAbstractListModel):
     """
 
     currentIndexChanged = Signal(int, arguments=['newIndex'])
+    indexSetSilently = Signal(int, arguments=['newIndex'])
     #selectRow = Signal(int, argument=['rowToSelect'])
 
     def __init__(self, db, parent=None):
@@ -113,15 +114,19 @@ class FramCamSqlListModel(QAbstractListModel):
         self._bind_params[key] = val
         return is_updated
 
-    def loadModel(self):
+    def clearBindParams(self):
+        self._bind_params = {}
+
+    def loadModel(self, bind_params=None):
         """
         basic loading of model from SQL results.  If param binding is required
         :return:
         """
         self.clearModel()
-        for k, v in self._bind_params.items():
-            self._logger.info(f"Binding param {k}={v}")
-            self._query.bindValue(k, v)
+        if bind_params:
+            for k, v in bind_params.items():
+                self._logger.info(f"Binding param {k}={v}")
+                self._query.bindValue(k, v)
         self._query.exec()
         self._query_model.setQuery(self._query)
         self.beginInsertRows(QModelIndex(), 0, self._query_model.rowCount() - 1)
@@ -151,11 +156,20 @@ class FramCamSqlListModel(QAbstractListModel):
             self._logger.error(f"{prop_name} not found in model {self.__class__.__name__}, unable to getData.")
 
     def getItem(self, index):
+        if index == -1:
+            return None
         try:
             #print(f"Getting item at index {index} for {self.__class__.__name__}")
             return self._data[index]
         except IndexError:
             self._logger.error(f"Row {index} not found in model {self.__class__.__name__}, unable to getItem")
+
+    def getItemIndex(self, item):
+        # for some reason self._data.index(item) didnt work...
+        for i, data_item in enumerate(self._data):
+            if item == data_item:
+                return i
+        return -1
 
     def getRowIndexByValue(self, role_name, value):
         """
@@ -186,6 +200,18 @@ class FramCamSqlListModel(QAbstractListModel):
         except KeyError:
             self._logger.warning(f"Role {role_name} does not exist in model.")
 
+    def setIndexSilently(self, new_index):
+        """
+        idea here is to prep the model by setting the private value first, then emitting the
+        new index to the view for selection.  Depends on the fact that the currentIndex setter only
+        emits currentIndexChanged if value is different, and b/c here were pre-setting _current_index,
+        that wont happen (TODO: could this chain of events be interupted?)
+        :param new_index: int
+        """
+        self._current_index = new_index
+        self.indexSetSilently.emit(new_index)
+        self._logger.info(f"Index of {self.__class__.__name__} set to {new_index} silently.")
+
 
 class HaulsModel(FramCamSqlListModel):
     def __init__(self, db):
@@ -215,7 +241,6 @@ class ProjectsModel(FramCamSqlListModel):
         self.sql = '''
             select  distinct
                     project_name
-                    ,project_scientist
                     ,display_name
             from    BIO_OPTIONS_VW
             where   opt_instance = 1
@@ -291,6 +316,89 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         self.setFilterRegularExpression(regex_pattern)
 
 
+class ImagesModel(FramCamSqlListModel):
+
+    def __init__(self, db):
+        super().__init__(db)
+        self.sql = '''
+            select      *
+            from        IMAGES_VW
+            where       coalesce(:fram_cam_haul_id, fram_cam_haul_id) = fram_cam_haul_id
+                        and coalesce(:fram_cam_catch_id, fram_cam_catch_id) = fram_cam_catch_id
+                        and coalesce(:project_name, project_name) = project_name
+                        and coalesce(:bio_label, bio_label) = bio_label
+                        and coalesce(:image_id, image_id) = image_id
+            order by    image_id desc
+        '''
+        self._table_model = QSqlTableModel(db=self._db)
+        self._table_model.setTable('IMAGES')
+        self._table_model.setEditStrategy(QSqlTableModel.OnManualSubmit)
+        self._table_model.select()
+
+    def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
+        """
+        method to create a new rec in IMAGES table and return newly generated IMAGE_ID pkey value
+        :param image_path: full str path to image
+        :param haul_id: int, pkey for HAULS table
+        :param catch_id: int, pkey for CATCH table
+        :param specimen_id: int, pkey for SPECIMEN table
+        :return: int, pkey for new IMAGES table rec
+        """
+        if not os.path.exists(image_path):
+            self._logger.error(f"Unable to add file to IMAGES table: newly image not found at {image_path}")
+            return
+
+        self._logger.info(f"Creating new image here: {image_path}")
+
+        # create the shell record, then set values
+        _img = self._table_model.record()
+        _img.setValue(self._table_model.fieldIndex('FILE_PATH'), os.path.dirname(image_path))
+        _img.setValue(self._table_model.fieldIndex('FILE_NAME'), os.path.basename(image_path))
+        _img.setValue(self._table_model.fieldIndex('FRAM_CAM_HAUL_ID'), haul_id)
+        _img.setValue(self._table_model.fieldIndex('FRAM_CAM_CATCH_ID'), catch_id)
+        _img.setValue(self._table_model.fieldIndex('FRAM_CAM_BIO_ID'), specimen_id)
+
+        # do the insert, manually commit, then get newly created ID back out
+        self._table_model.insertRecord(-1, _img)
+        self._table_model.submitAll()
+        _img_id = self._table_model.query().lastInsertId()
+        self._logger.info(f"New IMAGES record created with IMAGE_ID = {_img_id}")
+        return _img_id
+
+    def load_image_from_view(self, image_id, index=0):
+        """
+        following insert to IMAGES table, use image_id to get denormalized version from view
+        and put it into view model / list view
+        :param image_id:
+        :return:
+        TODO: check if image_id row already exists, if so rip out and replace
+        """
+        self._logger.info(f"Loading image_id {image_id} to list model")
+        self._query.bindValue(':image_id', image_id)
+        self._query.exec()
+        self._query_model.setQuery(self._query)
+        for i in range(self._query_model.rowCount()):
+            self.appendRow(Utils.qrec_to_dict(self._query_model.record(i)), index=index)
+
+        self.currentIndex = index
+        self._logger.info(f"image_id {image_id} loaded to list model at index {self._current_index}")
+
+    def append_new_image(self, image_path, haul_id=None, catch_id=None, bio_id=None):
+        """
+        In the event that the camera has saved an image to disk, this function performs what needs
+        to happen immediately after with respect to the  list model
+        1.) insert to database
+        2.) retrieve denormalized rec from view
+        3.) append to array aka listmodel
+        :param image_id: int, db pkey for IMAGES table
+        """
+        if not os.path.exists(image_path):
+            self._logger.error(f"Unable to add file to list model: newly image not found at {image_path}")
+            return
+
+        self._logger.info(f"Inserting record to IMAGES for: {image_path}")
+        _img_id = self.insert_to_db(image_path, haul_id, catch_id, bio_id)
+        self.load_image_from_view(_img_id)
 
 
 if __name__ == '__main__':

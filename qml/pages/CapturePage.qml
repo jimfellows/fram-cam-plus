@@ -446,6 +446,12 @@ Item {
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboHauls.currentIndex = model.currentIndex
                     }
+                    Connections {
+                        target: data_selector.hauls_model
+                        function onIndexSetSilently(new_index) {
+                            comboHauls.currentIndex = new_index
+                        }
+                    }
                 }
 
                 FramCamComboBox {
@@ -464,6 +470,12 @@ Item {
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboCatch.currentIndex = model.getProxyRowFromSource(data_selector.catches_model.currentIndex)
                     }
+                    Connections {
+                        target: data_selector.catches_model
+                        function onIndexSetSilently(new_index) {
+                            comboCatch.currentIndex = model.getProxyRowFromSource(new_index)
+                        }
+                    }
                 }
                 FramCamComboBox {
                     id: comboProject
@@ -481,6 +493,12 @@ Item {
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboProject.currentIndex = model.getProxyRowFromSource(data_selector.projects_model.currentIndex)
                     }
+                    Connections {
+                        target: data_selector.projects_model
+                        function onIndexSetSilently(new_index) {
+                            comboProject.currentIndex = data_selector.projects_proxy.getProxyRowFromSource(new_index)
+                        }
+                    }
                 }
                 FramCamComboBox {
                     id: comboBiolabel
@@ -497,6 +515,12 @@ Item {
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboBiolabel.currentIndex = model.getProxyRowFromSource(data_selector.bios_model.currentIndex)
+                    }
+                    Connections {
+                        target: data_selector.bios_model
+                        function onIndexSetSilently(new_index) {
+                            comboBiolabel.currentIndex = model.getProxyRowFromSource(new_index)
+                        }
                     }
                 }
             }

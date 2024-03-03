@@ -8,6 +8,7 @@ import re
 from py.logger import Logger
 from py.utils import Utils
 from config import IMAGES_DIR
+from py.qt_models import ImagesModel, FramCamFilterProxyModel
 
 # 3rd party imports
 from PySide6.QtCore import (
@@ -228,8 +229,9 @@ class CameraManager(QObject):
         self._is_capturing = False
         # self.start_camera()
         self._is_camera_running = None
-        self._images_model = ImagesListModel(self._db)
+        self._images_model = ImagesModel(self._db)
         self._load_images_model()
+        self._images_proxy = FramCamFilterProxyModel(self._images_model)
         self._image_capture.imageSaved.connect(lambda ix, path: self._on_image_saved(path))  # image save is async, so hooking to signal
         print(self._camera.supportedFeatures())
 
@@ -265,19 +267,19 @@ class CameraManager(QObject):
         return self._images_model
 
     def _load_images_model(self):
-        self._images_model.populate(
-            haul_id=self._app.state.cur_haul_id,
-            catch_id=self._app.state.cur_catch_id,
-            project_name=self._app.state.cur_project,
-            bio_label=self._app.state.cur_bio_label
-        )
+        self._images_model.clearBindParams()
+        self._images_model.setBindParam(':fram_cam_haul_id', self._app.state.cur_haul_id)
+        self._images_model.setBindParam(':fram_cam_catch_id', self._app.state.cur_catch_id)
+        self._images_model.setBindParam(':project_name', self._app.state.cur_project)
+        self._images_model.setBindParam(':bio_label', self._app.state.cur_bio_label)
+        self._images_model.loadModel()
 
     def _on_image_saved(self, image_path):
         self.images_model.append_new_image(
             image_path,
             haul_id=self._app.state.cur_haul_id,
             catch_id=self._app.state.cur_catch_id,
-            specimen_id=self._app.state.cur_specimen_id
+            bio_id=self._app.state.cur_bio_id
         )
 
     @Property(QObject, notify=images_model_changed)

@@ -1,31 +1,34 @@
 -- IMAGES_VW source
 
+drop view images_vw
 CREATE VIEW IMAGES_VW as 
 select
 			
 			h."HAUL_NUMBER"
-			,c.display_name as "CATCH_DISPLAY_NAME"
-			,sp.plan_name as "PROJECT_NAME"
-			,coalesce(s.alpha_value, cast(cast(s.numeric_value as int) as text)) as BIO_LABEL
+			,c.display_name
+			,b.project_name
+			,b.project_scientist
+			,b.bio_label
+			,b.bio_type
+			,b.bio_subtype
 			,i.IMAGE_ID
 			,i.FILE_PATH
 			,i.FILE_NAME
 			,i.FILE_PATH || '/' || i.FILE_NAME as FULL_PATH
-			,i.HAUL_ID
-			,i.CATCH_ID
-			,i.SPECIMEN_ID
-			,s.SPECIES_SAMPLING_PLAN_ID
+			,i.FRAM_CAM_HAUL_ID
+			,i.FRAM_CAM_CATCH_ID
+			,i.FRAM_CAM_BIO_ID
 			,i.IS_BACKED_UP
 			,i.NOTES
 			,i.CAPTURED_DT
+			,'"haul_number":"'||h.haul_number||'","display_name":"'||c.display_name||'","project_name":"'||b.project_name||'","bio_label":"'||b.bio_label||'"' as image_filter_str
 
 from 		images i
-left join	hauls h
-			on i.haul_id = h.HAUL_ID
-left JOIN 	catch c
-			on c.catch_id = i.catch_id
-left JOIN 	specimen s
-			on s.specimen_id = i.specimen_id
-left JOIN 	SPECIES_SAMPLING_PLAN_LU sp
-			on s.SPECIES_SAMPLING_PLAN_ID = sp.species_sampling_plan_id
-order by 	datetime(i.CAPTURED_DT) desc;
+left join	fram_cam_hauls h
+			on i.fram_cam_haul_id = h.fram_cam_HAUL_ID
+left JOIN 	fram_cam_catch c
+			on c.fram_cam_catch_id = i.fram_cam_catch_id
+left JOIN 	fram_cam_bios b
+			on b.FRAM_CAM_BIO_ID = i.fram_cam_bio_id
+order by 	datetime(i.CAPTURED_DT) desc
+;
