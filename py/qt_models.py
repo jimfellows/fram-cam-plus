@@ -95,7 +95,7 @@ class FramCamSqlListModel(QAbstractListModel):
         if self._current_index != new_index:
             self._current_index = new_index
             self.currentIndexChanged.emit(new_index)
-            self._logger.error(f"{self.__class__.__name__} current index changed to {new_index}")
+            self._logger.info(f"{self.__class__.__name__} current index set from {self._current_index} --> {new_index}")
 
     def clearModel(self):
         self.beginResetModel()
@@ -104,7 +104,14 @@ class FramCamSqlListModel(QAbstractListModel):
         self._logger.info(f"{self.__class__.__name__} data cleared from model.")
 
     def setBindParam(self, key, val):
+        try:
+            old_val = self._bind_params[key]
+            is_updated = old_val != val
+        except KeyError:
+            is_updated = True
+
         self._bind_params[key] = val
+        return is_updated
 
     def loadModel(self):
         """
@@ -116,7 +123,6 @@ class FramCamSqlListModel(QAbstractListModel):
             self._logger.info(f"Binding param {k}={v}")
             self._query.bindValue(k, v)
         self._query.exec()
-        self._logger.info(f"{self.__class__.__name__} loadModel query returned {self._query_model.rowCount()} results")
         self._query_model.setQuery(self._query)
         self.beginInsertRows(QModelIndex(), 0, self._query_model.rowCount() - 1)
         for _i in range(self._query_model.rowCount()):
@@ -235,6 +241,12 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         super().__init__(parent)
         self._logger = Logger.get_root()
         self.setSourceModel(source_model)
+
+    @Slot(int, result=int)
+    def getProxyRowFromSource(self, source_row: int):
+        _source_index = self.sourceModel().index(source_row, 0, QModelIndex())
+        _proxy_index = self.mapFromSource(_source_index)
+        return _proxy_index.row()
 
     @Slot(int)
     def setSourceModelIndex(self, i):

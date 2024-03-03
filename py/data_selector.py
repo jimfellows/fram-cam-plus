@@ -43,19 +43,19 @@ class DataSelector(QObject):
         if self._app.state.cur_haul_id:
             _haul_model_ix = self._hauls_model.getRowIndexByValue('fram_cam_haul_id', self._app.state.cur_haul_id)
             self._logger.info(f"Setting initial HaulsModel row to {_haul_model_ix}, fram_cam_haul_id={self._app.state.cur_haul_id}")
-            self._hauls_model.currentIndex = _haul_model_ix
+            self._hauls_model._current_index = _haul_model_ix
             self._on_haul_changed(_haul_model_ix)
 
         if self._app.state.cur_catch_id:
             _catch_model_ix = self._catches_model.getRowIndexByValue('fram_cam_catch_id', self._app.state.cur_catch_id)
             self._logger.info(f"Setting initial CatchesModel row to {_catch_model_ix},  fram_cam_catch_id={self._app.state.cur_catch_id}")
-            self._catches_model.currentIndex = _catch_model_ix
+            self._catches_model._current_index = _catch_model_ix
             self._on_catch_changed(_catch_model_ix)
 
         if self._app.state.cur_project:
             _projects_model_ix = self._projects_model.getRowIndexByValue('project_name', self._app.state.cur_project)
             self._logger.info(f"Setting initial ProjectsModel row to {_projects_model_ix}, project {self._app.state.cur_project}")
-            self._projects_model.currentIndex = _projects_model_ix
+            self._projects_model._current_index = _projects_model_ix
             self._on_project_changed(_projects_model_ix)
 
         if self._app.state.cur_bio_label:
@@ -67,11 +67,15 @@ class DataSelector(QObject):
     def _on_haul_changed(self, new_haul_index):
         # TODO: set cur haul id here?
         self._cur_haul_rec = self._hauls_model.getItem(new_haul_index)
+
         self._catches_model.setBindParam(':fram_cam_haul_id', self._cur_haul_rec['fram_cam_haul_id'])
-        self._catches_model.setBindParam(':fram_cam_haul_id', self._cur_haul_rec['fram_cam_haul_id'])
+        self._projects_model.setBindParam(':fram_cam_haul_id', self._cur_haul_rec['fram_cam_haul_id'])
+        self._bios_model.setBindParam(':fram_cam_haul_id', self._cur_haul_rec['fram_cam_haul_id'])
+
         self._catches_model.loadModel()
-        self._projects_model.clearModel()
-        self._bios_model.clearModel()
+        self._projects_model.loadModel()
+        self._bios_model.loadModel()
+
         self._app.state.set_state_value('Current Haul Number', self._cur_haul_rec['haul_number'])
         self._app.state.set_state_value('Current Haul ID', self._cur_haul_rec['fram_cam_haul_id'])
 
@@ -83,11 +87,7 @@ class DataSelector(QObject):
         """
         self._cur_catch_rec = self._catches_model.getItem(new_catch_index)
         self._logger.info(f"Selected catch changed to {self._cur_catch_rec['display_name']}")
-        self._projects_model.setBindParam(':fram_cam_haul_id', self._cur_catch_rec['fram_cam_haul_id'])
-        self._projects_model.loadModel()
         self._projects_proxy.filterRoleOnStr('display_name', self._cur_catch_rec['display_name'])
-        self._bios_model.setBindParam(':fram_cam_haul_id', self._cur_catch_rec['fram_cam_haul_id'])
-        self._bios_model.loadModel()
         self._bios_proxy.filterRoleOnRegex('bio_filter_str', f'"display_name":"{self._cur_catch_rec['display_name']}"')
         self._app.state.set_state_value('Current Catch ID', self._cur_catch_rec['fram_cam_catch_id'])
         self._app.state.set_state_value('Current Catch Display', self._cur_catch_rec['display_name'])

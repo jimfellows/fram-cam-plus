@@ -66,6 +66,10 @@ class FramCamState(QObject):
         :return: true/false, depending on success
         """
         value_ix = self._get_value_index(parameter)
+        cur_val = self.get_state_value(parameter)
+        if cur_val == value:
+            return
+
         if value_ix:
             result = self._model.setData(value_ix, value)
         else:
@@ -75,7 +79,7 @@ class FramCamState(QObject):
             result = self._model.insertRecord(-1, rec)
 
         self._model.submitAll()
-        self._logger.info(f"{parameter}={value}, success={result}")
+        self._logger.info(f"State param set: {parameter}={value}, success={result}")
         return result
 
     @Property(str)

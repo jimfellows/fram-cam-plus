@@ -462,7 +462,7 @@ Item {
                         model.setSourceModelIndex(currentIndex)  // pass index from proxy to source
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboCatch.currentIndex = data_selector.catches_model.currentIndex
+                        comboCatch.currentIndex = model.getProxyRowFromSource(data_selector.catches_model.currentIndex)
                     }
                 }
                 FramCamComboBox {
@@ -479,14 +479,7 @@ Item {
                         model.setSourceModelIndex(currentIndex)
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboProject.currentIndex = data_selector.projects_model.currentIndex
-                    }
-                    Connections {
-                        target: data_selector.projects_model
-                        onPy_index_update: {
-                            comboProject.currentIndex = i
-                        }
-
+                        comboProject.currentIndex = model.getProxyRowFromSource(data_selector.projects_model.currentIndex)
                     }
                 }
                 FramCamComboBox {
@@ -495,17 +488,15 @@ Item {
                     height: parent.height
                     width: parent.width * 0.2
                     implicitHeight: capturePage.height * 0.7
-                    //model: data_selector.project_model.currentIndex > -1 ? data_selector.bios_model_l2 : data_selector_bios_model_l1
                     model: data_selector.bios_proxy
                     textRole: "bio_label"
                     fontSize: 14
                     placeholderText: data_selector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
                     onCurrentIndexChanged: {
                         model.setSourceModelIndex(currentIndex)
-                        //data_selector.project_model.currentIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboBiolabel.currentIndex = data_selector.bios_model.currentIndex
+                        comboBiolabel.currentIndex = model.getProxyRowFromSource(data_selector.bios_model.currentIndex)
                     }
                 }
             }
