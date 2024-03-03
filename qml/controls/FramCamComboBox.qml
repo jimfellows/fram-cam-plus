@@ -11,7 +11,7 @@ import QtQuick.Controls.Material
 ComboBox {
     id: root
     implicitWidth: 200
-    implicitHeight: 55
+    implicitHeight: 5000
     currentIndex: -1
 
     Material.theme: Material.Dark
@@ -19,33 +19,36 @@ ComboBox {
 
     //custom props
     property color backgroundColor: "transparent";
-    property color borderColor: "black"
+    property color borderColor: "white"
     property color fontColor: "white"
     property int fontSize: 18
     property real radius: 12;
     property string placeholderText: "";
     property bool italicDisplay: false;
 
+    /*
+    delegate here represents each item in the popup aka the drop down,
+    but not the actual backdrop of the popup
+    */
     delegate: ItemDelegate {
-        id: itemDelegate
-        height: root.implicitHeight
-        width: root.implicitWidth
+        id: popupRow
+        implicitHeight: root.height
+        implicitWidth: root.width
 
+        // popup row background rectangle
         background: Rectangle {
             color: root.backgroundColor
             anchors.fill: parent
-            radius: root.radius
         }
+
+        // row layout for the popup row
         RowLayout {
-            width: itemDelegate.width
-            height: itemDelegate.height
             anchors.fill: parent
             spacing: 2
             Label {
-                id: mylbl
-                opacity: 0.9
-                //text: root.currentIndex === -1 ? root.placeholderText : modelData
-                text: modelData
+                id: popupLabel
+                //opacity: 0.9
+                text: model[root.textRole]
                 color: root.fontColor
                 font.bold: true
                 font.pixelSize: root.fontSize
@@ -66,19 +69,25 @@ ComboBox {
                         color: root.fontColor
                     }
                 }
-
             }
         }
-    }
+    }  // popup row item delegate
+    /*
+    background here represents that of the button independent of the
+    popup/drop down that is displayed, displayed when combobox is collapsed
+    */
     background: Rectangle {
-        implicitWidth: root.implicitWidth
-        implicitHeight: root.implicitHeight
+        id: rectButton
+        implicitWidth: root.width
+        implicitHeight: root.height
         color: root.backgroundColor
         radius: root.radius
     }
+    /*
+    contentItem represents content of button shown when combobox is collapsed
+    */
     contentItem: Item {
-        width: root.background.width // - root.indicator.width - 10
-        height: root.background.height
+        id: ciButton
         anchors.fill: parent
         RowLayout {
             anchors.fill: parent
@@ -96,24 +105,50 @@ ComboBox {
             }
         }
     }
+    /*
+    popup represents the backdrop of the dropdown menu
+    */
     popup: Popup {
-        y: root.height + 2
-        width: root.implicitWidth
-        //width: root.implicitWidth > 250 ? 250 : contentItem.implicitHeight
+        id: popup
+        y: root.height + 2 // set drop down just below main button
+        width: root.width + 20  // bump out drop down slightly
+        height: root.height
         padding: 4
         contentItem: ListView {
-            leftMargin: 5
-            implicitHeight: contentHeight
-            model: root.popup.visible? root.delegateModel: null
-            //clip:true
+            clip: true
+            implicitHeight: popup.height
+            model: root.popup.visible ? root.delegateModel : null
             currentIndex: root.highlightedIndex
+            ScrollIndicator.vertical: ScrollIndicator { }
+            displaced: Transition {
+                //PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
+                NumberAnimation { properties: "x,y"; duration: 200 }
+            }
         }
         background: Rectangle {
+            id: rectPopup
             anchors.fill: parent
             color: root.backgroundColor
-            radius: 6
-
+            radius: root.radius
+            visible: true
+        }
+        enter: Transition {
+            NumberAnimation {
+                property: "height";
+                from: 0;
+                to: root.implicitHeight
+                easing.type: Easing.InOutQuint;
+                duration: 300;
+            }
+        }
+        exit: Transition {
+            NumberAnimation {
+                property: "height";
+                from: root.implicitHeight;
+                to: 0
+                easing.type: Easing.InOutQuint;
+                duration: 300;
+            }
         }
     }
-
 }
