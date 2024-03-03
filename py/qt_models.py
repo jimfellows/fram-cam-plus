@@ -29,6 +29,7 @@ class FramCamSqlListModel(QAbstractListModel):
     """
 
     currentIndexChanged = Signal(int, arguments=['newIndex'])
+    #selectRow = Signal(int, argument=['rowToSelect'])
 
     def __init__(self, db, parent=None):
         super().__init__(parent)
@@ -94,7 +95,7 @@ class FramCamSqlListModel(QAbstractListModel):
         if self._current_index != new_index:
             self._current_index = new_index
             self.currentIndexChanged.emit(new_index)
-            self._logger.info(f"{self.__class__.__name__} current index changed to {new_index}")
+            self._logger.error(f"{self.__class__.__name__} current index changed to {new_index}")
 
     def clearModel(self):
         self.beginResetModel()
@@ -145,10 +146,28 @@ class FramCamSqlListModel(QAbstractListModel):
 
     def getItem(self, index):
         try:
-            print(f"Getting item at index {index} for {self.__class__.__name__}")
+            #print(f"Getting item at index {index} for {self.__class__.__name__}")
             return self._data[index]
         except IndexError:
             self._logger.error(f"Row {index} not found in model {self.__class__.__name__}, unable to getItem")
+
+    def getRowIndexByValue(self, role_name, value):
+        """
+        Note that this will return the first match in the model, so using a unique val to search
+        on is often desired
+        :param field_name:
+        :param value:
+        :return:
+        """
+        try:
+            return [i for i, row in enumerate(self._data) if row[role_name] == value][0]
+        except KeyError:
+            self._logger.error(f"Role {role_name} not found in {self.__class__.__name__}")
+            return -1
+
+        except IndexError:
+            self._logger.warning(f"Row with {role_name}={value} not found, returning -1")
+            return -1
 
     def removeItem(self, row_index):
         self.beginRemoveRows(QModelIndex(), row_index, row_index)

@@ -16,20 +16,16 @@ class DataSelector(QObject):
         self._logger = Logger.get_root()
 
         # setup hauls model
-        # TODO: proxy models for in memory sorting?
         self._hauls_model = HaulsModel(db)
         self._hauls_model.loadModel()
         self._catches_model = CatchesModel(db)
-        self._catches_proxy = FramCamFilterProxyModel(self._catches_model)
         self._projects_model = ProjectsModel(db)
-        self._projects_proxy = FramCamFilterProxyModel(self._projects_model)
-        print(self._projects_model.roleNames())
-        print(self._hauls_model.roleNames())
-        print(self._catches_model.roleNames())
         self._bios_model = BiosModel(db)
+
+        # proxy models will allow us to filter further based on upstream selections
+        self._catches_proxy = FramCamFilterProxyModel(self._catches_model)
+        self._projects_proxy = FramCamFilterProxyModel(self._projects_model)
         self._bios_proxy = FramCamFilterProxyModel(self._bios_model)
-        # self._bios_proxy_l1 = FramCamFilterProxyModel(self._bios_model)
-        # self._bios_proxy_l2 = FramCamFilterProxyModel(self._bios_proxy_l1)
 
         # when haul changes populate the other models
         self._hauls_model.currentIndexChanged.connect(lambda i: self._on_haul_changed(i))
@@ -39,24 +35,34 @@ class DataSelector(QObject):
 
         """
         Below we select model rows pulled from database on startup.  Note that we set _current_index, not
-        current_index to avoid signaling to UI directly.  We use this backchannel because...
+        current_index to avoid signaling to UI directly.  We use this backchannel because QML items will not exist yet
+        since we initialize python items first.  currentIndexChanged signal wont be caught, hence the manual call to
+        _on_haul_changed/catch/project/bio.
         """
         # if we have pre-selected vals from db, set them now, in order (haul,catch,project,bio)
-        _haul_model_ix = self._hauls_model.get_ix_by_value('HAUL_ID', self._app.state.cur_haul_id)
-        # self._hauls_model._current_index = _haul_model_ix
-        # self._on_haul_changed(_haul_model_ix)
+        if self._app.state.cur_haul_id:
+            _haul_model_ix = self._hauls_model.getRowIndexByValue('fram_cam_haul_id', self._app.state.cur_haul_id)
+            self._logger.info(f"Setting initial HaulsModel row to {_haul_model_ix}, fram_cam_haul_id={self._app.state.cur_haul_id}")
+            self._hauls_model.currentIndex = _haul_model_ix
+            self._on_haul_changed(_haul_model_ix)
 
-        # _catch_model_ix = self._catches_model.get_ix_by_value('CATCH_ID', self._app.state.cur_catch_id)
-        # self._catches_model._current_index = _catch_model_ix
-        # self._on_catch_changed(_catch_model_ix)
-        #
-        # _projects_model_ix = self._projects_model.get_ix_by_value('PROJECT', self._app.state.cur_project)
-        # self._projects_model._current_index = _projects_model_ix
-        # self._on_project_changed(_projects_model_ix)
-        #
-        # _bios_model_ix = self._bios_model.get_ix_by_value('BIO_LABEL', self._app.state.cur_bio_label)
-        # self._bios_model._current_index = _bios_model_ix
-        # self._on_bio_changed(_bios_model_ix)
+        if self._app.state.cur_catch_id:
+            _catch_model_ix = self._catches_model.getRowIndexByValue('fram_cam_catch_id', self._app.state.cur_catch_id)
+            self._logger.info(f"Setting initial CatchesModel row to {_catch_model_ix},  fram_cam_catch_id={self._app.state.cur_catch_id}")
+            self._catches_model.currentIndex = _catch_model_ix
+            self._on_catch_changed(_catch_model_ix)
+
+        if self._app.state.cur_project:
+            _projects_model_ix = self._projects_model.getRowIndexByValue('project_name', self._app.state.cur_project)
+            self._logger.info(f"Setting initial ProjectsModel row to {_projects_model_ix}, project {self._app.state.cur_project}")
+            self._projects_model.currentIndex = _projects_model_ix
+            self._on_project_changed(_projects_model_ix)
+
+        if self._app.state.cur_bio_label:
+            _bios_model_ix = self._bios_model.getRowIndexByValue('bio_label', self._app.state.cur_bio_label)
+            self._logger.info(f"Setting initial BiosModel row to {_bios_model_ix}, bio_label {self._app.state.cur_bio_label}")
+            self._bios_model._current_index = _bios_model_ix
+            self._on_bio_changed(_bios_model_ix)
 
     def _on_haul_changed(self, new_haul_index):
         # TODO: set cur haul id here?

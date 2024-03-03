@@ -441,11 +441,10 @@ Item {
                     textRole: "haul_number"
                     placeholderText: data_selector.hauls_model.row_count === 0 ? 'N/A' : 'Select Haul...'
                     onCurrentIndexChanged: {
-                        //model.setSourceModelIndex(currentIndex)
                         model.currentIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboHauls.currentIndex = data_selector.hauls_model.currentIndex
+                        comboHauls.currentIndex = model.currentIndex
                     }
                 }
 
@@ -460,12 +459,10 @@ Item {
                     placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
                     fontSize: 14
                     onCurrentIndexChanged: {
-                        console.info("CATCH COMBO INDEX CHANGED to " + currentIndex)
-                        model.setSourceModelIndex(currentIndex)
-                        //data_selector.catches_model.currentIndex = currentIndex
+                        model.setSourceModelIndex(currentIndex)  // pass index from proxy to source
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboCatch.currentIndex = data_selector.catches_model.current_index
+                        comboCatch.currentIndex = data_selector.catches_model.currentIndex
                     }
                 }
                 FramCamComboBox {
@@ -480,10 +477,9 @@ Item {
                     placeholderText: data_selector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
                     onCurrentIndexChanged: {
                         model.setSourceModelIndex(currentIndex)
-                        //data_selector.projects_model.currentIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboProject.currentIndex = data_selector.projects_model.current_index
+                        comboProject.currentIndex = data_selector.projects_model.currentIndex
                     }
                     Connections {
                         target: data_selector.projects_model
@@ -509,7 +505,7 @@ Item {
                         //data_selector.project_model.currentIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboBiolabel.currentIndex = data_selector.bios_model.current_index
+                        comboBiolabel.currentIndex = data_selector.bios_model.currentIndex
                     }
                 }
             }
