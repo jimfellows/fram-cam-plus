@@ -74,9 +74,9 @@ class DataSelector(QObject):
             self._on_project_changed(_projects_model_ix)
 
         if self._app.state.cur_bio_label:
-            _bios_model_ix = self._bios_model.getRowIndexByValue('bio_label', self._app.state.cur_bio_label)
+            _bios_model_ix = self._bios_model.getRowIndexByValue('bio_label', self._cur_bio_label)
             _proxy_ix = self._bios_proxy.getProxyRowFromSource(_bios_model_ix)
-            self._logger.info(f"Setting initial BiosModel row to {_bios_model_ix}, proxy {_proxy_ix} bio_label {self._app.state.cur_bio_label}")
+            self._logger.info(f"Setting initial BiosModel row to {_bios_model_ix}, proxy {_proxy_ix} bio_label {self._cur_bio_label}")
             self._bios_model.setIndexSilently(_bios_model_ix)
             self._on_bio_changed(_bios_model_ix)
 
@@ -169,7 +169,7 @@ class DataSelector(QObject):
             self._cur_haul_id = new_haul_id
             self._app.state.set_state_value('Current Haul ID', new_haul_id)
 
-    @Property(str, notify=unusedSignal)
+    @Property(str, notify=curCatchChanged)
     def cur_catch_display(self):
         return self._cur_catch_display
 
@@ -181,7 +181,7 @@ class DataSelector(QObject):
             self._app.state.set_state_value('Current Catch Display', new_catch_display)
             self.curCatchChanged.emit(new_catch_display)
 
-    @Property(str, notify=unusedSignal)
+    @Property(str, notify=curCatchChanged)
     def cur_catch_id(self):
         return self._cur_catch_id
 
@@ -192,7 +192,7 @@ class DataSelector(QObject):
             self._cur_catch_id = new_catch_id
             self._app.state.set_state_value('Current Catch ID', new_catch_id)
 
-    @Property(str, notify=unusedSignal)
+    @Property(str, notify=curProjectChanged)
     def cur_project_name(self):
         return self._cur_project_name
 
@@ -204,7 +204,7 @@ class DataSelector(QObject):
             self._app.state.set_state_value('Current Project Name', new_project_name)
             self.curProjectChanged.emit(new_project_name)
 
-    @Property(str, notify=unusedSignal)
+    @Property(str, notify=curBioChanged)
     def cur_bio_label(self):
         return self._cur_bio_label
 
