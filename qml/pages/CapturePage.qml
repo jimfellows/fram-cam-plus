@@ -473,7 +473,7 @@ Item {
                     placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
                     fontSize: 14
                     onCurrentIndexChanged: {
-                        model.setSourceModelIndex(currentIndex)  // pass index from proxy to source
+                        model.proxyIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboCatch.currentIndex = model.getProxyRowFromSource(data_selector.catches_model.currentIndex)
@@ -496,7 +496,7 @@ Item {
                     fontSize: 14
                     placeholderText: data_selector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
                     onCurrentIndexChanged: {
-                        model.setSourceModelIndex(currentIndex)
+                        model.proxyIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboProject.currentIndex = model.getProxyRowFromSource(data_selector.projects_model.currentIndex)
@@ -519,7 +519,7 @@ Item {
                     fontSize: 14
                     placeholderText: data_selector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
                     onCurrentIndexChanged: {
-                        model.setSourceModelIndex(currentIndex)
+                        model.proxyIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboBiolabel.currentIndex = model.getProxyRowFromSource(data_selector.bios_model.currentIndex)
