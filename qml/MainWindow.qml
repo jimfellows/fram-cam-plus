@@ -15,7 +15,8 @@ Window {
     width: 1200
     height: 700
     visible: true
-    color: "#00ffffff"
+    color: style.errorColor
+    //color: "#00ffffff"
     title: qsTr("FramCam")
 
     //props
@@ -69,7 +70,8 @@ Window {
 
     Rectangle {
         id: rectBg
-        color: "#0085ca"
+        //color: "#0085ca"
+        color: style.fontColor
         border.color: "#003087"
         border.width: 1
         anchors.fill: parent
@@ -81,7 +83,8 @@ Window {
 
         Rectangle {
             id: rectAppContainer
-            color: "#00ffffff"
+            //color: "#00ffffff"
+            color: style.errorColor
             border.width: 5
             anchors.fill: parent
             anchors.rightMargin: 1
@@ -172,7 +175,7 @@ Window {
                     Label {
                         id: lblTitle
                         text: qsTr("FRAMCam+")
-                        color: 'white'
+                        color: style.errorColor
                         anchors.left: imgAppLogo.right
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
