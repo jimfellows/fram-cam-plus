@@ -331,7 +331,7 @@ Item {
                     anchors.topMargin: 20
                     orientation: ListView.Vertical
                     spacing: 10
-                    model: camera_manager.images_model
+                    model: camera_manager.images_proxy
 
                     delegate: Column {
                         Image {
@@ -340,8 +340,9 @@ Item {
                             width: lvThumbnails.width - 10
                             height: 50
                             fillMode: Image.PreserveAspectFit
-                            scale: camera_manager.images_model.currentIndex === index ? 1.2 : 1
-                            layer.enabled: camera_manager.images_model.currentIndex === index
+                            scale: camera_manager.images_proxy.proxyIndex === index ? 1.2 : 1
+                            layer.enabled: camera_manager.images_proxy.proxyIndex === index
+
                             layer.effect: DropShadow {
                                 verticalOffset: 0
                                 horizontalOffset: 0
@@ -351,12 +352,14 @@ Item {
                             }
                             MouseArea {
                                 anchors.fill: parent
-                                onClicked: camera_manager.images_model.currentIndex = index
+                                onClicked: {
+                                    camera_manager.images_proxy.proxyIndex = index
+                                }
                             }
                         }
                         Label {
                             id: imgLabel
-                            text: model.catch_display_name
+                            text: model.display_name
                             font.pixelSize: 8
                             font.bold: true
                             font.family: 'roboto'
@@ -365,7 +368,7 @@ Item {
                         }
                         Rectangle {
                             id: rectUnderline
-                            height: index === camera_manager.images_model.currentIndex ? 3 : 1
+                            height: index === camera_manager.images_proxy.proxyIndex ? 3 : 1
                             width: imgThumbnail.width - 10
                             color: "white"
                             anchors.topMargin: 10
@@ -382,6 +385,11 @@ Item {
                     displaced: Transition {
                         PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
                         NumberAnimation { properties: "x,y"; duration: 200 }
+                    }
+                    remove: Transition {
+                        PropertyAction { property: "transformOrigin"; value: Item.Bottom}
+                        NumberAnimation { property: "opacity"; from: 1.0; to: 0; duration: 200 }
+                        NumberAnimation { property: "scale"; from: 1.0; to: 0; duration: 200 }
                     }
                 }
             }
