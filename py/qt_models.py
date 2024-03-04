@@ -260,12 +260,24 @@ class BiosModel(FramCamSqlListModel):
 
 class FramCamFilterProxyModel(QSortFilterProxyModel):
 
-    currentIndexChanged = Signal()
+    proxyIndexChanged = Signal(int, arguments=['new_proxy_index'])
 
     def __init__(self, source_model, parent=None):
         super().__init__(parent)
         self._logger = Logger.get_root()
+        self._proxy_index = -1
         self.setSourceModel(source_model)
+
+    @Property(int, notify=proxyIndexChanged)
+    def proxyIndex(self):
+        return self._proxy_index
+
+    @proxyIndex.setter
+    def proxyIndex(self, new_index):
+        if self._proxy_index != new_index:
+            self._proxy_index = new_index
+            self.proxyIndexChanged.emit(new_index)
+            self.setSourceModelIndex(new_index)
 
     @Slot(int, result=int)
     def getProxyRowFromSource(self, source_row: int):
@@ -280,6 +292,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         :param i: int, row index
         :return:
         """
+        self._current_index = i
         _proxy_index = self.index(i, 0, QModelIndex())
         _source_index = self.mapToSource(_proxy_index)
         try:
@@ -310,10 +323,27 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         except AttributeError:
             self._logger.error(f"Source model of {self.__class__.__name__} does not have getRoleByName method!")
             return
-
+        self._logger.info(f"Filtering on: {regex_pattern}")
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterRegularExpression(regex_pattern)
+        self._logger.info(f"Row count for {self.__class__.__name__} after filter {self.rowCount()}")
+
+    def filterRoleWildcard(self, role_name: str, pattern: str):
+        """
+        specify name of role and a regex pattern to filter proxy model with
+        :param role_name: name of field/role we'd like to filter on
+        :param regex_pattern: regular expression pattern that QT likes
+        """
+        try:
+            _role_num = self.sourceModel().getRoleByName(role_name)
+        except AttributeError:
+            self._logger.error(f"Source model of {self.__class__.__name__} does not have getRoleByName method!")
+            return
+
+        self.setFilterRole(_role_num)
+        self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.setFilterWildcard(pattern)
 
 
 class ImagesModel(FramCamSqlListModel):
