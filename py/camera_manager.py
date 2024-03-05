@@ -214,7 +214,6 @@ class CameraManager(QObject):
     images_model_changed = Signal()
     activeCameraChanged = Signal()
 
-
     def __init__(self, db, app=None):
         super().__init__()
         self._app = app
@@ -231,16 +230,16 @@ class CameraManager(QObject):
         self._is_camera_running = None
         self._images_model = ImagesModel(self._db)
         self._images_proxy = FramCamFilterProxyModel(self._images_model)
+        # self._images_model.sendIndexToProxy.connect(lambda _i: self._images_proxy.setProxyIndexSilently(_i))
+
         self._image_capture.imageSaved.connect(lambda ix, path: self._on_image_saved(path))  # image save is async, so hooking to signal
 
         self._app.data_selector.curHaulChanged.connect(self._filter_images_model)
         self._app.data_selector.curCatchChanged.connect(self._filter_images_model)
         self._app.data_selector.curProjectChanged.connect(self._filter_images_model)
         self._app.data_selector.curBioChanged.connect(self._filter_images_model)
-
         self._load_images_model()
         self._filter_images_model()
-        print(self._images_model._data)
 
     def _filter_images_model(self):
         _haul = self._app.data_selector.cur_haul_num or 'NULL'
