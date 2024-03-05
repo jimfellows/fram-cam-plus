@@ -3,6 +3,7 @@ import QtQuick.Layouts 6.3
 import QtQuick.Controls 2.15
 
 import 'qrc:/qml'
+import QtQuick.VirtualKeyboard 2.1
 
 Rectangle {
     id: root
@@ -20,7 +21,7 @@ Rectangle {
         anchors {
             fill: parent
             leftMargin: 5
-            rightMargin: 5
+            rightMargin: 50
             topMargin: 5
             bottomMargin: 5
         }
@@ -85,6 +86,7 @@ Rectangle {
                         Layout.alignment: Qt.AlignLeft
                     }
                 }
+                /*
                 RowLayout {
                     Layout.fillWidth: true
                     Label {
@@ -107,6 +109,7 @@ Rectangle {
                         Layout.alignment: Qt.AlignLeft
                     }
                 }
+                */
                 RowLayout {
                     Layout.fillWidth: true
                     Label {
@@ -147,21 +150,26 @@ Rectangle {
                     font.bold: true
                 }
                 TextArea {
-                    Layout.fillWidth: true
+                    Layout.preferredWidth: parent.width
                     Layout.preferredHeight: 50
                 }
                 RowLayout {
+                    Layout.preferredWidth: parent.width
+                    Layout.preferredHeight: 50
                     FramCamButton {
+                        Layout.preferredWidth: parent.width * 0.25
                         text: "Save & Close"
-                        width: 50
+                        Layout.preferredHeight: 75
                     }
                     FramCamButton {
                         text: "Delete"
-                        width: 50
+                        Layout.preferredWidth: parent.width * 0.25
+                        Layout.preferredHeight: 75
                     }
                     FramCamButton {
                         text: "Sync"
-                        width: 50
+                        Layout.preferredWidth: parent.width * 0.25
+                        Layout.preferredHeight: 75
                     }
                 }
             }
@@ -174,6 +182,16 @@ Rectangle {
             opacity: 0.1
             color: "#ffffff"
             radius: 8
+            InputPanel  {
+                id: keyboard
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    leftMargin: 50
+                    rightMargin: 50
+                }
+
+            }
         }
     }
 
