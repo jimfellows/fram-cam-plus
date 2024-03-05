@@ -261,6 +261,8 @@ class BiosModel(FramCamSqlListModel):
 class FramCamFilterProxyModel(QSortFilterProxyModel):
 
     proxyIndexChanged = Signal(int, arguments=['new_proxy_index'])
+    indexSetSilently = Signal(int, arguments=['newIndex'])
+
 
     def __init__(self, source_model, parent=None):
         super().__init__(parent)
@@ -268,12 +270,16 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         self._proxy_index = -1
         self.setSourceModel(source_model)
 
+    def setProxyIndexSilently(self, new_index):
+        self._proxy_index = new_index
+
     @Property(int, notify=proxyIndexChanged)
     def proxyIndex(self):
         return self._proxy_index
 
     @proxyIndex.setter
     def proxyIndex(self, new_index):
+        self._logger.info(f"Setting {self.__class__.__name__} proxy index: {self._proxy_index} --> {new_index}")
         if self._proxy_index != new_index:
             self._proxy_index = new_index
             self.proxyIndexChanged.emit(new_index)
@@ -348,6 +354,8 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
 
 class ImagesModel(FramCamSqlListModel):
 
+    sendIndexToProxy = Signal(int, arguments=['new_index'])  # TODO: move me into framcamsqllistmodel
+
     def __init__(self, db):
         super().__init__(db)
         self.sql = '''
@@ -410,8 +418,10 @@ class ImagesModel(FramCamSqlListModel):
         for i in range(self._query_model.rowCount()):
             self.appendRow(Utils.qrec_to_dict(self._query_model.record(i)), index=index)
 
-        self.currentIndex = index
+        self._current_index = index
         self._logger.info(f"image_id {image_id} loaded to list model at index {self._current_index}")
+        self.sendIndexToProxy.emit(index)
+
 
     def append_new_image(self, image_path, haul_id=None, catch_id=None, bio_id=None):
         """

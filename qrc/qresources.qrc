@@ -6,6 +6,7 @@
         <file alias="SettingsPage.qml">../qml/pages/SettingsPage.qml</file>
         <file alias="ImageManagerPage.qml">../qml/pages/ImageManagerPage.qml</file>
         <file alias="SpeciesPage.qml">../qml/pages/SpeciesPage.qml</file>
+        <file alias="ImageEditorBar.qml">../qml/components/ImageEditorBar.qml</file>
         <file>../qml/controls/FramCamButton.qml</file>
         <file>../qml/controls/FramCamComboBox.qml</file>
         <file>../qml/controls/FramCamMenuButton.qml</file>

@@ -2,9 +2,9 @@ import QtQuick.Controls 6.3
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
-//import com.library.name 1.0
 
 import './qml/controls'
+import 'qrc:/qml'
 //import './qml/AppStyle'
 
 
@@ -42,6 +42,7 @@ Item {
 
             Rectangle {
                 id: rectImgPreview
+                //visible: false
                 color: "#bababa"
                 anchors.left: parent.left
                 anchors.right: parent.right
@@ -308,7 +309,34 @@ Item {
                     }
                 }
             }
-
+            ImageEditorBar {
+                id: editBar
+                anchors.top: parent.top
+                anchors.topMargin: 10
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 10
+                anchors.right: rectThumbnails.left
+                width: 0
+                PropertyAnimation{
+                    id: animationEditBar
+                    target: editBar
+                    property: "width"
+                    to: if(editBar.width == 0) return rectImgPreview.width - 20; else return 0;
+                    duration: 300
+                    easing.type: Easing.InOutQuint
+                }
+                Connections {
+                    target: camera_manager.images_proxy
+                    function onProxyIndexChanged(new_proxy_index) {
+                        if (new_proxy_index > -1 && editBar.width > 0) {
+                            // if we still select an image and edit bar is already out, dont re-animate
+                            return;
+                        } else {
+                            animationEditBar.running = true;
+                        }
+                    }
+                }
+            }
             Rectangle {
                 id: rectThumbnails
                 y: 0
@@ -332,6 +360,11 @@ Item {
                     orientation: ListView.Vertical
                     spacing: 10
                     model: camera_manager.images_proxy
+                    currentIndex: -1
+                    onCurrentIndexChanged: {
+                        model.proxyIndex = currentIndex
+                        console.info("Current index of thumbnails changed to " + currentIndex)
+                    }
 
                     delegate: Column {
                         Image {
@@ -342,20 +375,35 @@ Item {
                             fillMode: Image.PreserveAspectFit
                             scale: camera_manager.images_proxy.proxyIndex === index ? 1.2 : 1
                             layer.enabled: camera_manager.images_proxy.proxyIndex === index
-
                             layer.effect: DropShadow {
                                 verticalOffset: 0
                                 horizontalOffset: 0
-                                //opacity: 0.5
                                 radius: 20
                                 color: "lightgray"
                             }
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
-                                    camera_manager.images_proxy.proxyIndex = index
+                                    console.info("Image clicked at index " + index)
+                                    // clicking an already active image clears selection
+                                    if (index === camera_manager.images_proxy.proxyIndex) {
+                                        console.info("CLICK: Clicked image already selected, deselecting...")
+                                        lvThumbnails.currentIndex = -1
+                                    } else {
+                                        console.info("CLICK: Selecting new image at index " + index)
+                                        lvThumbnails.currentIndex = index
+
+                                    }
                                 }
                             }
+                            /*
+                            Connections {
+                                target: camera_manager.images_proxy
+                                function onIndexSetSilently(newIndex) {
+                                    lvThumbnails.currentIndex = newIndex
+                                }
+                            }
+                            */
                         }
                         Label {
                             id: imgLabel
