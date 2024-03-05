@@ -214,7 +214,6 @@ class CameraManager(QObject):
     images_model_changed = Signal()
     activeCameraChanged = Signal()
 
-
     def __init__(self, db, app=None):
         super().__init__()
         self._app = app
