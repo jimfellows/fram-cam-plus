@@ -1,64 +1,60 @@
 import QtQuick 2.0
+import QtQuick.Layouts 6.3
 
 Rectangle {
     id: root
     color: "#121212"
+    border.color: "gray"
     implicitHeight: 417
     implicitWidth: 480
+    radius: 8
 
-    Rectangle {
-        id: rectImageArea
-        opacity: 0.1
-        color: "#ffffff"
-        radius: 8
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.bottom: rectKeyboardArea.top
-        anchors.bottomMargin: 8
-        anchors.rightMargin: 216
-        anchors.topMargin: 8
-        anchors.leftMargin: 8
+    property string imageSource;
 
-        Image {
-            id: imgPreview
-            anchors.fill: parent
-            source: "qrc:/qtquickplugin/images/template_image.png"
-            anchors.rightMargin: 5
-            anchors.leftMargin: 5
-            anchors.bottomMargin: 5
-            anchors.topMargin: 5
-            fillMode: Image.PreserveAspectFit
+    GridLayout {
+        id: gridLayout
+        anchors {
+            fill: parent
+            leftMargin: 5
+            rightMargin: 5
+            topMargin: 5
+            bottomMargin: 5
         }
-    }
+        rows: 2
+        columns: 2
 
-    Rectangle {
-        id: rectEditArea
-        width: 200
-        opacity: 0.1
-        color: "#ffffff"
-        radius: 8
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: rectKeyboardArea.top
-        anchors.leftMargin: 272
-        anchors.bottomMargin: 8
-        anchors.topMargin: 8
-    }
+        Rectangle {
+            id: rectImageArea
+            Layout.preferredWidth: parent.width * 0.6 - 5
+            Layout.preferredHeight: parent.height * 0.5 - 5
+            opacity: 0.1
+            color: "#ffffff"
+            radius: 8
 
-    Rectangle {
-        id: rectKeyboardArea
-        y: 217
-        height: 192
-        opacity: 0.1
-        color: "#ffffff"
-        radius: 8
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
-        anchors.rightMargin: 8
-        anchors.leftMargin: 8
+            Image {
+                id: imgPreview
+                anchors.fill: parent
+                source: "file:///" + root.imageSource
+                fillMode: Image.PreserveAspectFit
+            }
+        }
+        Rectangle {
+            id: rectEditArea
+            Layout.preferredWidth: parent.width * 0.4 - 5
+            Layout.preferredHeight: parent.height * 0.5 - 5
+            opacity: 0.1
+            color: "#ffffff"
+            radius: 8
+        }
+        Rectangle {
+            id: rectKeyboardArea
+            Layout.preferredWidth: parent.width
+            Layout.preferredHeight: parent.height * 0.5 - 5
+            Layout.columnSpan: 2
+            opacity: 0.1
+            color: "#ffffff"
+            radius: 8
+        }
     }
 
 }

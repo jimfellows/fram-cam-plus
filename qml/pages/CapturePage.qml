@@ -316,6 +316,7 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 10
                 anchors.right: rectThumbnails.left
+                anchors.rightMargin: -10
                 width: 0
                 PropertyAnimation{
                     id: animationEditBar
@@ -328,6 +329,9 @@ Item {
                 Connections {
                     target: camera_manager.images_proxy
                     function onProxyIndexChanged(new_proxy_index) {
+                        var modelIx = camera_manager.images_proxy.sourceIndex
+                        editBar.imageSource = camera_manager.images_model.getData(modelIx, 'full_path')
+
                         if (new_proxy_index > -1 && editBar.width > 0) {
                             // if we still select an image and edit bar is already out, dont re-animate
                             return;
@@ -353,6 +357,7 @@ Item {
                     id: lvThumbnails
                     x: 0
                     y: 0
+                    clip: true
                     anchors.fill: parent
                     anchors.leftMargin: 10
                     anchors.rightMargin: 10

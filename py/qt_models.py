@@ -147,6 +147,7 @@ class FramCamSqlListModel(QAbstractListModel):
         self._data.insert(index, data_item)
         self.endInsertRows()
 
+    @Slot(int, str, result="QVariant")
     def getData(self, index, prop_name):
         try:
             return self._data[index][prop_name]
@@ -284,6 +285,16 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
             self._proxy_index = new_index
             self.proxyIndexChanged.emit(new_index)
             self.setSourceModelIndex(new_index)
+
+    @Property(int, notify=proxyIndexChanged)
+    def sourceIndex(self):
+        return self.getSourceRowFromProxy(self._proxy_index)
+
+    @Slot(int, result=int)
+    def getSourceRowFromProxy(self, proxy_row: int):
+        _proxy_index = self.index(proxy_row, 0, QModelIndex())
+        _source_index = self.mapToSource(_proxy_index)
+        return _source_index.row()
 
     @Slot(int, result=int)
     def getProxyRowFromSource(self, source_row: int):
