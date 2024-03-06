@@ -42,7 +42,7 @@ class FramCamPlus(QObject):
         self.camera_manager = CameraManager(self.sqlite.db, self)
 
         self.context.setContextProperty('state', self.state)
-        self.context.setContextProperty('style', self.style)
+        self.context.setContextProperty('appstyle', self.style)
         self.context.setContextProperty('data_selector', self.data_selector)
         self.context.setContextProperty('camera_manager', self.camera_manager)
 

@@ -30,13 +30,20 @@ Button {
 
         Image {
             id: imgMenuIcon
-            source: 'qrc:/svgs/menu.svg'
+            source: 'qrc:/svgs/menu_open.svg'
             anchors.verticalCenter: parent.verticalCenter
             anchors.horizontalCenter: parent.horizontalCenter
             height: 40
             width: 40
             fillMode: Image.PreserveAspectFit
+            layer {
+                enabled: true
+                effect: ColorOverlay {
+                    color: appstyle.iconColor
+                }
+            }
         }
+
     }
 }
 

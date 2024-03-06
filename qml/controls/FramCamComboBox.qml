@@ -20,7 +20,7 @@ ComboBox {
     //custom props
     property color backgroundColor: "transparent";
     property color borderColor: "white"
-    property color fontColor: "white"
+    property color fontColor: appstyle.secondaryFontColor
     property int fontSize: 18
     property real radius: 12;
     property string placeholderText: "";
@@ -39,6 +39,7 @@ ComboBox {
         background: Rectangle {
             color: root.backgroundColor
             anchors.fill: parent
+            //border.color: root.borderColor
         }
 
         // row layout for the popup row
@@ -52,6 +53,7 @@ ComboBox {
                 color: root.fontColor
                 font.bold: true
                 font.pixelSize: root.fontSize
+                font.family: appstyle.fontFamily
                 Layout.leftMargin: 10
                 Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
             }
@@ -66,7 +68,7 @@ ComboBox {
                 layer {
                     enabled: true
                     effect: ColorOverlay {
-                        color: root.fontColor
+                        color: appstyle.accentColor
                     }
                 }
             }
@@ -82,6 +84,7 @@ ComboBox {
         implicitHeight: root.height
         color: root.backgroundColor
         radius: root.radius
+        border.color: root.borderColor
     }
     /*
     contentItem represents content of button shown when combobox is collapsed
@@ -99,6 +102,7 @@ ComboBox {
                 color: root.fontColor
                 font.bold: true
                 font.pixelSize: root.fontSize
+                font.family: appstyle.fontFamily
                 Layout.fillWidth: true
                 verticalAlignment: Image.AlignVCenter
                 Layout.leftMargin: 10
@@ -131,6 +135,7 @@ ComboBox {
             color: root.backgroundColor
             radius: root.radius
             visible: true
+            border.color: root.borderColor
         }
         enter: Transition {
             NumberAnimation {

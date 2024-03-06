@@ -5,7 +5,6 @@ import QtMultimedia 6.3
 
 import './qml/controls'
 import 'qrc:/qml'
-//import './qml/AppStyle'
 
 
 Item {
@@ -20,7 +19,7 @@ Item {
 
     Rectangle {
         id: rectBg
-        color: "#00ffffff"
+        color: appstyle.elevatedSurface_L5
         border.color: "#00000000"
         anchors.fill: parent
         anchors.rightMargin: 5
@@ -30,7 +29,7 @@ Item {
 
         Rectangle {
             id: rectImgArea
-            color: "#00ffffff"
+            color: appstyle.elevatedSurface_L5
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: rectDataSelection.bottom
@@ -43,12 +42,14 @@ Item {
             Rectangle {
                 id: rectImgPreview
                 //visible: false
-                color: "#bababa"
+                color: appstyle.elevatedSurface_L7
+                border.color: appstyle.iconColor
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.rightMargin: 150
+                radius: 8
 
                 Image {
                     id: image
@@ -58,6 +59,12 @@ Item {
                     source: "qrc:/svgs/eye_closed.svg"
                     anchors.horizontalCenter: parent.horizontalCenter
                     fillMode: Image.PreserveAspectFit
+                    layer {
+                        enabled: true
+                        effect: ColorOverlay {
+                            color: appstyle.accentColor
+                        }
+                    }
                 }
 
                 VideoOutput {
@@ -70,8 +77,8 @@ Item {
                     id: rectControls
                     y: 325
                     height: 100
-                    opacity: 0.5
-                    color: "#000000"
+                    color: appstyle.elevatedSurface_L5
+                    border.color: appstyle.iconColor
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
@@ -312,7 +319,7 @@ Item {
             ImageEditorBar {
                 id: editBar
                 anchors.top: parent.top
-                anchors.topMargin: 10
+                //anchors.topMargin: 10
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 10
                 anchors.right: rectThumbnails.left
@@ -322,7 +329,7 @@ Item {
                     id: animationEditBar
                     target: editBar
                     property: "width"
-                    to: if(editBar.width == 0) return rectImgPreview.width - 20; else return 0;
+                    to: if(editBar.width == 0) return rectImgPreview.width; else return 0;
                     duration: 300
                     easing.type: Easing.InOutQuint
                 }
@@ -345,13 +352,12 @@ Item {
                 id: rectThumbnails
                 y: 0
 
-                color: "black"
+                color: appstyle.elevatedSurface_L5
                 anchors.left: rectImgPreview.right
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.leftMargin: 0
-                opacity: 0.5
 
                 ListView {
                     id: lvThumbnails
@@ -492,7 +498,9 @@ Item {
                 anchors.rightMargin: 50
                 FramCamComboBox {
                     id: comboHauls
-                    backgroundColor: "#003087"
+                    backgroundColor: appstyle.elevatedSurface_L5
+                    fontColor: appstyle.secondaryFontColor
+                    borderColor: appstyle.iconColor
                     // why does height affect the collapsed height, and implicit affect to popup?
                     height: parent.height
                     implicitHeight: capturePage.height * 0.7
@@ -517,7 +525,9 @@ Item {
 
                 FramCamComboBox {
                     id: comboCatch
-                    backgroundColor: "#003087"
+                    backgroundColor: appstyle.elevatedSurface_L5
+                    fontColor: appstyle.secondaryFontColor
+                    borderColor: appstyle.iconColor
                     height: parent.height
                     implicitHeight: capturePage.height * 0.7
                     width: parent.width * 0.3
@@ -540,7 +550,9 @@ Item {
                 }
                 FramCamComboBox {
                     id: comboProject
-                    backgroundColor: "#003087"
+                    backgroundColor: appstyle.elevatedSurface_L5
+                    fontColor: appstyle.secondaryFontColor
+                    borderColor: appstyle.iconColor
                     height: parent.height
                     width: parent.width * 0.3
                     implicitHeight: capturePage.height * 0.7
@@ -563,7 +575,9 @@ Item {
                 }
                 FramCamComboBox {
                     id: comboBiolabel
-                    backgroundColor: "#003087"
+                    backgroundColor: appstyle.elevatedSurface_L5
+                    fontColor: appstyle.secondaryFontColor
+                    borderColor: appstyle.iconColor
                     height: parent.height
                     width: parent.width * 0.2
                     implicitHeight: capturePage.height * 0.7

@@ -22,6 +22,7 @@
         <file alias="change_camera.svg">../resources/svgs/change_camera.svg</file>
         <file alias="check.svg">../resources/svgs/check_basic.svg</file>
         <file alias="close.svg">../resources/svgs/close_icon.svg</file>
+        <file alias="construction_sign.svg">../resources/svgs/construction_sign.svg</file>
         <file>../resources/svgs/collapse_left.svg</file>
         <file>../resources/svgs/collapse_right.svg</file>
         <file alias="coral.svg">../resources/svgs/coral_1.svg</file>
@@ -41,6 +42,7 @@
         <file>../resources/svgs/magnifying_glass.svg</file>
         <file alias="maximize.svg">../resources/svgs/maximize_icon.svg</file>
         <file alias="menu.svg">../resources/svgs/menu_icon.svg</file>
+        <file alias="menu_open.svg">../resources/svgs/menu_open.svg</file>
         <file alias="minimize.svg">../resources/svgs/minimize_icon.svg</file>
         <file alias="nautilus.svg">../resources/svgs/nautilus.svg</file>
         <file>../resources/svgs/noaa.svg</file>
