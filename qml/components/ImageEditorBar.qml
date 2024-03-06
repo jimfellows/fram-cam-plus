@@ -7,8 +7,8 @@ import QtQuick.VirtualKeyboard 2.1
 
 Rectangle {
     id: root
-    color: "#121212"
-    border.color: "gray"
+    color: appstyle.surfaceColor
+    border.color: appstyle.iconColor
     implicitHeight: 417
     implicitWidth: 480
     radius: 8
@@ -20,35 +20,40 @@ Rectangle {
         id: gridLayout
         anchors {
             fill: parent
-            leftMargin: 5
-            rightMargin: 50
-            topMargin: 5
-            bottomMargin: 5
+            leftMargin: 20
+            rightMargin: 20
+            topMargin: 20
+            bottomMargin: 20
         }
         rows: 2
         columns: 2
 
         Rectangle {
             id: rectImageArea
-            Layout.preferredWidth: parent.width * 0.6 - 5
+            Layout.preferredWidth: parent.width * 0.4 - 5
             Layout.preferredHeight: parent.height * 0.5 - 5
-            opacity: 0.5
-            color: "#ffffff"
+            //color: appstyle.elevatedSurface_L9
+            color: '#556a75'
             radius: 8
 
             Image {
                 id: imgPreview
-                anchors.fill: parent
+                anchors {
+                    fill: parent
+                    topMargin: 5
+                    bottomMargin: 5
+                    leftMargin: 5
+                    rightMargin: 5
+                }
                 source: "file:///" + root.imageSource
                 fillMode: Image.PreserveAspectFit
             }
         }
         Rectangle {
             id: rectEditArea
-            Layout.preferredWidth: parent.width * 0.4 - 5
+            Layout.preferredWidth: parent.width * 0.6 - 5
             Layout.preferredHeight: parent.height * 0.5 - 5
-            opacity: 0.5
-            color: "#ffffff"
+            color: '#556a75'
             radius: 8
 
             ColumnLayout {
@@ -156,6 +161,7 @@ Rectangle {
                 RowLayout {
                     Layout.preferredWidth: parent.width
                     Layout.preferredHeight: 50
+                    visible: false
                     FramCamButton {
                         Layout.preferredWidth: parent.width * 0.25
                         text: "Save & Close"
@@ -179,16 +185,15 @@ Rectangle {
             Layout.preferredWidth: parent.width
             Layout.preferredHeight: parent.height * 0.5 - 5
             Layout.columnSpan: 2
-            opacity: 0.1
-            color: "#ffffff"
+            color: 'transparent'
             radius: 8
             InputPanel  {
                 id: keyboard
                 anchors {
                     left: parent.left
                     right: parent.right
-                    leftMargin: 50
-                    rightMargin: 50
+                    //leftMargin: 50
+                    //rightMargin: 50
                 }
 
             }

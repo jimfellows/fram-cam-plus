@@ -15,7 +15,7 @@ Window {
     width: 1200
     height: 700
     visible: true
-    color: "#00ffffff"
+    color: "transparent"
     title: qsTr("FramCam")
 
     //props
@@ -69,7 +69,8 @@ Window {
 
     Rectangle {
         id: rectBg
-        color: "#0085ca"
+        //color: "#0085ca"
+        color: appstyle.surfaceColor
         border.color: "#003087"
         border.width: 1
         anchors.fill: parent
@@ -81,7 +82,9 @@ Window {
 
         Rectangle {
             id: rectAppContainer
-            color: "#00ffffff"
+            //color: "#00ffffff"
+            //color: appstyle.surfaceColor
+            color: appstyle.elevatedSurface_L5
             border.width: 5
             anchors.fill: parent
             anchors.rightMargin: 1
@@ -106,8 +109,8 @@ Window {
                     height: 60
                     anchors.left: parent.left
                     anchors.top: parent.top
-                    colorMouseOver: "#0085ca"
-                    colorDefault: "#003087"
+                    colorMouseOver: appstyle.primaryColor
+                    colorDefault: appstyle.surfaceColor
                     anchors.topMargin: 0
                     anchors.leftMargin: 0
                     onClicked: animationLeftMenu.running = true
@@ -115,7 +118,7 @@ Window {
 
                 Rectangle {
                     id: rectTitle
-                    color: "#003087"
+                    color: appstyle.surfaceColor
                     anchors.left: btnToggleNavBar.right
                     anchors.right: parent.right
                     anchors.top: parent.top
@@ -171,8 +174,8 @@ Window {
 
                     Label {
                         id: lblTitle
-                        text: qsTr("FRAMCam+")
-                        color: 'white'
+                        text: qsTr("FRAMCam") + "<font color=\"" + appstyle.accentColor + "\">+</font>"
+                        color: appstyle.primaryFontColor
                         anchors.left: imgAppLogo.right
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
@@ -180,6 +183,7 @@ Window {
                         font.bold: true
                         font.italic: true
                         font.pointSize: 12
+                        font.family: appstyle.fontFamily
                         anchors.bottomMargin: 8
                         anchors.topMargin: 11
                         //anchors.leftMargin: 1
@@ -233,7 +237,7 @@ Window {
                     id: rectTitleDescr
                     y: 32
                     height: 25
-                    color: "#cfcfcf"
+                    color: appstyle.elevatedSurface_L1
                     anchors.left: btnToggleNavBar.right
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
@@ -244,8 +248,9 @@ Window {
                     Label {
                         id: lblDescr
                         y: 5
-                        color: "#242424"
-                        text: qsTr("Specimen photo capture for NOAA West Coast Bottom Trawy Research Survey")
+                        color: appstyle.secondaryFontColor
+                        font.family: appstyle.fontFamily
+                        text: qsTr("Intelligent image capture for NOAA West Coast Groundfish Bottom Trawl Survey")
                         anchors.left: parent.left
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
@@ -270,7 +275,7 @@ Window {
                 Rectangle {
                     id: rectLeftNavBar
                     width: 70
-                    color: "#003087"
+                    color: appstyle.surfaceColor
                     anchors.left: parent.left
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
@@ -303,7 +308,7 @@ Window {
                             width: rectLeftNavBar.width
                             height: 75
                             text: "Image Capture"
-                            colorDefault: "#003087"
+                            colorDefault: "transparent"
                             font.bold: true
                             font.pointSize: 13
                             iconSource: "qrc:/svgs/aperture.svg"
@@ -325,7 +330,7 @@ Window {
                             width: rectLeftNavBar.width
                             text: 'Species Select'
                             height: 75
-                            colorDefault: "#003087"
+                            colorDefault: "transparent"
                             font.bold: true
                             font.pointSize: 13
                             isActive: false
@@ -343,9 +348,9 @@ Window {
                         FramCamNavButton {
                             id: btnSummary
                             width: rectLeftNavBar.width
-                            text: "Image Summary"
+                            text: "File Manager"
                             height: 75
-                            colorDefault: "#003087"
+                            colorDefault: "transparent"
                             font.bold: true
                             font.pointSize: 13
                             isActive: false
@@ -370,7 +375,7 @@ Window {
                         anchors.left: parent.left
                         height: 75
                         anchors.bottom: parent.bottom
-                        colorDefault: "#003087"
+                        colorDefault: "transparent"
                         anchors.leftMargin: 0
                         anchors.bottomMargin: 25
                         font.bold: true
@@ -412,7 +417,7 @@ Window {
 
                 Rectangle {
                     id: rectBottomBar
-                    color: "#cfcfcf"
+                    color: appstyle.elevatedSurface_L1
                     anchors.left: rectLeftNavBar.right
                     anchors.right: parent.right
                     anchors.top: rectScreens.bottom

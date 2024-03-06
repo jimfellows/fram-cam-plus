@@ -6,8 +6,12 @@ import Qt5Compat.GraphicalEffects
 Item {
     Rectangle {
         id: rectParent
-        color: "#8413a2"
+        color: appstyle.elevatedSurface_L5
         anchors.fill: parent
+        anchors.rightMargin: 5
+        anchors.leftMargin: 5
+        anchors.bottomMargin: 5
+        anchors.topMargin: 5
 
         ListView {
             id: lvImages
