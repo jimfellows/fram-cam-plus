@@ -180,8 +180,6 @@ class ImagesListModel(QAbstractListModel):
     def remove_image(self, row_index):
         pass
 
-
-
     def rowCount(self, index=0):
         return len(self._records)
 

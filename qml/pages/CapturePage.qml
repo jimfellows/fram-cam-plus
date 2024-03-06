@@ -102,17 +102,18 @@ Item {
 //                        opacity: 0.5
                         color: "#00000000"
                         anchors.top: parent.top
-                        anchors.topMargin: 0
+                        anchors.topMargin: -40
+                        //anchors.left: rowControls.right
                         anchors.horizontalCenter: parent.horizontalCenter
 
                         Connections {
                             target: animationControls
                             onFinished: {
                                 if (rectControls.height > 75) {
-                                    rectMoveControls.anchors.topMargin = 0
+                                    //rectMoveControls.anchors.topMargin = 0
                                     imgMoveControls.source = "qrc:/svgs/down_arrow.svg"
                                 } else {
-                                    rectMoveControls.anchors.topMargin = -40
+                                    //rectMoveControls.anchors.topMargin = -40
                                     imgMoveControls.source = "qrc:/svgs/up_arrow.svg"
                                 }
                             }
@@ -128,7 +129,7 @@ Item {
 
                         ColorOverlay {
                             source: imgMoveControls
-                            color: 'white'
+                            color: appstyle.iconColor
                             anchors.top: imgMoveControls.top
                             anchors.bottom: imgMoveControls.bottom
                             antialiasing: true
@@ -145,115 +146,92 @@ Item {
                     Row {
                         id: rowControls
                         anchors.fill: parent
-                        anchors.rightMargin: 5
-                        anchors.leftMargin: 20
-                        anchors.topMargin: 30
+                        anchors.rightMargin: btnCapture.width + 10
+                        anchors.leftMargin: 10
+                        anchors.topMargin: 10
                         //anchors.verticalCenter: parent.verticalCenter
                         spacing: 20
                         FramCamButton {
-                            implicitWidth: 200
-                            implicitHeight: 50
-                            text: camera_manager.active_camera_name
+                            id: btnChangeCamera
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
                             onClicked: camera_manager.toggle_camera()
                             anchors.verticalCenter: switchPreview.verticalCenter
-                            rightIconSource: 'qrc:/svgs/change_camera.svg'
+                            iconSource: 'qrc:/svgs/change_camera.svg'
                         }
-                        FramCamSwitch {
-                            id: switchPreview
-                            width: 100
-                            spacing: 6
-                            switchWidth: 100
-                            titleText: "Camera Preview"
-                            titleFontSize: 12
-                            titleColor: "#ffffff"
-                            checkedColor: "#0085ca"
-                            onPositionChanged: {
-                                if (position === 1) {
+                        FramCamButton {
+                            id: btnStartCamera
+                            width: 75
+                            height: 75
+                            radius: 20
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: checked ? 'qrc:/svgs/video_on.svg' : 'qrc:/svgs/video_off.svg'
+                            checkable: true
+                            onCheckedChanged: {
+                                if(checked) {
                                     camera_manager.start_camera()
-                                }
-                                else {
+                                } else {
                                     camera_manager.stop_camera()
                                 }
                             }
                         }
-                        FramCamSwitch {
-                            id: switchFlash
-                            width: 100
-                            spacing: 6
-                            switchWidth: 100
-                            titleText: "Flash"
-                            titleFontSize: 12
-                            titleColor: "#ffffff"
-                            checkedColor: "#0085ca"
-                            visible: camera_manager.isFlashSupported
-                            onPositionChanged: {
-                                if (position === 1) {
-                                    console.info("Flash on!")
-                                }
-                                else {
-                                    console.info("Flash off!")
-                                }
-                            }
+                        FramCamButton {
+                            id: btnFlash
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: checked ? 'qrc:/svgs/flash_on.svg' : 'qrc:/svgs/flash_off.svg'
+                            checkable: true
+                            //visible: camera_manager.isFlashSupported
                         }
-                        FramCamSwitch {
-                            id: switchTorch
-                            width: 100
-                            spacing: 6
-                            switchWidth: 100
-                            titleText: "Torch"
-                            titleFontSize: 12
-                            titleColor: "#ffffff"
-                            checkedColor: "#0085ca"
-                            visible: camera_manager.isTorchSupported
-                            onPositionChanged: {
-                                if (position === 1) {
-                                    console.info("Torch on!")
-                                }
-                                else {
-                                    console.info("Torch off!")
-                                }
-                            }
+                        FramCamButton {
+                            id: btnTorch
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: checked ? 'qrc:/svgs/torch_on.svg' : 'qrc:/svgs/torch_off.svg'
+                            checkable: true
+                            //visible: camera_manager.isTorchSupport
                         }
-                        FramCamSwitch {
-                            id: switchBarcode
-                            width: 100
-                            spacing: 6
-                            switchWidth: 100
-                            titleText: "Barcode Scanner"
-                            titleFontSize: 12
-                            titleColor: "#ffffff"
-                            checkedColor: "#0085ca"
-                            onPositionChanged: {
-                                if (position === 1) {
-                                    console.info("Barcode scanner on!")
-                                }
-                                else {
-                                    console.info("Barcode scanner off!")
-                                }
-                            }
+                        FramCamButton {
+                            id: btnBarcodeScan
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: 'qrc:/svgs/barcode.svg'
+                            checkable: true
                         }
-                        FramCamSwitch {
-                            id: switchTaxonScanner
-                            width: 100
-                            spacing: 6
-                            switchWidth: 100
-                            titleText: "Taxon Scanner"
-                            titleFontSize: 12
-                            titleColor: "#ffffff"
-                            checkedColor: "#0085ca"
-                            onPositionChanged: {
-                                if (position === 1) {
-                                    console.info("Taxon scanner on!")
-                                }
-                                else {
-                                    console.info("Taxon scanner off!")
-                                }
-                            }
+                        FramCamButton {
+                            id: btnTaxonScan
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: 'qrc:/svgs/kraken.svg'
+                            checkable: true
                         }
+
                     }
 
                 }
+                FramCamButton {
+                    id: btnCapture
+                    width: 100
+                    height: 100
+                    iconSource: 'qrc:/svgs/record.svg'
+                    iconColor: appstyle.errorColor
+                    borderColor: "transparent"
 
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.rightMargin: 10
+                    anchors.bottomMargin: 2
+                }
+                /*
                 Button {
                     id: btnCapture
                     x: 345
@@ -315,6 +293,7 @@ Item {
                         }
                     }
                 }
+                */
             }
             ImageEditorBar {
                 id: editBar

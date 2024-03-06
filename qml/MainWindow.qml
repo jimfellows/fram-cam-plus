@@ -426,6 +426,17 @@ Window {
                     anchors.topMargin: 0
                     anchors.rightMargin: 5
                     anchors.leftMargin: 0
+
+                    Label {
+                        id: lblActiveCamera
+                        anchors.left: parent.left
+                        anchors.leftMargin: 10
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Active Camera: " + camera_manager.active_camera_name
+                        color: appstyle.secondaryFontColor
+                        font.family: appstyle.fontFamily
+                    }
+
                 }
             }
         }

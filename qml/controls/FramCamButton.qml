@@ -11,21 +11,36 @@ Button {
  implicitHeight: 40
 
  //custom props
- property color backgroundColor: '#55aaff';
- property color textColor: "black"
+ property color backgroundColor: appstyle.elevatedSurface_L9
+ property color textColor: appstyle.primaryFontColor
  property color hoverColor: '#55aaff';
- property color pressedColor: 'green';
- property color pressedTextColor: "black"
+ property color pressedColor: appstyle.primaryColor
+ property color pressedTextColor: appstyle.primaryFontColor
+ property color borderColor: appstyle.iconColor
+ property color iconColor: appstyle.iconColor
+ property int radius: 5
+ property string iconSource
 
- property string rightIconSource;
 
  text: qsTr('Custom Button')
 
  // text styling
- contentItem: Row {
-    anchors.fill: parent
-    anchors.horizontalCenter: parent.horizontalCenter
-    spacing: 10
+ contentItem:
+    Image {
+
+        source: root.iconSource
+        anchors.fill: root
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+        anchors.topMargin: 10
+        anchors.bottomMargin: 10
+        layer {
+            enabled: true
+            effect: ColorOverlay {
+                color: root.checked || root.down ? root.pressedTextColor : root.iconColor
+            }
+        }
+    }
     Text {
         id: buttonText
         text: root.text
@@ -33,29 +48,19 @@ Button {
         font.pixelSize: 12
         font.family: 'Arial'
         font.weight: Font.Thin
-        anchors.verticalCenter: parent.verticalCenter
-        //anchors.horizontalCenter: parent.horizontalCenter
-        //horizontalAlignment: Text.AlignHCenter
         elide: Text.ElideRight
+        verticalAlignment: Text.AlignVCenter
+        visible: !root.iconSource
     }
-    Image {
-        id: imgRightIcon
-        source: root.rightIconSource
-        fillMode: Image.PreserveAspectFit
-        anchors.left: buttonText.right
-        anchors.verticalCenter: buttonText.verticalCenter
-        sourceSize.height: 30
-        sourceSize.width: 30
-    }
- }
 
  // background styling
  background: Rectangle {
     implicitWidth: root.width
     implicitHeight: root.height
-    color: root.down ? root.pressedColor : root.backgroundColor
-    radius: 5
+    color: root.down || root.checked ? root.pressedColor : root.backgroundColor
+    radius: root.radius
     layer.enabled: true
+    border.color: root.borderColor
     layer.effect: DropShadow {
         transparentBorder: true
         color: root.down ? root.pressedColor : root.backgroundColor
