@@ -214,7 +214,6 @@ class CameraManager(QObject):
     images_model_changed = Signal()
     activeCameraChanged = Signal()
 
-
     def __init__(self, db, app=None):
         super().__init__()
         self._app = app
@@ -230,10 +229,35 @@ class CameraManager(QObject):
         # self.start_camera()
         self._is_camera_running = None
         self._images_model = ImagesModel(self._db)
-        self._load_images_model()
         self._images_proxy = FramCamFilterProxyModel(self._images_model)
+        # self._images_model.sendIndexToProxy.connect(lambda _i: self._images_proxy.setProxyIndexSilently(_i))
+
         self._image_capture.imageSaved.connect(lambda ix, path: self._on_image_saved(path))  # image save is async, so hooking to signal
-        print(self._camera.supportedFeatures())
+
+        self._app.data_selector.curHaulChanged.connect(self._filter_images_model)
+        self._app.data_selector.curCatchChanged.connect(self._filter_images_model)
+        self._app.data_selector.curProjectChanged.connect(self._filter_images_model)
+        self._app.data_selector.curBioChanged.connect(self._filter_images_model)
+        self._load_images_model()
+        self._filter_images_model()
+
+    def _filter_images_model(self):
+        _haul = self._app.data_selector.cur_haul_num or 'NULL'
+        _catch = self._app.data_selector.cur_catch_display or 'NULL'
+        _proj = self._app.data_selector.cur_project_name or 'NULL'
+        _bio = self._app.data_selector.cur_bio_label or 'NULL'
+
+        if not self._app.data_selector.cur_catch_display:
+            search_str = f'"haul_number":"{_haul}"*'
+        elif not self._app.data_selector.cur_project_name:
+            search_str = f'"haul_number":"{_haul}","display_name":"{_catch}"*'
+        elif not self._app.data_selector.cur_bio_label:
+            search_str = f'"haul_number":"{_haul}","display_name":"{_catch}","project_name":"{_proj}"*'
+        else:
+            search_str = f'"haul_number":"{_haul}","display_name":"{_catch}","project_name":"{_proj}","bio_label":"{_bio}"'
+
+        self._logger.info(f"Filtering images based on filter string: {search_str}")
+        self._images_proxy.filterRoleOnRegex('image_filter_str', search_str)
 
     @Property(str, notify=activeCameraChanged)
     def active_camera_name(self):
@@ -261,25 +285,29 @@ class CameraManager(QObject):
             self._logger.info("Setting camera to default device")
             self.camera = QCamera(self._devices.videoInputs()[0])
 
-
-    @Property(QObject)
+    @Property(QObject, constant=True)
     def images_model(self):
         return self._images_model
 
+    @Property(QObject, constant=True)
+    def images_proxy(self):
+        return self._images_proxy
+
     def _load_images_model(self):
         self._images_model.clearBindParams()
-        self._images_model.setBindParam(':fram_cam_haul_id', self._app.state.cur_haul_id)
-        self._images_model.setBindParam(':fram_cam_catch_id', self._app.state.cur_catch_id)
-        self._images_model.setBindParam(':project_name', self._app.state.cur_project)
-        self._images_model.setBindParam(':bio_label', self._app.state.cur_bio_label)
+        self._images_model.setBindParam(':fram_cam_haul_id', self._app.data_selector.cur_haul_id)
+        self._images_model.setBindParam(':fram_cam_catch_id', self._app.data_selector.cur_catch_id)
+        self._images_model.setBindParam(':project_name', self._app.data_selector.cur_project_name)
+        self._images_model.setBindParam(':bio_label', self._app.data_selector.cur_bio_label)
+        self._logger.info(f"Loading images model for params {self._images_model._bind_params}")
         self._images_model.loadModel()
 
     def _on_image_saved(self, image_path):
         self.images_model.append_new_image(
             image_path,
-            haul_id=self._app.state.cur_haul_id,
-            catch_id=self._app.state.cur_catch_id,
-            bio_id=self._app.state.cur_bio_id
+            haul_id=self._app.data_selector.cur_haul_id,
+            catch_id=self._app.data_selector.cur_catch_id,
+            bio_id=self._app.data_selector.cur_bio_id
         )
 
     @Property(QObject, notify=images_model_changed)
@@ -345,12 +373,12 @@ class CameraManager(QObject):
         :param ext: str, extension specified, default to jpg
         :return: str, name of image file
         """
-        haul_number = self._app.state.cur_haul_number if self._app.state.cur_haul_number else ''
+        haul_number = self._app.data_selector.cur_haul_num
         vessel_code = Utils.get_vessel_code_from_haul(haul_number)
         vessel_haul = vessel_code + haul_number[-3:]
-        catch_display = Utils.scrub_str_for_file_name(self._app.state.cur_catch_display) if self._app.state.cur_catch_display else ''
-        project = Utils.scrub_str_for_file_name(self._app.state.cur_project) if self._app.state.cur_project else ''
-        bio_label = self._app.state.cur_bio_label if self._app.state.cur_bio_label else ''
+        catch_display = Utils.scrub_str_for_file_name(self._app.data_selector.cur_catch_display) if self._app.data_selector.cur_catch_display else ''
+        project = Utils.scrub_str_for_file_name(self._app.data_selector.cur_project_name) if self._app.data_selector.cur_project_name else ''
+        bio_label = self._app.data_selector.cur_bio_label if self._app.data_selector.cur_bio_label else ''
         return f"{vessel_haul}_{catch_display}_{project}_{bio_label}.{ext}"
 
     def increment_file_path(self, full_path, i=1):

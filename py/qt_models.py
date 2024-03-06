@@ -147,6 +147,7 @@ class FramCamSqlListModel(QAbstractListModel):
         self._data.insert(index, data_item)
         self.endInsertRows()
 
+    @Slot(int, str, result="QVariant")
     def getData(self, index, prop_name):
         try:
             return self._data[index][prop_name]
@@ -260,12 +261,40 @@ class BiosModel(FramCamSqlListModel):
 
 class FramCamFilterProxyModel(QSortFilterProxyModel):
 
-    currentIndexChanged = Signal()
+    proxyIndexChanged = Signal(int, arguments=['new_proxy_index'])
+    indexSetSilently = Signal(int, arguments=['newIndex'])
+
 
     def __init__(self, source_model, parent=None):
         super().__init__(parent)
         self._logger = Logger.get_root()
+        self._proxy_index = -1
         self.setSourceModel(source_model)
+
+    def setProxyIndexSilently(self, new_index):
+        self._proxy_index = new_index
+
+    @Property(int, notify=proxyIndexChanged)
+    def proxyIndex(self):
+        return self._proxy_index
+
+    @proxyIndex.setter
+    def proxyIndex(self, new_index):
+        self._logger.info(f"Setting {self.__class__.__name__} proxy index: {self._proxy_index} --> {new_index}")
+        if self._proxy_index != new_index:
+            self._proxy_index = new_index
+            self.proxyIndexChanged.emit(new_index)
+            self.setSourceModelIndex(new_index)
+
+    @Property(int, notify=proxyIndexChanged)
+    def sourceIndex(self):
+        return self.getSourceRowFromProxy(self._proxy_index)
+
+    @Slot(int, result=int)
+    def getSourceRowFromProxy(self, proxy_row: int):
+        _proxy_index = self.index(proxy_row, 0, QModelIndex())
+        _source_index = self.mapToSource(_proxy_index)
+        return _source_index.row()
 
     @Slot(int, result=int)
     def getProxyRowFromSource(self, source_row: int):
@@ -280,6 +309,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         :param i: int, row index
         :return:
         """
+        self._current_index = i
         _proxy_index = self.index(i, 0, QModelIndex())
         _source_index = self.mapToSource(_proxy_index)
         try:
@@ -310,13 +340,35 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         except AttributeError:
             self._logger.error(f"Source model of {self.__class__.__name__} does not have getRoleByName method!")
             return
-
+        self._logger.info(f"Filtering on: {regex_pattern}")
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterRegularExpression(regex_pattern)
+        self._logger.info(f"Row count for {self.__class__.__name__} after filter {self.rowCount()}")
+
+    def filterRoleWildcard(self, role_name: str, pattern: str):
+        """
+        specify name of role and a regex pattern to filter proxy model with
+        :param role_name: name of field/role we'd like to filter on
+        :param regex_pattern: regular expression pattern that QT likes
+        """
+        try:
+            _role_num = self.sourceModel().getRoleByName(role_name)
+        except AttributeError:
+            self._logger.error(f"Source model of {self.__class__.__name__} does not have getRoleByName method!")
+            return
+
+        self.setFilterRole(_role_num)
+        self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.setFilterWildcard(pattern)
 
 
 class ImagesModel(FramCamSqlListModel):
+
+    sendIndexToProxy = Signal(int, arguments=['new_index'])  # TODO: move me into framcamsqllistmodel
+    currentImageChanged = Signal()
+
+
 
     def __init__(self, db):
         super().__init__(db)
@@ -334,6 +386,55 @@ class ImagesModel(FramCamSqlListModel):
         self._table_model.setTable('IMAGES')
         self._table_model.setEditStrategy(QSqlTableModel.OnManualSubmit)
         self._table_model.select()
+
+        self._cur_image = None
+        self._cur_image_file_name = None
+
+        super().currentIndexChanged.connect(self._set_cur_image)
+
+    def _set_cur_image(self):
+        self._cur_image = self.getItem(self._current_index)
+        self.currentImageChanged.emit()
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgFileName(self):
+        return self.getData(self._current_index, 'file_name')
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgHaulNum(self):
+        return self.getData(self._current_index, 'haul_number')
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgBioLabel(self):
+        return self.getData(self._current_index, 'bio_label')
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgProject(self):
+        return self.getData(self._current_index, 'project_name')
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgCatch(self):
+        return self.getData(self._current_index, 'display_name')
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgCommonName(self):
+        return self.getData(self._current_index, 'common_name')
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgSciName(self):
+        return self.getData(self._current_index, 'scientific_name')
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgCaptureDt(self):
+        return self.getData(self._current_index, 'capture_dt')
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgNotes(self):
+        return self.getData(self._current_index, 'notes')
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgNotes(self):
+        return self.getData(self._current_index, 'notes')
 
     def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
         """
@@ -380,8 +481,10 @@ class ImagesModel(FramCamSqlListModel):
         for i in range(self._query_model.rowCount()):
             self.appendRow(Utils.qrec_to_dict(self._query_model.record(i)), index=index)
 
-        self.currentIndex = index
+        self._current_index = index
         self._logger.info(f"image_id {image_id} loaded to list model at index {self._current_index}")
+        self.sendIndexToProxy.emit(index)
+
 
     def append_new_image(self, image_path, haul_id=None, catch_id=None, bio_id=None):
         """

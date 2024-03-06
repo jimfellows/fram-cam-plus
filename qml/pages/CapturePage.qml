@@ -2,9 +2,9 @@ import QtQuick.Controls 6.3
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
-//import com.library.name 1.0
 
 import './qml/controls'
+import 'qrc:/qml'
 //import './qml/AppStyle'
 
 
@@ -42,6 +42,7 @@ Item {
 
             Rectangle {
                 id: rectImgPreview
+                //visible: false
                 color: "#bababa"
                 anchors.left: parent.left
                 anchors.right: parent.right
@@ -308,7 +309,38 @@ Item {
                     }
                 }
             }
+            ImageEditorBar {
+                id: editBar
+                anchors.top: parent.top
+                anchors.topMargin: 10
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 10
+                anchors.right: rectThumbnails.left
+                anchors.rightMargin: -10
+                width: 0
+                PropertyAnimation{
+                    id: animationEditBar
+                    target: editBar
+                    property: "width"
+                    to: if(editBar.width == 0) return rectImgPreview.width - 20; else return 0;
+                    duration: 300
+                    easing.type: Easing.InOutQuint
+                }
+                Connections {
+                    target: camera_manager.images_proxy
+                    function onProxyIndexChanged(new_proxy_index) {
+                        var modelIx = camera_manager.images_proxy.sourceIndex
+                        editBar.imageSource = camera_manager.images_model.getData(modelIx, 'full_path')
 
+                        if (new_proxy_index > -1 && editBar.width > 0) {
+                            // if we still select an image and edit bar is already out, dont re-animate
+                            return;
+                        } else {
+                            animationEditBar.running = true;
+                        }
+                    }
+                }
+            }
             Rectangle {
                 id: rectThumbnails
                 y: 0
@@ -325,13 +357,19 @@ Item {
                     id: lvThumbnails
                     x: 0
                     y: 0
+                    clip: true
                     anchors.fill: parent
                     anchors.leftMargin: 10
                     anchors.rightMargin: 10
                     anchors.topMargin: 20
                     orientation: ListView.Vertical
                     spacing: 10
-                    model: camera_manager.images_model
+                    model: camera_manager.images_proxy
+                    currentIndex: -1
+                    onCurrentIndexChanged: {
+                        model.proxyIndex = currentIndex
+                        console.info("Current index of thumbnails changed to " + currentIndex)
+                    }
 
                     delegate: Column {
                         Image {
@@ -340,23 +378,41 @@ Item {
                             width: lvThumbnails.width - 10
                             height: 50
                             fillMode: Image.PreserveAspectFit
-                            scale: camera_manager.images_model.currentIndex === index ? 1.2 : 1
-                            layer.enabled: camera_manager.images_model.currentIndex === index
+                            scale: camera_manager.images_proxy.proxyIndex === index ? 1.2 : 1
+                            layer.enabled: camera_manager.images_proxy.proxyIndex === index
                             layer.effect: DropShadow {
                                 verticalOffset: 0
                                 horizontalOffset: 0
-                                //opacity: 0.5
                                 radius: 20
                                 color: "lightgray"
                             }
                             MouseArea {
                                 anchors.fill: parent
-                                onClicked: camera_manager.images_model.currentIndex = index
+                                onClicked: {
+                                    console.info("Image clicked at index " + index)
+                                    // clicking an already active image clears selection
+                                    if (index === camera_manager.images_proxy.proxyIndex) {
+                                        console.info("CLICK: Clicked image already selected, deselecting...")
+                                        lvThumbnails.currentIndex = -1
+                                    } else {
+                                        console.info("CLICK: Selecting new image at index " + index)
+                                        lvThumbnails.currentIndex = index
+
+                                    }
+                                }
                             }
+                            /*
+                            Connections {
+                                target: camera_manager.images_proxy
+                                function onIndexSetSilently(newIndex) {
+                                    lvThumbnails.currentIndex = newIndex
+                                }
+                            }
+                            */
                         }
                         Label {
                             id: imgLabel
-                            text: model.catch_display_name
+                            text: model.display_name
                             font.pixelSize: 8
                             font.bold: true
                             font.family: 'roboto'
@@ -365,7 +421,7 @@ Item {
                         }
                         Rectangle {
                             id: rectUnderline
-                            height: index === camera_manager.images_model.currentIndex ? 3 : 1
+                            height: index === camera_manager.images_proxy.proxyIndex ? 3 : 1
                             width: imgThumbnail.width - 10
                             color: "white"
                             anchors.topMargin: 10
@@ -382,6 +438,11 @@ Item {
                     displaced: Transition {
                         PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
                         NumberAnimation { properties: "x,y"; duration: 200 }
+                    }
+                    remove: Transition {
+                        PropertyAction { property: "transformOrigin"; value: Item.Bottom}
+                        NumberAnimation { property: "opacity"; from: 1.0; to: 0; duration: 200 }
+                        NumberAnimation { property: "scale"; from: 1.0; to: 0; duration: 200 }
                     }
                 }
             }
@@ -465,7 +526,7 @@ Item {
                     placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
                     fontSize: 14
                     onCurrentIndexChanged: {
-                        model.setSourceModelIndex(currentIndex)  // pass index from proxy to source
+                        model.proxyIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboCatch.currentIndex = model.getProxyRowFromSource(data_selector.catches_model.currentIndex)
@@ -488,7 +549,7 @@ Item {
                     fontSize: 14
                     placeholderText: data_selector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
                     onCurrentIndexChanged: {
-                        model.setSourceModelIndex(currentIndex)
+                        model.proxyIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboProject.currentIndex = model.getProxyRowFromSource(data_selector.projects_model.currentIndex)
@@ -511,7 +572,7 @@ Item {
                     fontSize: 14
                     placeholderText: data_selector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
                     onCurrentIndexChanged: {
-                        model.setSourceModelIndex(currentIndex)
+                        model.proxyIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
                         comboBiolabel.currentIndex = model.getProxyRowFromSource(data_selector.bios_model.currentIndex)
