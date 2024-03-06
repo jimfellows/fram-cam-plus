@@ -457,12 +457,10 @@ Item {
 
             }
             */
-
         }
-
         Rectangle {
             id: rectDataSelection
-            height: 53
+            height: 75
             color: "#00ffffff"
             anchors.left: parent.left
             anchors.right: parent.right
@@ -509,7 +507,7 @@ Item {
                     borderColor: appstyle.iconColor
                     height: parent.height
                     implicitHeight: capturePage.height * 0.7
-                    width: parent.width * 0.3
+                    width: parent.width * 0.2
                     model: data_selector.catches_proxy
                     textRole: "display_name"
                     placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
@@ -533,7 +531,7 @@ Item {
                     fontColor: appstyle.secondaryFontColor
                     borderColor: appstyle.iconColor
                     height: parent.height
-                    width: parent.width * 0.3
+                    width: parent.width * 0.2
                     implicitHeight: capturePage.height * 0.7
                     model: data_selector.projects_proxy
                     textRole: "project_name"
@@ -576,6 +574,13 @@ Item {
                             comboBiolabel.currentIndex = model.getProxyRowFromSource(new_index)
                         }
                     }
+                }
+                FramCamButton {
+                    id: btnDownloadData
+                    implicitWidth: 75
+                    implicitHeight: 75
+                    radius: 20
+                    iconSource: 'qrc:/svgs/download.svg'
                 }
             }
         }

@@ -30,6 +30,7 @@
         <file>../resources/svgs/double_down_arrow.svg</file>
         <file>../resources/svgs/double_up_arrow.svg</file>
         <file alias="down_arrow.svg">../resources/svgs/down_arrow.svg</file>
+        <file alias="download.svg">../resources/svgs/download.svg</file>
         <file alias="eye_closed.svg">../resources/svgs/eye_closed_1.svg</file>
         <file alias="image_file.svg">../resources/svgs/image_file.svg</file>
         <file>../resources/svgs/file_upload_icon.svg</file>
