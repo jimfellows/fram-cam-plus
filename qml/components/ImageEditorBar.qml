@@ -20,10 +20,10 @@ Rectangle {
         id: gridLayout
         anchors {
             fill: parent
-            leftMargin: 20
+            leftMargin: 10
             rightMargin: 20
-            topMargin: 20
-            bottomMargin: 20
+            topMargin: 10
+            bottomMargin: 10
         }
         rows: 2
         columns: 2
@@ -45,7 +45,7 @@ Rectangle {
                     leftMargin: 5
                     rightMargin: 5
                 }
-                source: "file:///" + root.imageSource
+                source: "file:///" + camera_manager.images_model.curImgPath
                 fillMode: Image.PreserveAspectFit
             }
         }
@@ -192,8 +192,9 @@ Rectangle {
                 anchors {
                     left: parent.left
                     right: parent.right
-                    //leftMargin: 50
-                    //rightMargin: 50
+                    topMargin: 10
+                    leftMargin: 70
+                    rightMargin: 70
                 }
 
             }

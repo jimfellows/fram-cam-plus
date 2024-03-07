@@ -322,8 +322,6 @@ Item {
                     target: camera_manager.images_proxy
                     function onProxyIndexChanged(new_proxy_index) {
                         var modelIx = camera_manager.images_proxy.sourceIndex
-                        editBar.imageSource = camera_manager.images_model.getData(modelIx, 'full_path')
-
                         if (new_proxy_index > -1 && editBar.width > 0) {
                             // if we still select an image and edit bar is already out, dont re-animate
                             return;

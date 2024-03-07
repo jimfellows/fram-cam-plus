@@ -150,6 +150,8 @@ class FramCamSqlListModel(QAbstractListModel):
 
     @Slot(int, str, result="QVariant")
     def getData(self, index, prop_name):
+        if index == -1:
+            return
         try:
             return self._data[index][prop_name]
         except IndexError:
@@ -161,7 +163,6 @@ class FramCamSqlListModel(QAbstractListModel):
         if index == -1:
             return None
         try:
-            #print(f"Getting item at index {index} for {self.__class__.__name__}")
             return self._data[index]
         except IndexError:
             self._logger.error(f"Row {index} not found in model {self.__class__.__name__}, unable to getItem")
@@ -192,6 +193,9 @@ class FramCamSqlListModel(QAbstractListModel):
             return -1
 
     def removeItem(self, row_index):
+        if row_index == -1:
+            return
+
         self.beginRemoveRows(QModelIndex(), row_index, row_index)
         del self._data[row_index]
         self.endRemoveRows()
@@ -369,8 +373,6 @@ class ImagesModel(FramCamSqlListModel):
     sendIndexToProxy = Signal(int, arguments=['new_index'])  # TODO: move me into framcamsqllistmodel
     currentImageChanged = Signal()
 
-
-
     def __init__(self, db):
         super().__init__(db)
         self.sql = '''
@@ -396,6 +398,10 @@ class ImagesModel(FramCamSqlListModel):
     def _set_cur_image(self):
         self._cur_image = self.getItem(self._current_index)
         self.currentImageChanged.emit()
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgPath(self):
+        return self.getData(self._current_index, 'full_path')
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgFileName(self):
@@ -427,7 +433,7 @@ class ImagesModel(FramCamSqlListModel):
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCaptureDt(self):
-        return self.getData(self._current_index, 'capture_dt')
+        return self.getData(self._current_index, 'captured_dt')
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgNotes(self):
@@ -483,10 +489,8 @@ class ImagesModel(FramCamSqlListModel):
         for i in range(self._query_model.rowCount()):
             self.appendRow(Utils.qrec_to_dict(self._query_model.record(i)), index=index)
 
-        self._current_index = index
         self._logger.info(f"image_id {image_id} loaded to list model at index {self._current_index}")
-        self.sendIndexToProxy.emit(index)
-
+        self.sendIndexToProxy.emit(index)  # selects new row in proxy / listview
 
     def append_new_image(self, image_path, haul_id=None, catch_id=None, bio_id=None):
         """
