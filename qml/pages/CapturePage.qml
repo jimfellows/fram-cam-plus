@@ -90,7 +90,7 @@ Item {
                         id: animationControls
                         target: rectControls
                         property: "height"
-                        to: if(rectControls.height === 100) return 5; else return 100;
+                        to: if(rectControls.height === 100) return 0; else return 100;
                         duration:500
                         easing.type: Easing.InOutQuint
                     }
@@ -118,8 +118,6 @@ Item {
                                 }
                             }
                         }
-
-
                         Image {
                             id: imgMoveControls
                             anchors.fill: parent
@@ -223,9 +221,8 @@ Item {
                     width: 100
                     height: 100
                     iconSource: 'qrc:/svgs/record.svg'
-                    iconColor: appstyle.errorColor
-                    borderColor: "transparent"
-
+                    iconColor: appstyle.primaryColor
+                    borderColor: appstyle.iconColor
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
                     anchors.rightMargin: 10
@@ -394,6 +391,14 @@ Item {
                                     }
                                 }
                             }
+                            Colorize {
+                                anchors.fill: imgThumbnail
+                                source: imgThumbnail
+                                hue: 0.0
+                                saturation: 0
+                                lightness: 0
+                                visible: index === camera_manager.images_proxy.proxyIndex
+                            }
                             /*
                             Connections {
                                 target: camera_manager.images_proxy
@@ -409,14 +414,14 @@ Item {
                             font.pixelSize: 8
                             font.bold: true
                             font.family: 'roboto'
-                            color: "white"
+                            color: appstyle.secondaryFontColor
                             anchors.left: rectUnderline.left
                         }
                         Rectangle {
                             id: rectUnderline
                             height: index === camera_manager.images_proxy.proxyIndex ? 3 : 1
                             width: imgThumbnail.width - 10
-                            color: "white"
+                            color: index === camera_manager.images_proxy.proxyIndex ? appstyle.accentColor : appstyle.secondaryFontColor
                             anchors.topMargin: 10
                             anchors.left: imgThumbnail.left
                             anchors.leftMargin: 15

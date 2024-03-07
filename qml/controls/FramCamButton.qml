@@ -52,7 +52,12 @@ Button {
         font.family: 'Arial'
         font.weight: Font.Thin
         elide: Text.ElideRight
+        anchors {
+            verticalCenter: parent.verticalCenter
+            horizontalCenter: parent.horizontalCenter
+        }
         verticalAlignment: Text.AlignVCenter
+        horizontalAlignment: Text.AlignHCenter
         visible: !root.iconSource
     }
 
