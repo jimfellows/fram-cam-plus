@@ -359,9 +359,14 @@ Item {
                     currentIndex: -1
                     onCurrentIndexChanged: {
                         model.proxyIndex = currentIndex
-                        console.info("Current index of thumbnails changed to " + currentIndex)
                     }
-
+                    Connections {
+                        target: camera_manager.images_model
+                        function onSendIndexToProxy(new_index) {
+                            var proxyRow = camera_manager.images_proxy.getProxyRowFromSource(new_index)
+                            lvThumbnails.currentIndex = proxyRow
+                        }
+                    }
                     delegate: Column {
                         Image {
                             id: imgThumbnail
