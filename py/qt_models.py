@@ -21,6 +21,7 @@ from PySide6.QtCore import (
 from py.logger import Logger
 from py.utils import Utils
 import os
+from datetime import datetime
 
 class FramCamSqlListModel(QAbstractListModel):
     """
@@ -458,6 +459,7 @@ class ImagesModel(FramCamSqlListModel):
         _img.setValue(self._table_model.fieldIndex('FRAM_CAM_HAUL_ID'), haul_id)
         _img.setValue(self._table_model.fieldIndex('FRAM_CAM_CATCH_ID'), catch_id)
         _img.setValue(self._table_model.fieldIndex('FRAM_CAM_BIO_ID'), specimen_id)
+        _img.setValue(self._table_model.fieldIndex('CAPTURED_DT'), datetime.now().isoformat(timespec="seconds"))
 
         # do the insert, manually commit, then get newly created ID back out
         self._table_model.insertRecord(-1, _img)
