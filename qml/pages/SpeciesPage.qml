@@ -1,19 +1,29 @@
 import QtQuick 2.0
+import Qt5Compat.GraphicalEffects
 
 Item {
     Rectangle {
         id: rectangle
-        color: "#f29a14"
+        color: appstyle.elevatedSurface_L5
         anchors.fill: parent
-
+        anchors.rightMargin: 5
+        anchors.leftMargin: 5
+        anchors.bottomMargin: 5
+        anchors.topMargin: 5
         Image {
             id: image
             width: 100
             height: 100
             anchors.verticalCenter: parent.verticalCenter
-            source: "qrc:/svgs/coral_1.svg"
+            source: "qrc:/svgs/construction_sign.svg"
             anchors.horizontalCenter: parent.horizontalCenter
             fillMode: Image.PreserveAspectFit
+            layer {
+                enabled: true
+                effect: ColorOverlay {
+                    color: appstyle.iconColor
+                }
+            }
         }
     }
 

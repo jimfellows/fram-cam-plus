@@ -66,16 +66,20 @@ class FramCamState(QObject):
         :return: true/false, depending on success
         """
         value_ix = self._get_value_index(parameter)
+        cur_val = self.get_state_value(parameter)
+        if cur_val == value:
+            return
+
         if value_ix:
             result = self._model.setData(value_ix, value)
         else:
             rec = self._model.record()
-            rec.set_value(self._param_field_pos, parameter)
-            rec.set_value(self._value_field_pos, value)
+            rec.setValue(self._param_field_pos, parameter)
+            rec.setValue(self._value_field_pos, value)
             result = self._model.insertRecord(-1, rec)
 
         self._model.submitAll()
-        self._logger.info(f"{parameter}={value}, success={result}")
+        self._logger.info(f"State param set: {parameter}={value}, success={result}")
         return result
 
     @Property(str)
@@ -114,11 +118,15 @@ class FramCamState(QObject):
 
     @Property(str)
     def cur_project(self):
-        return self.get_state_value('Current Project')
+        return self.get_state_value('Current Project Name')
 
     @Property(str)
     def cur_bio_label(self):
         return self.get_state_value('Current Bio Label')
+
+    @Property(str)
+    def cur_bio_id(self):
+        return self.get_state_value('Current Bio ID')
 
     @Property(str)
     def cur_specimen_id(self):

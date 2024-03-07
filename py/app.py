@@ -11,6 +11,7 @@ from py.fram_cam_state import FramCamState
 from py.data_selector import DataSelector
 from py.camera_manager import CameraManager
 from py.qsqlite import QSqlite
+from py.style import Style
 from qrc import qresources  # need this to import compiled qrc resources
 
 # 3rd party imports
@@ -22,6 +23,7 @@ class FramCamPlus(QObject):
 
     def __init__(self):
         super().__init__()
+        os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
         self._logger = Logger().configure()
 
         # create qml engine, make python classes available to qml context
@@ -35,15 +37,18 @@ class FramCamPlus(QObject):
 
         # init python classes
         self.state = FramCamState(self.sqlite.db, app=self)
+        self.style = Style()
         self.data_selector = DataSelector(self.sqlite.db, app=self)
         self.camera_manager = CameraManager(self.sqlite.db, self)
 
         self.context.setContextProperty('state', self.state)
+        self.context.setContextProperty('appstyle', self.style)
         self.context.setContextProperty('data_selector', self.data_selector)
         self.context.setContextProperty('camera_manager', self.camera_manager)
 
         # lastly, load up qml
         self.engine.load(os.path.join(QML_DIR, 'MainWindow.qml'))
+
 
         if not self.engine.rootObjects():
             sys.exit(-1)

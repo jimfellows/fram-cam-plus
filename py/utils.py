@@ -1,6 +1,7 @@
 
 from py.logger import Logger
 import re
+from PySide6.QtSql import QSqlRecord
 
 LOGGER = Logger.get_root()
 
@@ -25,8 +26,16 @@ class Utils:
     def scrub_str_for_file_name(s):
         return re.sub('[^0-9a-zA-Z]+', '', s).lower()
 
-
-
+    @staticmethod
+    def qrec_to_dict(rec: QSqlRecord):
+        """
+        covert a QSQLrecord instances to a python dict.  Use me to append records to self._records
+        :param rec: QSqlRecord
+        :return: dictionary
+        """
+        _keys = [rec.fieldName(k).lower() for k in range(rec.count())]
+        _vals = [rec.value(k) for k in _keys]
+        return dict(zip(_keys, _vals))
 
 
 if __name__ == '__main__':

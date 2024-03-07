@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 7.0.0, 2024-02-06T09:49:19. -->
+<!-- Written by QtCreator 7.0.0, 2024-03-05T13:19:03. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -118,16 +118,18 @@
     <valuelist type="QVariantList" key="CustomOutputParsers"/>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">C:\Users\jim-f\dev\catch_capture\venv\Scripts\python.exe</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.CustomExecutableRunConfiguration</value>
-    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey"></value>
-    <value type="QString" key="RunConfiguration.Arguments">main.py</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">C:/Users/jim-f/dev/fram-cam-plus/main.py</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.C:/Users/jim-f/dev/fram-cam-plus/main.py</value>
+    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">C:/Users/jim-f/dev/fram-cam-plus/main.py</value>
+    <value type="QString" key="PythonEditor.RunConfiguation.Interpreter">{7494a94e-dbb8-407a-954b-23c590801c75}</value>
+    <value type="QString" key="PythonEditor.RunConfiguation.Script">C:\Users\jim-f\dev\fram-cam-plus\main.py</value>
+    <value type="QString" key="RunConfiguration.Arguments">-m compile_and_run</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseTerminal">true</value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory">C:/Users/jim-f/dev/catch_capture</value>
+    <value type="QString" key="RunConfiguration.WorkingDirectory.default">C:/Users/jim-f/dev/fram-cam-plus</value>
    </valuemap>
    <value type="qlonglong" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
   </valuemap>

@@ -8,6 +8,7 @@ import re
 from py.logger import Logger
 from py.utils import Utils
 from config import IMAGES_DIR
+from py.qt_models import ImagesModel, FramCamFilterProxyModel
 
 # 3rd party imports
 from PySide6.QtCore import (
@@ -91,7 +92,7 @@ class ImagesListModel(QAbstractListModel):
         self._query_model.setQuery(self._query)
         self._logger.info(f"Loading {self._query_model.rowCount()} records to images model...")
         for i in range(self._query_model.rowCount()):
-            self._records.append(self.record_to_dict(self._query_model.record(i)))
+            self._records.append(Utils.qrec_to_dict(self._query_model.record(i)))
 
     def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
         """
@@ -137,22 +138,11 @@ class ImagesListModel(QAbstractListModel):
         self._query_model.setQuery(self._query)
         self.beginInsertRows(QModelIndex(), index, index)  # tells model/ui about updates
         for i in range(self._query_model.rowCount()):
-            self._records.insert(index, self.record_to_dict(self._query_model.record(i)))
+            self._records.insert(index, Utils.qrec_to_dict(self._query_model.record(i)))
 
         self.currentIndex = index
         self.endInsertRows()  # tells model/ui we're done
         self._logger.info(f"image_id {image_id} loaded to list model at index {self._current_index}")
-
-    @staticmethod
-    def record_to_dict(rec: QSqlRecord):
-        """
-        covert a QSQLrecord instances to a python dict.  Use me to append records to self._records
-        :param rec: QSqlRecord
-        :return: dictionary
-        """
-        _keys = [rec.fieldName(k).lower() for k in range(rec.count())]
-        _vals = [rec.value(k) for k in _keys]
-        return dict(zip(_keys, _vals))
 
     def append_new_image(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
         """
@@ -190,8 +180,6 @@ class ImagesListModel(QAbstractListModel):
     def remove_image(self, row_index):
         pass
 
-
-
     def rowCount(self, index=0):
         return len(self._records)
 
@@ -222,7 +210,7 @@ class CameraManager(QObject):
     unusedSignal = Signal()
     images_view_changed = Signal()
     images_model_changed = Signal()
-
+    activeCameraChanged = Signal()
 
     def __init__(self, db, app=None):
         super().__init__()
@@ -238,28 +226,86 @@ class CameraManager(QObject):
         self._is_capturing = False
         # self.start_camera()
         self._is_camera_running = None
-        self._images_model = ImagesListModel(self._db)
-        self._load_images_model()
+        self._images_model = ImagesModel(self._db)
+        self._images_proxy = FramCamFilterProxyModel(self._images_model)
+        # self._images_model.sendIndexToProxy.connect(lambda _i: self._images_proxy.setProxyIndexSilently(_i))
+
         self._image_capture.imageSaved.connect(lambda ix, path: self._on_image_saved(path))  # image save is async, so hooking to signal
 
-    @Property(QObject)
+        self._app.data_selector.curHaulChanged.connect(self._filter_images_model)
+        self._app.data_selector.curCatchChanged.connect(self._filter_images_model)
+        self._app.data_selector.curProjectChanged.connect(self._filter_images_model)
+        self._app.data_selector.curBioChanged.connect(self._filter_images_model)
+        self._load_images_model()
+        self._filter_images_model()
+
+    def _filter_images_model(self):
+        _haul = self._app.data_selector.cur_haul_num or 'NULL'
+        _catch = self._app.data_selector.cur_catch_display or 'NULL'
+        _proj = self._app.data_selector.cur_project_name or 'NULL'
+        _bio = self._app.data_selector.cur_bio_label or 'NULL'
+
+        if not self._app.data_selector.cur_catch_display:
+            search_str = f'"haul_number":"{_haul}"*'
+        elif not self._app.data_selector.cur_project_name:
+            search_str = f'"haul_number":"{_haul}","display_name":"{_catch}"*'
+        elif not self._app.data_selector.cur_bio_label:
+            search_str = f'"haul_number":"{_haul}","display_name":"{_catch}","project_name":"{_proj}"*'
+        else:
+            search_str = f'"haul_number":"{_haul}","display_name":"{_catch}","project_name":"{_proj}","bio_label":"{_bio}"'
+
+        self._logger.info(f"Filtering images based on filter string: {search_str}")
+        self._images_proxy.filterRoleOnRegex('image_filter_str', search_str)
+
+    @Property(str, notify=activeCameraChanged)
+    def active_camera_name(self):
+        return self._camera.cameraDevice().description()
+
+    @Slot()
+    def toggle_camera(self):
+        if not self._devices.videoInputs() or not self._camera:
+            self._logger.warning(f"Unable to get next device, none available")
+            return
+
+        if len(self._devices.videoInputs()) == 1:
+            self._logger.info(f"Only one video input device available")
+            return
+
+        try:
+            cur_index = [d.description() for d in self._devices.videoInputs()].index(self._camera.cameraDevice().description())
+            self.camera = QCamera(self._devices.videoInputs()[cur_index+1])
+
+        except ValueError as e:
+            self._logger.error(f"Error occurred while trying to get toggle camera device: {e}")
+            return
+
+        except IndexError:
+            self._logger.info("Setting camera to default device")
+            self.camera = QCamera(self._devices.videoInputs()[0])
+
+    @Property(QObject, constant=True)
     def images_model(self):
         return self._images_model
 
+    @Property(QObject, constant=True)
+    def images_proxy(self):
+        return self._images_proxy
+
     def _load_images_model(self):
-        self._images_model.populate(
-            haul_id=self._app.state.cur_haul_id,
-            catch_id=self._app.state.cur_catch_id,
-            project_name=self._app.state.cur_project,
-            bio_label=self._app.state.cur_bio_label
-        )
+        self._images_model.clearBindParams()
+        self._images_model.setBindParam(':fram_cam_haul_id', self._app.data_selector.cur_haul_id)
+        self._images_model.setBindParam(':fram_cam_catch_id', self._app.data_selector.cur_catch_id)
+        self._images_model.setBindParam(':project_name', self._app.data_selector.cur_project_name)
+        self._images_model.setBindParam(':bio_label', self._app.data_selector.cur_bio_label)
+        self._logger.info(f"Loading images model for params {self._images_model._bind_params}")
+        self._images_model.loadModel()
 
     def _on_image_saved(self, image_path):
         self.images_model.append_new_image(
             image_path,
-            haul_id=self._app.state.cur_haul_id,
-            catch_id=self._app.state.cur_catch_id,
-            specimen_id=self._app.state.cur_specimen_id
+            haul_id=self._app.data_selector.cur_haul_id,
+            catch_id=self._app.data_selector.cur_catch_id,
+            bio_id=self._app.data_selector.cur_bio_id
         )
 
     @Property(QObject, notify=images_model_changed)
@@ -269,6 +315,27 @@ class CameraManager(QObject):
     @Property(QObject)
     def camera(self):
         return self._camera
+
+    @camera.setter
+    def camera(self, new_camera):
+        if self._camera.cameraDevice().description() != new_camera.cameraDevice().description():
+            self._camera = new_camera
+            self._capture_session.setCamera(self._camera)
+            self._camera.start()
+            self.activeCameraChanged.emit()
+            self._view_camera_features()
+
+    @Property("QVariant", notify=activeCameraChanged)
+    def isFlashSupported(self):
+        return self._camera.isFlashModeSupported(QCamera.FlashOn)
+
+    @Property("QVariant", notify=activeCameraChanged)
+    def isTorchSupported(self):
+        return self._camera.isTorchModeSupported(QCamera.TorchOn)
+
+    def _view_camera_features(self):
+        print(QCamera.FlashOn)
+        self._logger.info(f"Is flash on supported? {self._camera.isFlashModeSupported(QCamera.FlashOn)}")
 
     @Property(QObject)
     def image_capture(self):
@@ -304,12 +371,12 @@ class CameraManager(QObject):
         :param ext: str, extension specified, default to jpg
         :return: str, name of image file
         """
-        haul_number = self._app.state.cur_haul_number if self._app.state.cur_haul_number else ''
+        haul_number = self._app.data_selector.cur_haul_num
         vessel_code = Utils.get_vessel_code_from_haul(haul_number)
         vessel_haul = vessel_code + haul_number[-3:]
-        catch_display = Utils.scrub_str_for_file_name(self._app.state.cur_catch_display) if self._app.state.cur_catch_display else ''
-        project = Utils.scrub_str_for_file_name(self._app.state.cur_project) if self._app.state.cur_project else ''
-        bio_label = self._app.state.cur_bio_label if self._app.state.cur_bio_label else ''
+        catch_display = Utils.scrub_str_for_file_name(self._app.data_selector.cur_catch_display) if self._app.data_selector.cur_catch_display else ''
+        project = Utils.scrub_str_for_file_name(self._app.data_selector.cur_project_name) if self._app.data_selector.cur_project_name else ''
+        bio_label = self._app.data_selector.cur_bio_label if self._app.data_selector.cur_bio_label else ''
         return f"{vessel_haul}_{catch_display}_{project}_{bio_label}.{ext}"
 
     def increment_file_path(self, full_path, i=1):

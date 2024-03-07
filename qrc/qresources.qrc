@@ -6,6 +6,8 @@
         <file alias="SettingsPage.qml">../qml/pages/SettingsPage.qml</file>
         <file alias="ImageManagerPage.qml">../qml/pages/ImageManagerPage.qml</file>
         <file alias="SpeciesPage.qml">../qml/pages/SpeciesPage.qml</file>
+        <file alias="ImageEditorBar.qml">../qml/components/ImageEditorBar.qml</file>
+        <file alias="FramCamButton.qml">../qml/controls/FramCamButton.qml</file>
         <file>../qml/controls/FramCamButton.qml</file>
         <file>../qml/controls/FramCamComboBox.qml</file>
         <file>../qml/controls/FramCamMenuButton.qml</file>
@@ -15,19 +17,29 @@
     </qresource>
     <qresource prefix="/svgs">
         <file alias="aperture.svg">../resources/svgs/aperture_1.svg</file>
+        <file alias="barcode.svg">../resources/svgs/barcode.svg</file>
         <file>../resources/svgs/boat-icon.svg</file>
+        <file alias="cam_scope.svg">../resources/svgs/cam_scope.svg</file>
+        <file alias="change_camera.svg">../resources/svgs/change_camera.svg</file>
         <file alias="check.svg">../resources/svgs/check_basic.svg</file>
         <file alias="close.svg">../resources/svgs/close_icon.svg</file>
+        <file alias="construction_sign.svg">../resources/svgs/construction_sign.svg</file>
         <file>../resources/svgs/collapse_left.svg</file>
         <file>../resources/svgs/collapse_right.svg</file>
         <file alias="coral.svg">../resources/svgs/coral_1.svg</file>
         <file>../resources/svgs/double_down_arrow.svg</file>
         <file>../resources/svgs/double_up_arrow.svg</file>
         <file alias="down_arrow.svg">../resources/svgs/down_arrow.svg</file>
+        <file alias="download.svg">../resources/svgs/download.svg</file>
         <file alias="eye_closed.svg">../resources/svgs/eye_closed_1.svg</file>
         <file alias="image_file.svg">../resources/svgs/image_file.svg</file>
         <file>../resources/svgs/file_upload_icon.svg</file>
         <file alias="fish.svg">../resources/svgs/fish.svg</file>
+        <file alias="flash_on.svg">../resources/svgs/flash_on.svg</file>
+        <file alias="flash_off.svg">../resources/svgs/flash_off.svg</file>
+        <file alias="torch_on.svg">../resources/svgs/torch_on.svg</file>
+        <file alias="torch_off.svg">../resources/svgs/torch_off.svg</file>
+        <file alias="kraken.svg">../resources/svgs/kraken.svg</file>
 
         <file>../resources/svgs/graph-icon.svg</file>
         <file>../resources/svgs/graph-icon-2.svg</file>
@@ -37,6 +49,7 @@
         <file>../resources/svgs/magnifying_glass.svg</file>
         <file alias="maximize.svg">../resources/svgs/maximize_icon.svg</file>
         <file alias="menu.svg">../resources/svgs/menu_icon.svg</file>
+        <file alias="menu_open.svg">../resources/svgs/menu_open.svg</file>
         <file alias="minimize.svg">../resources/svgs/minimize_icon.svg</file>
         <file alias="nautilus.svg">../resources/svgs/nautilus.svg</file>
         <file>../resources/svgs/noaa.svg</file>
@@ -55,5 +68,7 @@
         <file>../resources/svgs/save_icon.svg</file>
         <file alias="settings.svg">../resources/svgs/settings_icon.svg</file>
         <file alias="up_arrow.svg">../resources/svgs/up_arrow.svg</file>
+        <file alias="video_on.svg">../resources/svgs/video_on.svg</file>
+        <file alias="video_off.svg">../resources/svgs/video_off.svg</file>
     </qresource>
 </RCC>

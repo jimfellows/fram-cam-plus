@@ -2,13 +2,15 @@ import QtQuick.Controls 6.3
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
-//import com.library.name 1.0
 
 import './qml/controls'
-//import './qml/AppStyle'
+import 'qrc:/qml'
 
 
 Item {
+
+    id: capturePage
+
     property alias lvThumbnails: lvThumbnails
     Component.onCompleted: {
         camera_manager.set_video_output(videoOutput)
@@ -17,7 +19,7 @@ Item {
 
     Rectangle {
         id: rectBg
-        color: "#00ffffff"
+        color: appstyle.elevatedSurface_L5
         border.color: "#00000000"
         anchors.fill: parent
         anchors.rightMargin: 5
@@ -27,7 +29,7 @@ Item {
 
         Rectangle {
             id: rectImgArea
-            color: "#00ffffff"
+            color: appstyle.elevatedSurface_L5
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: rectDataSelection.bottom
@@ -39,12 +41,15 @@ Item {
 
             Rectangle {
                 id: rectImgPreview
-                color: "#bababa"
+                //visible: false
+                color: appstyle.elevatedSurface_L7
+                border.color: appstyle.iconColor
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.rightMargin: 150
+                radius: 8
 
                 Image {
                     id: image
@@ -54,6 +59,12 @@ Item {
                     source: "qrc:/svgs/eye_closed.svg"
                     anchors.horizontalCenter: parent.horizontalCenter
                     fillMode: Image.PreserveAspectFit
+                    layer {
+                        enabled: true
+                        effect: ColorOverlay {
+                            color: appstyle.accentColor
+                        }
+                    }
                 }
 
                 VideoOutput {
@@ -66,8 +77,8 @@ Item {
                     id: rectControls
                     y: 325
                     height: 100
-                    opacity: 0.5
-                    color: "#000000"
+                    color: appstyle.elevatedSurface_L5
+                    border.color: appstyle.iconColor
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
@@ -91,17 +102,18 @@ Item {
 //                        opacity: 0.5
                         color: "#00000000"
                         anchors.top: parent.top
-                        anchors.topMargin: 0
+                        anchors.topMargin: -40
+                        //anchors.left: rowControls.right
                         anchors.horizontalCenter: parent.horizontalCenter
 
                         Connections {
                             target: animationControls
                             onFinished: {
                                 if (rectControls.height > 75) {
-                                    rectMoveControls.anchors.topMargin = 0
+                                    //rectMoveControls.anchors.topMargin = 0
                                     imgMoveControls.source = "qrc:/svgs/down_arrow.svg"
                                 } else {
-                                    rectMoveControls.anchors.topMargin = -40
+                                    //rectMoveControls.anchors.topMargin = -40
                                     imgMoveControls.source = "qrc:/svgs/up_arrow.svg"
                                 }
                             }
@@ -117,7 +129,7 @@ Item {
 
                         ColorOverlay {
                             source: imgMoveControls
-                            color: 'white'
+                            color: appstyle.iconColor
                             anchors.top: imgMoveControls.top
                             anchors.bottom: imgMoveControls.bottom
                             antialiasing: true
@@ -133,36 +145,94 @@ Item {
 
                     Row {
                         id: rowControls
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        anchors.topMargin: 0
-                        anchors.bottomMargin: 0
-                        anchors.rightMargin: 5
-                        anchors.leftMargin: 5
-
-                        FramCamSwitch {
-                            id: switchPreview
-                            width: 100
-                            spacing: 6
-                            switchWidth: 100
-                            titleText: "Camera Preview"
-                            titleFontSize: 12
-                            titleColor: "#ffffff"
-                            checkedColor: "#0085ca"
-                            onPositionChanged: {
-                                if (position === 1) {
+                        anchors.fill: parent
+                        anchors.rightMargin: btnCapture.width + 10
+                        anchors.leftMargin: 10
+                        anchors.topMargin: 10
+                        //anchors.verticalCenter: parent.verticalCenter
+                        spacing: 20
+                        FramCamButton {
+                            id: btnChangeCamera
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            onClicked: camera_manager.toggle_camera()
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: 'qrc:/svgs/change_camera.svg'
+                        }
+                        FramCamButton {
+                            id: btnStartCamera
+                            width: 75
+                            height: 75
+                            radius: 20
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: checked ? 'qrc:/svgs/video_on.svg' : 'qrc:/svgs/video_off.svg'
+                            checkable: true
+                            onCheckedChanged: {
+                                if(checked) {
                                     camera_manager.start_camera()
-                                }
-                                else {
+                                } else {
                                     camera_manager.stop_camera()
                                 }
                             }
                         }
-                    }
-                }
+                        FramCamButton {
+                            id: btnFlash
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: checked ? 'qrc:/svgs/flash_on.svg' : 'qrc:/svgs/flash_off.svg'
+                            checkable: true
+                            //visible: camera_manager.isFlashSupported
+                        }
+                        FramCamButton {
+                            id: btnTorch
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: checked ? 'qrc:/svgs/torch_on.svg' : 'qrc:/svgs/torch_off.svg'
+                            checkable: true
+                            //visible: camera_manager.isTorchSupport
+                        }
+                        FramCamButton {
+                            id: btnBarcodeScan
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: 'qrc:/svgs/barcode.svg'
+                            checkable: true
+                        }
+                        FramCamButton {
+                            id: btnTaxonScan
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            anchors.verticalCenter: switchPreview.verticalCenter
+                            iconSource: 'qrc:/svgs/kraken.svg'
+                            checkable: true
+                        }
 
+                    }
+
+                }
+                FramCamButton {
+                    id: btnCapture
+                    width: 100
+                    height: 100
+                    iconSource: 'qrc:/svgs/record.svg'
+                    iconColor: appstyle.errorColor
+                    borderColor: "transparent"
+
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.rightMargin: 10
+                    anchors.bottomMargin: 2
+                    onClicked: camera_manager.capture_image_to_file()
+                }
+                /*
                 Button {
                     id: btnCapture
                     x: 345
@@ -224,32 +294,77 @@ Item {
                         }
                     }
                 }
+                */
             }
-
+            ImageEditorBar {
+                id: editBar
+                anchors.top: parent.top
+                //anchors.topMargin: 10
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 10
+                anchors.right: rectThumbnails.left
+                anchors.rightMargin: -10
+                width: 0
+                SequentialAnimation {
+                    id: animationEditBar
+                    // disable listview to prevent additional cliking while menu pops out, then enable again
+                    PropertyAction { property: "enabled"; target: lvThumbnails; value: false }
+                    PropertyAnimation{
+                        target: editBar
+                        property: "width"
+                        to: if(editBar.width == 0) return rectImgPreview.width; else return 0;
+                        duration: 300
+                        easing.type: Easing.InOutQuint
+                    }
+                    PropertyAction { property: "enabled"; target: lvThumbnails; value: true }
+                }
+                Connections {
+                    target: camera_manager.images_proxy
+                    function onProxyIndexChanged(new_proxy_index) {
+                        var modelIx = camera_manager.images_proxy.sourceIndex
+                        if (new_proxy_index > -1 && editBar.width > 0) {
+                            // if we still select an image and edit bar is already out, dont re-animate
+                            return;
+                        } else {
+                            animationEditBar.running = true;
+                        }
+                    }
+                }
+            }
             Rectangle {
                 id: rectThumbnails
                 y: 0
 
-                color: "black"
+                color: appstyle.elevatedSurface_L5
                 anchors.left: rectImgPreview.right
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.leftMargin: 0
-                opacity: 0.5
 
                 ListView {
                     id: lvThumbnails
                     x: 0
                     y: 0
+                    clip: true
                     anchors.fill: parent
                     anchors.leftMargin: 10
                     anchors.rightMargin: 10
                     anchors.topMargin: 20
                     orientation: ListView.Vertical
                     spacing: 10
-                    model: camera_manager.images_model
-
+                    model: camera_manager.images_proxy
+                    currentIndex: -1
+                    onCurrentIndexChanged: {
+                        model.proxyIndex = currentIndex
+                    }
+                    Connections {
+                        target: camera_manager.images_model
+                        function onSendIndexToProxy(new_index) {
+                            var proxyRow = camera_manager.images_proxy.getProxyRowFromSource(new_index)
+                            lvThumbnails.currentIndex = proxyRow
+                        }
+                    }
                     delegate: Column {
                         Image {
                             id: imgThumbnail
@@ -257,23 +372,40 @@ Item {
                             width: lvThumbnails.width - 10
                             height: 50
                             fillMode: Image.PreserveAspectFit
-                            scale: camera_manager.images_model.currentIndex === index ? 1.2 : 1
-                            layer.enabled: camera_manager.images_model.currentIndex === index
+                            scale: camera_manager.images_proxy.proxyIndex === index ? 1.2 : 1
+                            layer.enabled: camera_manager.images_proxy.proxyIndex === index
                             layer.effect: DropShadow {
                                 verticalOffset: 0
                                 horizontalOffset: 0
-                                //opacity: 0.5
                                 radius: 20
                                 color: "lightgray"
                             }
                             MouseArea {
                                 anchors.fill: parent
-                                onClicked: camera_manager.images_model.currentIndex = index
+                                onClicked: {
+                                    console.info("Image clicked at index " + index)
+                                    // clicking an already active image clears selection
+                                    if (index === camera_manager.images_proxy.proxyIndex) {
+                                        console.info("CLICK: Clicked image already selected, deselecting...")
+                                        lvThumbnails.currentIndex = -1
+                                    } else {
+                                        console.info("CLICK: Selecting new image at index " + index)
+                                        lvThumbnails.currentIndex = index
+                                    }
+                                }
                             }
+                            /*
+                            Connections {
+                                target: camera_manager.images_proxy
+                                function onIndexSetSilently(newIndex) {
+                                    lvThumbnails.currentIndex = newIndex
+                                }
+                            }
+                            */
                         }
                         Label {
                             id: imgLabel
-                            text: model.catch_display_name
+                            text: model.display_name
                             font.pixelSize: 8
                             font.bold: true
                             font.family: 'roboto'
@@ -282,7 +414,7 @@ Item {
                         }
                         Rectangle {
                             id: rectUnderline
-                            height: index === camera_manager.images_model.currentIndex ? 3 : 1
+                            height: index === camera_manager.images_proxy.proxyIndex ? 3 : 1
                             width: imgThumbnail.width - 10
                             color: "white"
                             anchors.topMargin: 10
@@ -299,6 +431,11 @@ Item {
                     displaced: Transition {
                         PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
                         NumberAnimation { properties: "x,y"; duration: 200 }
+                    }
+                    remove: Transition {
+                        PropertyAction { property: "transformOrigin"; value: Item.Bottom}
+                        NumberAnimation { property: "opacity"; from: 1.0; to: 0; duration: 200 }
+                        NumberAnimation { property: "scale"; from: 1.0; to: 0; duration: 200 }
                     }
                 }
             }
@@ -328,12 +465,10 @@ Item {
 
             }
             */
-
         }
-
         Rectangle {
             id: rectDataSelection
-            height: 53
+            height: 75
             color: "#00ffffff"
             anchors.left: parent.left
             anchors.right: parent.right
@@ -348,71 +483,112 @@ Item {
                 anchors.rightMargin: 50
                 FramCamComboBox {
                     id: comboHauls
-                    backgroundColor: "#003087"
+                    backgroundColor: appstyle.elevatedSurface_L5
+                    fontColor: appstyle.secondaryFontColor
+                    borderColor: appstyle.iconColor
+                    // why does height affect the collapsed height, and implicit affect to popup?
                     height: parent.height
+                    implicitHeight: capturePage.height * 0.7
                     width: parent.width * 0.2
                     fontSize: 14
                     model: data_selector.hauls_model
+                    textRole: "haul_number"
                     placeholderText: data_selector.hauls_model.row_count === 0 ? 'N/A' : 'Select Haul...'
                     onCurrentIndexChanged: {
-                        model.current_index = currentIndex
+                        model.currentIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboHauls.currentIndex = data_selector.hauls_model.current_index
+                        comboHauls.currentIndex = model.currentIndex
+                    }
+                    Connections {
+                        target: data_selector.hauls_model
+                        function onIndexSetSilently(new_index) {
+                            comboHauls.currentIndex = new_index
+                        }
                     }
                 }
+
                 FramCamComboBox {
                     id: comboCatch
-                    backgroundColor: "#003087"
+                    backgroundColor: appstyle.elevatedSurface_L5
+                    fontColor: appstyle.secondaryFontColor
+                    borderColor: appstyle.iconColor
                     height: parent.height
-                    width: parent.width * 0.3
-                    model: data_selector.catches_model
+                    implicitHeight: capturePage.height * 0.7
+                    width: parent.width * 0.2
+                    model: data_selector.catches_proxy
+                    textRole: "display_name"
                     placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
                     fontSize: 14
                     onCurrentIndexChanged: {
-                        console.info("CATCH COMBO INDEX CHANGED to " + currentIndex)
-                        model.current_index = currentIndex
+                        model.proxyIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboCatch.currentIndex = data_selector.catches_model.current_index
+                        comboCatch.currentIndex = model.getProxyRowFromSource(data_selector.catches_model.currentIndex)
+                    }
+                    Connections {
+                        target: data_selector.catches_model
+                        function onIndexSetSilently(new_index) {
+                            comboCatch.currentIndex = model.getProxyRowFromSource(new_index)
+                        }
                     }
                 }
                 FramCamComboBox {
                     id: comboProject
-                    backgroundColor: "#003087"
+                    backgroundColor: appstyle.elevatedSurface_L5
+                    fontColor: appstyle.secondaryFontColor
+                    borderColor: appstyle.iconColor
                     height: parent.height
-                    width: parent.width * 0.3
-                    model: data_selector.projects_model
+                    width: parent.width * 0.2
+                    implicitHeight: capturePage.height * 0.7
+                    model: data_selector.projects_proxy
+                    textRole: "project_name"
                     fontSize: 14
                     placeholderText: data_selector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
                     onCurrentIndexChanged: {
-                        model.current_index = currentIndex
+                        model.proxyIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboProject.currentIndex = data_selector.projects_model.current_index
+                        comboProject.currentIndex = model.getProxyRowFromSource(data_selector.projects_model.currentIndex)
                     }
                     Connections {
                         target: data_selector.projects_model
-                        onPy_index_update: {
-                            comboProject.currentIndex = i
+                        function onIndexSetSilently(new_index) {
+                            comboProject.currentIndex = data_selector.projects_proxy.getProxyRowFromSource(new_index)
                         }
-
                     }
                 }
                 FramCamComboBox {
                     id: comboBiolabel
-                    backgroundColor: "#003087"
+                    backgroundColor: appstyle.elevatedSurface_L5
+                    fontColor: appstyle.secondaryFontColor
+                    borderColor: appstyle.iconColor
                     height: parent.height
                     width: parent.width * 0.2
-                    model: data_selector.bios_model
+                    implicitHeight: capturePage.height * 0.7
+                    model: data_selector.bios_proxy
+                    textRole: "bio_label"
                     fontSize: 14
                     placeholderText: data_selector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
                     onCurrentIndexChanged: {
-                        model.current_index = currentIndex
+                        model.proxyIndex = currentIndex
                     }
                     Component.onCompleted: {  // set ix based on settings saved value
-                        comboBiolabel.currentIndex = data_selector.bios_model.current_index
+                        comboBiolabel.currentIndex = model.getProxyRowFromSource(data_selector.bios_model.currentIndex)
                     }
+                    Connections {
+                        target: data_selector.bios_model
+                        function onIndexSetSilently(new_index) {
+                            comboBiolabel.currentIndex = model.getProxyRowFromSource(new_index)
+                        }
+                    }
+                }
+                FramCamButton {
+                    id: btnDownloadData
+                    implicitWidth: 75
+                    implicitHeight: 75
+                    radius: 20
+                    iconSource: 'qrc:/svgs/download.svg'
                 }
             }
         }
