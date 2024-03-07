@@ -34,6 +34,9 @@ Button {
         anchors.rightMargin: 10
         anchors.topMargin: 10
         anchors.bottomMargin: 10
+        antialiasing: true
+        smooth: true
+        mipmap: true
         layer {
             enabled: true
             effect: ColorOverlay {
