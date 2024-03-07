@@ -305,13 +305,18 @@ Item {
                 anchors.right: rectThumbnails.left
                 anchors.rightMargin: -10
                 width: 0
-                PropertyAnimation{
+                SequentialAnimation {
                     id: animationEditBar
-                    target: editBar
-                    property: "width"
-                    to: if(editBar.width == 0) return rectImgPreview.width; else return 0;
-                    duration: 300
-                    easing.type: Easing.InOutQuint
+                    // disable listview to prevent additional cliking while menu pops out, then enable again
+                    PropertyAction { property: "enabled"; target: lvThumbnails; value: false }
+                    PropertyAnimation{
+                        target: editBar
+                        property: "width"
+                        to: if(editBar.width == 0) return rectImgPreview.width; else return 0;
+                        duration: 300
+                        easing.type: Easing.InOutQuint
+                    }
+                    PropertyAction { property: "enabled"; target: lvThumbnails; value: true }
                 }
                 Connections {
                     target: camera_manager.images_proxy
@@ -383,7 +388,6 @@ Item {
                                     } else {
                                         console.info("CLICK: Selecting new image at index " + index)
                                         lvThumbnails.currentIndex = index
-
                                     }
                                 }
                             }
