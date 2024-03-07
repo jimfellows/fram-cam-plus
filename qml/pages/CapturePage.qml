@@ -230,6 +230,7 @@ Item {
                     anchors.bottom: parent.bottom
                     anchors.rightMargin: 10
                     anchors.bottomMargin: 2
+                    onClicked: camera_manager.capture_image_to_file()
                 }
                 /*
                 Button {
