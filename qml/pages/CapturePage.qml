@@ -13,8 +13,9 @@ Item {
 
     property alias lvThumbnails: lvThumbnails
     Component.onCompleted: {
-        camera_manager.set_video_output(videoOutput)
-        switchPreview.position = camera_manager.is_camera_active ? 1 : 0
+        console.info("-----------------------------------------------------------------------")
+        camera_manager.targetSink = videoOutput.videoSink
+        console.info("-----------------------------------------------------------------------")
     }
 
     Rectangle {
@@ -63,6 +64,18 @@ Item {
                         enabled: true
                         effect: ColorOverlay {
                             color: appstyle.accentColor
+                        }
+                    }
+                }
+                Rectangle {
+                    id: rectVideo
+                    anchors.fill: parent
+                    Connections {
+                        target: camera_manager
+                        function onVideoFrameProcessed(new_frame) {
+                            console.info(new_frame)
+
+                            new_frame.paint(camera_manager.painter, rectVideo)
                         }
                     }
                 }

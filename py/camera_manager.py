@@ -18,8 +18,11 @@ from PySide6.QtCore import (
     Signal,
     Qt,
     QAbstractListModel,
-    QModelIndex
+    QModelIndex,
 )
+
+from PySide6.QtGui import QPainter, QImage
+
 from PySide6.QtMultimedia import (
     QAudioInput,
     QCamera,
@@ -29,10 +32,23 @@ from PySide6.QtMultimedia import (
     QMediaDevices,
     QMediaMetaData,
     QVideoSink,
-    QMediaRecorder
+    QMediaRecorder,
+    QVideoFrame
 )
 
 from PySide6.QtSql import QSqlTableModel, QSqlQueryModel, QSqlQuery, QSqlRecord
+
+# from qimage2ndarray import
+
+import cv2
+import numpy as np
+import ctypes
+from dataclasses import dataclass
+from functools import cached_property
+
+
+# https://gist.github.com/eyllanesc/6486dc26eebb1f1b71469959d086a649#gistcomment-3920960
+# https://forum.qt.io/topic/130014/qcamera-draw-on-viewfinder/9
 
 
 class CameraManager(QObject):
@@ -41,6 +57,7 @@ class CameraManager(QObject):
     images_view_changed = Signal()
     images_model_changed = Signal()
     activeCameraChanged = Signal()
+    videoFrameProcessed = Signal("QVariant", arguments=['new_frame'])
 
     def __init__(self, db, app=None):
         super().__init__()
@@ -60,6 +77,14 @@ class CameraManager(QObject):
         self._images_proxy = FramCamFilterProxyModel(self._images_model)
         # self._images_model.sendIndexToProxy.connect(lambda _i: self._images_proxy.setProxyIndexSilently(_i))
 
+        # setup sink from which we grab images prior to processing
+        self._source_sink = QVideoSink()
+        self._target_sink = None
+        self._capture_session.setVideoSink(self._source_sink)
+        self._capture_session.videoSink().videoFrameChanged.connect(lambda f: self._process_video_frame(f))
+        self._video_output = None
+
+        # self._capture_session.setVideoOutput(self._video_sink)
         self._image_capture.imageSaved.connect(lambda ix, path: self._on_image_saved(path))  # image save is async, so hooking to signal
 
         self._app.data_selector.curHaulChanged.connect(self._filter_images_model)
@@ -68,6 +93,30 @@ class CameraManager(QObject):
         self._app.data_selector.curBioChanged.connect(self._filter_images_model)
         self._load_images_model()
         self._filter_images_model()
+        self._painter = QPainter()
+
+    # @Slot(QObject)
+    # def setVideoOutput(self, vo):
+    #     self._video_output = vo
+    #     print(self._video_output.__dict__)
+
+    @Property(QObject)
+    def targetSink(self):
+        return self._target_sink
+
+    @targetSink.setter
+    def targetSink(self, new_video_sink):
+        self._target_sink = new_video_sink
+
+    @Property(QObject, constant=True)
+    def painter(self):
+        return self._painter
+
+    def _process_video_frame(self, frame):
+        # print(type(frame), frame)
+        # self.videoFrameProcessed.emit(frame)
+        print(frame)
+        self._target_sink.setVideoFrame(frame)
 
     def _filter_images_model(self):
         _haul = self._app.data_selector.cur_haul_num or 'NULL'
