@@ -67,19 +67,6 @@ Item {
                         }
                     }
                 }
-                Rectangle {
-                    id: rectVideo
-                    anchors.fill: parent
-                    Connections {
-                        target: camera_manager
-                        function onVideoFrameProcessed(new_frame) {
-                            console.info(new_frame)
-
-                            new_frame.paint(camera_manager.painter, rectVideo)
-                        }
-                    }
-                }
-
                 VideoOutput {
                     id: videoOutput
                     anchors.fill: parent

@@ -20,6 +20,7 @@ from PySide6.QtCore import (
     QAbstractListModel,
     QModelIndex,
 )
+import pyzbar.pyzbar
 
 from PySide6.QtGui import QPainter, QImage
 
@@ -33,12 +34,13 @@ from PySide6.QtMultimedia import (
     QMediaMetaData,
     QVideoSink,
     QMediaRecorder,
-    QVideoFrame
+    QVideoFrame,
+    QVideoFrameFormat
 )
 
 from PySide6.QtSql import QSqlTableModel, QSqlQueryModel, QSqlQuery, QSqlRecord
-
-# from qimage2ndarray import
+from araviq6 import VideoFrameWorker, VideoFrameProcessor
+from qimage2ndarray import raw_view
 
 import cv2
 import numpy as np
@@ -49,7 +51,52 @@ from functools import cached_property
 
 # https://gist.github.com/eyllanesc/6486dc26eebb1f1b71469959d086a649#gistcomment-3920960
 # https://forum.qt.io/topic/130014/qcamera-draw-on-viewfinder/9
+@dataclass(frozen=True)
+class _QImageInterface:
+    image: QImage
 
+    @cached_property
+    def __array_interface__(self):
+        data = self.image.bits()
+        if not isinstance(data, memoryview):
+            data.setsize(self.image.sizeInBytes())
+        return dict(
+            shape=(self.image.height(), self.image.width(), 4),
+            typestr="|u1",
+            data=data,
+            strides=(self.image.bytesPerLine(), 4, 1),
+            version=3,
+        )
+
+BD = cv2.barcode.BarcodeDetector()
+
+def convert_qimage_to_numpy(video_frame):
+    return np.asarray(_QImageInterface(video_frame))
+
+class BlurWorker(VideoFrameWorker):
+    def processArray(self, array: np.ndarray) -> np.ndarray:
+        return cv2.GaussianBlur(array, (0, 0), 25)
+
+class BarcodeWorker(VideoFrameWorker):
+    def processArray(self, array: np.ndarray) -> np.ndarray:
+        r = BD.detectAndDecodeWithType(array)
+        if r[0]:
+            print(f"FOUND ONE: {r}")
+        return r[3] if r[0] else array
+
+class ZBarWorker(VideoFrameWorker, QObject):
+
+    barcodeDetected = Signal(str, arguments=['barcode'])
+
+    def processArray(self, array: np.ndarray) -> np.ndarray:
+        r = pyzbar.pyzbar.decode(array)
+        if r:
+            print(r)
+            rect = r[0][2]
+            # https://github.com/opencv/opencv/issues/18120
+            self.barcodeDetected.emit(r[0][0].decode('utf-8'))
+            return cv2.rectangle(np.array(array), (rect.left, rect.top), (rect.left + rect.width, rect.top - rect.height), (118,230,0), 5)
+        return array
 
 class CameraManager(QObject):
 
@@ -57,6 +104,7 @@ class CameraManager(QObject):
     images_view_changed = Signal()
     images_model_changed = Signal()
     activeCameraChanged = Signal()
+    barcodeDetected = Signal(str, arguments=['barcode'])
     videoFrameProcessed = Signal("QVariant", arguments=['new_frame'])
 
     def __init__(self, db, app=None):
@@ -81,7 +129,7 @@ class CameraManager(QObject):
         self._source_sink = QVideoSink()
         self._target_sink = None
         self._capture_session.setVideoSink(self._source_sink)
-        self._capture_session.videoSink().videoFrameChanged.connect(lambda f: self._process_video_frame(f))
+        # self._capture_session.videoSink().videoFrameChanged.connect(lambda f: self._process_video_frame(f))
         self._video_output = None
 
         # self._capture_session.setVideoOutput(self._video_sink)
@@ -94,6 +142,16 @@ class CameraManager(QObject):
         self._load_images_model()
         self._filter_images_model()
         self._painter = QPainter()
+
+        self._frameProcessor = VideoFrameProcessor()
+        self._barcode_worker = ZBarWorker()
+        self._frameProcessor.setWorker(self._barcode_worker)
+        self._capture_session.videoSink().videoFrameChanged.connect(self._frameProcessor.processVideoFrame)
+        self._frameProcessor.videoFrameProcessed.connect(self._display_frame)
+
+        self._barcode_worker.barcodeDetected.connect(lambda bc: self._set_last_barcode(bc))
+
+        self._last_barcode_detected = None
 
     # @Slot(QObject)
     # def setVideoOutput(self, vo):
@@ -112,11 +170,73 @@ class CameraManager(QObject):
     def painter(self):
         return self._painter
 
-    def _process_video_frame(self, frame):
-        # print(type(frame), frame)
-        # self.videoFrameProcessed.emit(frame)
-        print(frame)
+    @Property(str, notify=barcodeDetected)
+    def lastBarcodeDetected(self):
+        return self._last_barcode_detected
+
+    @lastBarcodeDetected.setter
+    def lastBarcodeDetected(self, bc):
+
+        if self._last_barcode_detected != bc:
+            print(f"Set barcode = {bc}")
+            self._last_barcode_detected = bc
+            self.barcodeDetected.emit(bc)
+
+    def _set_last_barcode(self, bc):
+        self.lastBarcodeDetected = bc
+
+    # def q_frame_to_image(self, frame: QVideoFrame):
+    #     return QImage(
+    #         frame.bits(),
+    #         frame.width(),
+    #         frame.height(),
+    #         frame.bytesPerLine(),
+    #         QVideoFrameframe.pixelFormat()
+    #         # QVideoFrameFormat.pixelFormatFromImageFormat(qimg.format())))
+    #
+    #     )
+
+    def _display_frame(self, frame: QVideoFrame):
         self._target_sink.setVideoFrame(frame)
+
+    def _process_video_frame(self, frame: QVideoFrame):
+        frame.map(QVideoFrame.ReadWrite)
+        frame.unmap()
+        self._target_sink.setVideoFrame(frame)
+        #
+        #
+        # _img = frame.toImage()
+        # raw_view(_img)
+        # print(f"NEW FRAME: {_img}")
+        #
+        # _arr = self.QImageToCvMat(_img)
+        # print(f'ARRAY? {_arr}')
+        # _qimg = QImage(_arr.data, _arr.shape[0], _arr.shape[1], QImage.Format_RGB888)
+        # print(f"New image??? {_qimg}")
+        # _new_frame = self.qimage_to_qvideoframe(_qimg)
+        # print(f"New frame??? {_new_frame}")
+        # self._target_sink.setVideoFrame(_new_frame)
+
+    def arr_to_qimg(self, arr, format=QImage.Format_RGB888):
+        return QImage(arr.data, arr.shape[0], arr.shape[1], format=format)
+
+
+    def qimage_to_qvideoframe(self, qimg):
+        f = QVideoFrame(QVideoFrameFormat(qimg.size(), QVideoFrameFormat.pixelFormatFromImageFormat(qimg.format())))
+        f.map(QVideoFrame.ReadWrite)
+        return
+
+    def QImageToCvMat(self, incomingImage):
+        '''  Converts a QImage into an opencv MAT format  '''
+
+        incomingImage = incomingImage.convertToFormat(QImage.Format.Format_RGB32)
+
+        width = incomingImage.width()
+        height = incomingImage.height()
+
+        ptr = incomingImage.constBits()
+        arr = np.array(ptr).reshape(height, width, 4)  # Copies the data
+        return arr
 
     def _filter_images_model(self):
         _haul = self._app.data_selector.cur_haul_num or 'NULL'
