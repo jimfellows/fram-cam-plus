@@ -21,6 +21,7 @@ from PySide6.QtCore import (
     QModelIndex,
 )
 import pyzbar.pyzbar
+# import tensorflow as tf
 
 from PySide6.QtGui import QPainter, QImage
 
@@ -44,59 +45,113 @@ from qimage2ndarray import raw_view
 
 import cv2
 import numpy as np
-import ctypes
-from dataclasses import dataclass
-from functools import cached_property
-
 
 # https://gist.github.com/eyllanesc/6486dc26eebb1f1b71469959d086a649#gistcomment-3920960
 # https://forum.qt.io/topic/130014/qcamera-draw-on-viewfinder/9
-@dataclass(frozen=True)
-class _QImageInterface:
-    image: QImage
 
-    @cached_property
-    def __array_interface__(self):
-        data = self.image.bits()
-        if not isinstance(data, memoryview):
-            data.setsize(self.image.sizeInBytes())
-        return dict(
-            shape=(self.image.height(), self.image.width(), 4),
-            typestr="|u1",
-            data=data,
-            strides=(self.image.bytesPerLine(), 4, 1),
-            version=3,
-        )
+class CVFrameWorker(VideoFrameWorker):
+    """
+    https://gist.github.com/eyllanesc/6486dc26eebb1f1b71469959d086a649#gistcomment-3920960
+    https://araviq6.readthedocs.io/en/stable/examples/frame.camera.html
+    """
+    barcodeDetected = Signal(str, arguments=['barcode'])
+    taxonDetected = Signal(str, arguments=['taxon_name'])
 
-BD = cv2.barcode.BarcodeDetector()
+    def __init__(self):
+        VideoFrameWorker.__init__(self)
+        self._logger = Logger.get_root()
+        self._polygon_array = None
+        self._barcode_frames_scanned = 0
+        self._taxon_frames_scanned = 0
+        self._do_scan_barcode = False
+        self._do_scan_taxon = False
+        self._do_gaussian_blur = False
+        self._do_pencil_sketch = False
 
-def convert_qimage_to_numpy(video_frame):
-    return np.asarray(_QImageInterface(video_frame))
+    def set_barcode_scan_status(self, status):
+        self._logger.info(f"Barcode scanner status set to: {status}")
+        self._do_scan_barcode = status
 
-class BlurWorker(VideoFrameWorker):
+    def set_taxon_scan_status(self, status):
+        self._logger.info(f"Taxon scanner status set to: {status}")
+        self._do_scan_taxon = status
+
+    def set_gaussian_blur_status(self, status):
+        self._logger.info(f"Gausian blur status set to: {status}")
+        self._do_gaussian_blur = status
+
+    def set_pencil_sketch_status(self, status):
+        self._logger.info(f"Pencil sketch status set to: {status}")
+        self._do_pencil_sketch = status
+
     def processArray(self, array: np.ndarray) -> np.ndarray:
+        """
+        for now, process every frame, but only redraw the rectangle every N frame processed, in an attempt
+        to help the bounding box persist a bit longer on screen
+        :param array: numpy array representing image pi3els
+        :return: that same array, with a opencv bounding box drawn
+        """
+        if self._do_scan_barcode:
+            array = self._scan_barcode(array)
+
+        if self._do_scan_taxon:
+            array = self._scan_taxon(array)
+
+        if self._do_gaussian_blur:
+            array = self._gaussian_blur(array)
+
+        if self._do_pencil_sketch:
+            array = self._pencil_sketch(array)
+
+        return array
+
+    def _scan_taxon(self, array):
+        return array
+
+
+    def _scan_barcode(self, array):
+        """
+        use zbar algorithm to identify barcode in cv array.
+        If found,
+        :param array: array in format for cv
+        :return: same array but with bounding poly drawn
+        """
+        _redraw_every_n = 1  # adjust higher if you want to not process each...
+        try:
+            if self._barcode_frames_scanned % _redraw_every_n == 0:
+                r = pyzbar.pyzbar.decode(array)
+                if r:
+                    # https://docs.opencv.org/3.4/dc/da5/tutorial_py_drawing_functions.html
+                    self._polygon_array = np.array([[p.x, p.y] for p in r[0][3]], np.int32)
+                    self._polygon_array = [self._polygon_array.reshape((len(self._polygon_array), 1, 2))]
+                    self.barcodeDetected.emit(r[0][0].decode('utf-8'))  # notify UI that we scanned a barcode
+                else:
+                    self._polygon_array = None
+                    return array
+
+            return cv2.polylines(
+                np.array(array),
+                    self._polygon_array,
+                    True,
+                    (118,230,0),  # accent green
+                    # (205, 90, 106),  # red
+                50  # nice and thick line that kind of looks like a barcode scanner
+            )
+        except Exception as e:
+            return array
+
+        finally:
+            self._barcode_frames_scanned += 1
+
+    def _gaussian_blur(self, array):
         return cv2.GaussianBlur(array, (0, 0), 25)
 
-class BarcodeWorker(VideoFrameWorker):
-    def processArray(self, array: np.ndarray) -> np.ndarray:
-        r = BD.detectAndDecodeWithType(array)
-        if r[0]:
-            print(f"FOUND ONE: {r}")
-        return r[3] if r[0] else array
-
-class ZBarWorker(VideoFrameWorker, QObject):
-
-    barcodeDetected = Signal(str, arguments=['barcode'])
-
-    def processArray(self, array: np.ndarray) -> np.ndarray:
-        r = pyzbar.pyzbar.decode(array)
-        if r:
-            print(r)
-            rect = r[0][2]
-            # https://github.com/opencv/opencv/issues/18120
-            self.barcodeDetected.emit(r[0][0].decode('utf-8'))
-            return cv2.rectangle(np.array(array), (rect.left, rect.top), (rect.left + rect.width, rect.top - rect.height), (118,230,0), 5)
-        return array
+    def _pencil_sketch(self, array):
+        _gray_img = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
+        _inverted_img = 255 - _gray_img
+        _gaussian = self._gaussian_blur(_inverted_img)
+        _inverted_gaussian = 255 - _gaussian
+        return cv2.divide(_gray_img, _inverted_gaussian, scale=256.0)
 
 class CameraManager(QObject):
 
@@ -106,6 +161,7 @@ class CameraManager(QObject):
     activeCameraChanged = Signal()
     barcodeDetected = Signal(str, arguments=['barcode'])
     videoFrameProcessed = Signal("QVariant", arguments=['new_frame'])
+    barcodeScannerChanged = Signal(bool, arguments=['is_on'])
 
     def __init__(self, db, app=None):
         super().__init__()
@@ -119,7 +175,6 @@ class CameraManager(QObject):
         self._capture_session.setCamera(self._camera)
         self._capture_session.setImageCapture(self._image_capture)
         self._is_capturing = False
-        # self.start_camera()
         self._is_camera_running = None
         self._images_model = ImagesModel(self._db)
         self._images_proxy = FramCamFilterProxyModel(self._images_model)
@@ -141,22 +196,29 @@ class CameraManager(QObject):
         self._app.data_selector.curBioChanged.connect(self._filter_images_model)
         self._load_images_model()
         self._filter_images_model()
-        self._painter = QPainter()
 
         self._frameProcessor = VideoFrameProcessor()
-        self._barcode_worker = ZBarWorker()
-        self._frameProcessor.setWorker(self._barcode_worker)
+        self._cv_frame_worker = CVFrameWorker()
+        self._frameProcessor.setWorker(self._cv_frame_worker)
         self._capture_session.videoSink().videoFrameChanged.connect(self._frameProcessor.processVideoFrame)
         self._frameProcessor.videoFrameProcessed.connect(self._display_frame)
 
-        self._barcode_worker.barcodeDetected.connect(lambda bc: self._set_last_barcode(bc))
-
+        self._cv_frame_worker.barcodeDetected.connect(lambda bc: self._set_last_barcode(bc))
         self._last_barcode_detected = None
 
-    # @Slot(QObject)
-    # def setVideoOutput(self, vo):
-    #     self._video_output = vo
-    #     print(self._video_output.__dict__)
+        self._is_barcode_scanner_on = None
+
+    @Property(bool, notify=barcodeScannerChanged)
+    def isBarcodeScannerOn(self):
+        return self._is_barcode_scanner_on
+
+    @isBarcodeScannerOn.setter
+    def isBarcodeScannerOn(self, scanner_status):
+        if self._is_barcode_scanner_on != scanner_status:
+            self._is_barcode_scanner_on = scanner_status
+            self.barcodeScannerChanged.emit(scanner_status)
+            self._cv_frame_worker.set_barcode_scan_status(scanner_status)
+            # self._cv_frame_worker.set_pencil_sketch_status(scanner_status)
 
     @Property(QObject)
     def targetSink(self):
@@ -166,9 +228,20 @@ class CameraManager(QObject):
     def targetSink(self, new_video_sink):
         self._target_sink = new_video_sink
 
-    @Property(QObject, constant=True)
-    def painter(self):
-        return self._painter
+    @staticmethod
+    def transform_barcode_tag(barcode_str):
+        """
+        since barcode doesn't store hyphens from whole specimen tags, we add them back in:
+        2022008900067006 --> 2022-008-900-067-006
+        :param barcode_str: value read from barcode vial/tag
+        :return: reformatted str
+        """
+        if len(barcode_str) == 16 and barcode_str[:2] == '20':  # loosely make sure its a whole specimen tag...
+            _yr = barcode_str[:4]
+            _other = barcode_str[4:]
+            barcode_str = _yr + '-' + '-'.join(f'{_other[i:i + 3]}' for i in range(0, len(_other), 3))
+
+        return barcode_str
 
     @Property(str, notify=barcodeDetected)
     def lastBarcodeDetected(self):
@@ -176,25 +249,14 @@ class CameraManager(QObject):
 
     @lastBarcodeDetected.setter
     def lastBarcodeDetected(self, bc):
-
+        bc = self.transform_barcode_tag(bc)
         if self._last_barcode_detected != bc:
-            print(f"Set barcode = {bc}")
             self._last_barcode_detected = bc
             self.barcodeDetected.emit(bc)
+            # TODO: filter data_selector models...
 
     def _set_last_barcode(self, bc):
         self.lastBarcodeDetected = bc
-
-    # def q_frame_to_image(self, frame: QVideoFrame):
-    #     return QImage(
-    #         frame.bits(),
-    #         frame.width(),
-    #         frame.height(),
-    #         frame.bytesPerLine(),
-    #         QVideoFrameframe.pixelFormat()
-    #         # QVideoFrameFormat.pixelFormatFromImageFormat(qimg.format())))
-    #
-    #     )
 
     def _display_frame(self, frame: QVideoFrame):
         self._target_sink.setVideoFrame(frame)
@@ -203,40 +265,6 @@ class CameraManager(QObject):
         frame.map(QVideoFrame.ReadWrite)
         frame.unmap()
         self._target_sink.setVideoFrame(frame)
-        #
-        #
-        # _img = frame.toImage()
-        # raw_view(_img)
-        # print(f"NEW FRAME: {_img}")
-        #
-        # _arr = self.QImageToCvMat(_img)
-        # print(f'ARRAY? {_arr}')
-        # _qimg = QImage(_arr.data, _arr.shape[0], _arr.shape[1], QImage.Format_RGB888)
-        # print(f"New image??? {_qimg}")
-        # _new_frame = self.qimage_to_qvideoframe(_qimg)
-        # print(f"New frame??? {_new_frame}")
-        # self._target_sink.setVideoFrame(_new_frame)
-
-    def arr_to_qimg(self, arr, format=QImage.Format_RGB888):
-        return QImage(arr.data, arr.shape[0], arr.shape[1], format=format)
-
-
-    def qimage_to_qvideoframe(self, qimg):
-        f = QVideoFrame(QVideoFrameFormat(qimg.size(), QVideoFrameFormat.pixelFormatFromImageFormat(qimg.format())))
-        f.map(QVideoFrame.ReadWrite)
-        return
-
-    def QImageToCvMat(self, incomingImage):
-        '''  Converts a QImage into an opencv MAT format  '''
-
-        incomingImage = incomingImage.convertToFormat(QImage.Format.Format_RGB32)
-
-        width = incomingImage.width()
-        height = incomingImage.height()
-
-        ptr = incomingImage.constBits()
-        arr = np.array(ptr).reshape(height, width, 4)  # Copies the data
-        return arr
 
     def _filter_images_model(self):
         _haul = self._app.data_selector.cur_haul_num or 'NULL'

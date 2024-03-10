@@ -202,6 +202,9 @@ Item {
                             anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: 'qrc:/svgs/barcode.svg'
                             checkable: true
+                            onClicked: {
+                                camera_manager.isBarcodeScannerOn = checked
+                            }
                         }
                         FramCamButton {
                             id: btnTaxonScan

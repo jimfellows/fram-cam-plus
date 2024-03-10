@@ -167,3 +167,5 @@ data/images/*
 *.db
 
 qrc/qresources.py
+
+resources/models
