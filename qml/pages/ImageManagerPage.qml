@@ -13,6 +13,7 @@ Item {
         anchors.bottomMargin: 5
         anchors.topMargin: 5
 
+
         ListView {
             id: lvImages
             model: camera_manager.images_model
@@ -20,36 +21,54 @@ Item {
             delegate: ItemDelegate {
                 id: delegate
                 width: rectParent.width
-                height: 50
+                height: 75
                 contentItem: Item {
+                    anchors.fill: parent
                     Rectangle {
-                        implicitHeight: delegate.height
-                        implicitWidth: delegate.width
+                        anchors.fill: parent
+                        color: '#556a75'
+                        border.color: appstyle.iconColor
+                        radius: 8
                         RowLayout {
+                            anchors.fill: parent
                             Image {
                                 id: imgPhotoIcon
                                 fillMode: Image.PreserveAspectFit
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+                                Layout.leftMargin: 10
                                 sourceSize.height: 20
                                 sourceSize.width: 20
-                                source: "qrc:/svgs/image_file.svg"
-                                layer {
-                                    enabled: true
-                                    effect: ColorOverlay {
-                                        color: "black"
-                                    }
-                                }
+                                source: "file:///" + model.full_path
+                                cache: true
                             }
                             Label {
                                 text: model.file_name
+                                font.family: appstyle.fontFamily
+                                font.pixelSize: 18
+                                color: appstyle.secondaryFontColor
                             }
-                            Button {
+                            FramCamButton {
+                                id: btnSelect
+                                text: "Select"
+                                implicitHeight: delegate.height
+                                checkable: true
+                            }
+                            FramCamButton {
                                 id: btnDelete
                                 text: "Delete X"
+                                implicitHeight: delegate.height
+                                onClicked: {
+                                    camera_manager.images_model.removeImage(index)
+                                }
                             }
-                            Button {
+                            FramCamButton {
                                 id: btnEdit
                                 text: "Edit >>"
+                                implicitHeight: delegate.height
+                                onClicked: {
+                                    windowMain.stackView.push(Qt.resolvedUrl('qrc:/qml/CapturePage.qml'))
+                                    camera_manager.images_model.sendIndexToProxy(index)
+                                }
                             }
                         }
                     }

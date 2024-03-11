@@ -21,6 +21,7 @@ Window {
     //props
     property bool isWindowMaximized: false;
     property int windowMargin: 10;
+    property alias stackView: stackView
 
     //removing default title bar
     flags: Qt.Window | Qt.FramelessWindowHint
