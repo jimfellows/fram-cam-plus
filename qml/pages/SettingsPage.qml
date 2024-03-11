@@ -3,57 +3,66 @@ import QtQuick.Layouts 6.3
 import QtQuick.Controls 6.3
 import Qt5Compat.GraphicalEffects
 
+import 'qrc:/qml'
+
 Item {
     Rectangle {
         id: rectBg
         color: appstyle.elevatedSurface_L5
         anchors.fill: parent
-        anchors.rightMargin: 5
-        anchors.leftMargin: 5
-        anchors.bottomMargin: 5
-        anchors.topMargin: 5
-        /*
         ColumnLayout {
             id: columnLayout
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 100
-            anchors.topMargin: 0
-            anchors.leftMargin: 0
-            anchors.rightMargin: 0
+            anchors.fill: parent
+            anchors.leftMargin: 5
+            anchors.rightMargin: 5
+            FramCamGroupBox {
+                Layout.preferredWidth: parent.width
+                Layout.preferredHeight: 200
+                title: 'Network'
+                ColumnLayout {
+                    RowLayout {
+                        spacing: 10
 
-            RowLayout {
-                id: rowLayout
-                width: 100
-                height: 100
-                Layout.fillWidth: true
+                        Label {
+                            text: "Vessel Subnet"
+                            color: appstyle.secondaryFontColor
+                            font.pixelSize: 18
+                            font.family: appstyle.fontFamily
+                        }
 
-                Label {
-                    id: label
-                    text: qsTr("")
+                        FramCamComboBox {
+                            Layout.preferredWidth: 200
+                            Layout.preferredHeight: 200
+                            //implicitHeight: 400
+                            model: ['192.254.243', '192.254.242', '127.0.0.1 (test)']
+                        }
+
+                    }
                 }
             }
-        }
-        */
-        Image {
-            id: image
-            width: 100
-            height: 100
-            anchors.verticalCenter: parent.verticalCenter
-            source: "qrc:/svgs/construction_sign.svg"
-            anchors.horizontalCenter: parent.horizontalCenter
-            fillMode: Image.PreserveAspectFit
-            layer {
-                enabled: true
-                effect: ColorOverlay {
-                    color: appstyle.iconColor
+            FramCamGroupBox {
+                Layout.preferredWidth: parent.width
+                Layout.preferredHeight: 200
+                title: 'UI'
+                ColumnLayout {
+                    RowLayout {
+                        spacing: 10
+                        Label {
+                            text: "Color Mode"
+                            color: appstyle.secondaryFontColor
+                            font.pixelSize: 18
+                            font.family: appstyle.fontFamily
+                        }
+                        FramCamComboBox {
+                            width: 200
+                            height: 200
+                            model: ['Dark', 'Light', 'Gray']
+                        }
+                    }
                 }
             }
         }
     }
-
 }
 
 /*##^##

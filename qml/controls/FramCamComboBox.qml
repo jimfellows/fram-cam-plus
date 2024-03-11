@@ -11,7 +11,7 @@ import QtQuick.Controls.Material
 ComboBox {
     id: root
     implicitWidth: 200
-    implicitHeight: 5000
+    implicitHeight: 50
     currentIndex: -1
 
     Material.theme: Material.Dark

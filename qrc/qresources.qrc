@@ -9,11 +9,12 @@
         <file alias="ImageEditorBar.qml">../qml/components/ImageEditorBar.qml</file>
         <file alias="FramCamButton.qml">../qml/controls/FramCamButton.qml</file>
         <file>../qml/controls/FramCamButton.qml</file>
-        <file>../qml/controls/FramCamComboBox.qml</file>
+        <file alias="FramCamComboBox.qml">../qml/controls/FramCamComboBox.qml</file>
         <file>../qml/controls/FramCamMenuButton.qml</file>
         <file>../qml/controls/FramCamNavButton.qml</file>
         <file>../qml/controls/FramCamSwitch.qml</file>
         <file>../qml/controls/FramCamWindowButton.qml</file>
+        <file alias="FramCamGroupBox.qml">../qml/controls/FramCamGroupBox.qml</file>
     </qresource>
     <qresource prefix="/svgs">
         <file alias="aperture.svg">../resources/svgs/aperture_1.svg</file>
