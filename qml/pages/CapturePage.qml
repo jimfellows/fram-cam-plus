@@ -7,8 +7,8 @@ import './qml/controls'
 import 'qrc:/qml'
 
 
-Item {
 
+Item {
     id: capturePage
 
     property alias lvThumbnails: lvThumbnails
@@ -17,6 +17,14 @@ Item {
         switchPreview.position = camera_manager.is_camera_active ? 1 : 0
     }
 
+    SoundEffect {
+        id: clack
+        source: "qrc:/sounds/clack.wav"
+    }
+    SoundEffect {
+        id: shutter
+        source: "qrc:/sounds/shutter.wav"
+    }
     Rectangle {
         id: rectBg
         color: appstyle.elevatedSurface_L5
@@ -227,7 +235,11 @@ Item {
                     anchors.bottom: parent.bottom
                     anchors.rightMargin: 10
                     anchors.bottomMargin: 2
-                    onClicked: camera_manager.capture_image_to_file()
+                    onClicked: {
+                        camera_manager.capture_image_to_file()
+                        shutter.play()
+                    }
+
                 }
                 /*
                 Button {
@@ -386,6 +398,7 @@ Item {
                                         console.info("CLICK: Clicked image already selected, deselecting...")
                                         lvThumbnails.currentIndex = -1
                                     } else {
+                                        clack.play()
                                         console.info("CLICK: Selecting new image at index " + index)
                                         lvThumbnails.currentIndex = index
                                     }
