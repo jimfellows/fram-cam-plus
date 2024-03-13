@@ -18,8 +18,13 @@ from PySide6.QtCore import (
     Signal,
     Qt,
     QAbstractListModel,
-    QModelIndex
+    QModelIndex,
 )
+import pyzbar.pyzbar
+# import tensorflow as tf
+
+from PySide6.QtGui import QPainter, QImage
+
 from PySide6.QtMultimedia import (
     QAudioInput,
     QCamera,
@@ -29,181 +34,124 @@ from PySide6.QtMultimedia import (
     QMediaDevices,
     QMediaMetaData,
     QVideoSink,
-    QMediaRecorder
+    QMediaRecorder,
+    QVideoFrame,
+    QVideoFrameFormat
 )
 
 from PySide6.QtSql import QSqlTableModel, QSqlQueryModel, QSqlQuery, QSqlRecord
+from araviq6 import VideoFrameWorker, VideoFrameProcessor
+from qimage2ndarray import raw_view
 
+import cv2
+import numpy as np
 
-class ImagesListModel(QAbstractListModel):
+# https://gist.github.com/eyllanesc/6486dc26eebb1f1b71469959d086a649#gistcomment-3920960
+# https://forum.qt.io/topic/130014/qcamera-draw-on-viewfinder/9
 
-    currentIndexChanged = Signal(int, arguments=['new_index'])
+class CVFrameWorker(VideoFrameWorker):
+    """
+    https://gist.github.com/eyllanesc/6486dc26eebb1f1b71469959d086a649#gistcomment-3920960
+    https://araviq6.readthedocs.io/en/stable/examples/frame.camera.html
+    """
+    barcodeDetected = Signal(str, arguments=['barcode'])
+    taxonDetected = Signal(str, arguments=['taxon_name'])
 
-    def __init__(self, db, parent=None):
-        super().__init__(parent)
+    def __init__(self):
+        VideoFrameWorker.__init__(self)
         self._logger = Logger.get_root()
-        self._db = db
-        self._table_model = QSqlTableModel(db=self._db)
-        self._table_model.setTable('IMAGES')
-        self._table_model.setEditStrategy(QSqlTableModel.OnManualSubmit)
-        self._table_model.select()  # load me, should this be in INIT, and do we need to do it?
-        self._query_model = QSqlQueryModel()
-        self._query = QSqlQuery(self._db)
-        self._sql = '''
-            select      *
-            from        IMAGES_VW
-            where       coalesce(:haul_id, haul_id) = haul_id
-                        and coalesce(:catch_id, catch_id) = catch_id
-                        and coalesce(:project_name, project_name) = project_name
-                        and coalesce(:bio_label, bio_label) = bio_label
-                        and coalesce(:image_id, image_id) = image_id
-            order by    image_id desc
-        '''
-        self._query.prepare(self._sql)
-        self._records = []
-        self._current_index = -1
+        self._polygon_array = None
+        self._barcode_frames_scanned = 0
+        self._taxon_frames_scanned = 0
+        self._do_scan_barcode = False
+        self._do_scan_taxon = False
+        self._do_gaussian_blur = False
+        self._do_pencil_sketch = False
 
-    @Property(int, notify=currentIndexChanged)
-    def currentIndex(self):
-        return self._current_index
+    def set_barcode_scan_status(self, status):
+        self._logger.info(f"Barcode scanner status set to: {status}")
+        self._do_scan_barcode = status
 
-    @currentIndex.setter
-    def currentIndex(self, new_index):
-        if self._current_index != new_index:
-            self._current_index = new_index
-            self.currentIndexChanged.emit(new_index)
+    def set_taxon_scan_status(self, status):
+        self._logger.info(f"Taxon scanner status set to: {status}")
+        self._do_scan_taxon = status
 
-    def populate(self, haul_id=None, catch_id=None, project_name=None, bio_label=None):
+    def set_gaussian_blur_status(self, status):
+        self._logger.info(f"Gausian blur status set to: {status}")
+        self._do_gaussian_blur = status
+
+    def set_pencil_sketch_status(self, status):
+        self._logger.info(f"Pencil sketch status set to: {status}")
+        self._do_pencil_sketch = status
+
+    def processArray(self, array: np.ndarray) -> np.ndarray:
         """
-        custom query to load up denormalized image results.
-        Haul id is required (for now). Other args, if null, will not filter to data results.
-        TODO: should we query on specimen id and species_sampling_project_id instead of strings?
-        :param haul_id: int, HAULS pkey
-        :param catch_id: int, CATCH pkey
-        :param project_name: str, name of project for sampling plan (SPECIES_SAMPLING_PLAN_LU.PLAN_NAME field)
-        :param bio_label: str, name of bio label (SPECIMEN.ALPHA_VALUE/SPECIMEN.NUMERIC_VALUE)
+        for now, process every frame, but only redraw the rectangle every N frame processed, in an attempt
+        to help the bounding box persist a bit longer on screen
+        :param array: numpy array representing image pi3els
+        :return: that same array, with a opencv bounding box drawn
         """
-        self._records = []
-        self._query.bindValue(':haul_id', haul_id)
-        self._query.bindValue(':catch_id', catch_id)
-        self._query.bindValue(':plan_name', project_name)
-        self._query.bindValue(':bio_label', bio_label)
-        self._query.exec()
-        self._query_model.setQuery(self._query)
-        self._logger.info(f"Loading {self._query_model.rowCount()} records to images model...")
-        for i in range(self._query_model.rowCount()):
-            self._records.append(Utils.qrec_to_dict(self._query_model.record(i)))
+        if self._do_scan_barcode:
+            array = self._scan_barcode(array)
 
-    def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
+        if self._do_scan_taxon:
+            array = self._scan_taxon(array)
+
+        if self._do_gaussian_blur:
+            array = self._gaussian_blur(array)
+
+        if self._do_pencil_sketch:
+            array = self._pencil_sketch(array)
+
+        return array
+
+    def _scan_taxon(self, array):
+        return array
+
+
+    def _scan_barcode(self, array):
         """
-        method to create a new rec in IMAGES table and return newly generated IMAGE_ID pkey value
-        :param image_path: full str path to image
-        :param haul_id: int, pkey for HAULS table
-        :param catch_id: int, pkey for CATCH table
-        :param specimen_id: int, pkey for SPECIMEN table
-        :return: int, pkey for new IMAGES table rec
+        use zbar algorithm to identify barcode in cv array.
+        If found,
+        :param array: array in format for cv
+        :return: same array but with bounding poly drawn
         """
-        if not os.path.exists(image_path):
-            self._logger.error(f"Unable to add file to IMAGES table: newly image not found at {image_path}")
-            return
-
-        self._logger.info(f"Creating new image here: {image_path}")
-
-        # create the shell record, then set values
-        _img = self._table_model.record()
-        _img.setValue(self._table_model.fieldIndex('FILE_PATH'), os.path.dirname(image_path))
-        _img.setValue(self._table_model.fieldIndex('FILE_NAME'), os.path.basename(image_path))
-        _img.setValue(self._table_model.fieldIndex('HAUL_ID'), haul_id)
-        _img.setValue(self._table_model.fieldIndex('CATCH_ID'), catch_id)
-        _img.setValue(self._table_model.fieldIndex('SPECIMEN_ID'), specimen_id)
-
-        # do the insert, manually commit, then get newly created ID back out
-        self._table_model.insertRecord(-1, _img)
-        self._table_model.submitAll()
-        _img_id = self._table_model.query().lastInsertId()
-        self._logger.info(f"New IMAGES record created with IMAGE_ID = {_img_id}")
-        return _img_id
-
-    def load_image_from_view(self, image_id, index=0):
-        """
-        following insert to IMAGES table, use image_id to get denormalized version from view
-        and put it into view model / list view
-        :param image_id:
-        :return:
-        TODO: check if image_id row already exists, if so rip out and replace
-        """
-        self._logger.info(f"Loading image_id {image_id} to list model")
-        self._query.bindValue(':image_id', image_id)
-        self._query.exec()
-        self._query_model.setQuery(self._query)
-        self.beginInsertRows(QModelIndex(), index, index)  # tells model/ui about updates
-        for i in range(self._query_model.rowCount()):
-            self._records.insert(index, Utils.qrec_to_dict(self._query_model.record(i)))
-
-        self.currentIndex = index
-        self.endInsertRows()  # tells model/ui we're done
-        self._logger.info(f"image_id {image_id} loaded to list model at index {self._current_index}")
-
-    def append_new_image(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
-        """
-        In the event that the camera has saved an image to disk, this function performs what needs
-        to happen immediately after with respect to the  list model
-        1.) insert to database
-        2.) retrieve denormalized rec from view
-        3.) append to array aka listmodel
-        :param image_id: int, db pkey for IMAGES table
-        """
-        if not os.path.exists(image_path):
-            self._logger.error(f"Unable to add file to list model: newly image not found at {image_path}")
-            return
-
-        self._logger.info(f"Inserting record to IMAGES for: {image_path}")
-        _img_id = self.insert_to_db(image_path, haul_id, catch_id, specimen_id)
-        self.load_image_from_view(_img_id)
-
-    def remove_from_db(self, image_id):
-        row = 0
-        for ix in range(self._table_model.rowCount()):
-            if self._table_model.record(ix).value('IMAGE_ID') == image_id:
-                break
-            else:
-                row += 1
-
-        self._table_model.removeRow(row)
-
-    def remove_from_model(self, index):
-        self.beginRemoveRows(QModelIndex(), index, index)
-        del self._records[index]
-        self.endRemoveRows()
-
-    @Slot(int)
-    def remove_image(self, row_index):
-        pass
-
-    def rowCount(self, index=0):
-        return len(self._records)
-
-    def columnCount(self, index):
-        return self._query_model.record().count()
-
-    def data(self, index, role: int):
-        if not index.isValid():
-            return
+        _redraw_every_n = 1  # adjust higher if you want to not process each...
         try:
-            # return self._records[index.row()].value(self.roleNames()[role].decode('utf-8'))  # before when we were using qsqlrecords
-            return self._records[index.row()][self.roleNames()[role].decode('utf-8')]
+            if self._barcode_frames_scanned % _redraw_every_n == 0:
+                r = pyzbar.pyzbar.decode(array)
+                if r:
+                    # https://docs.opencv.org/3.4/dc/da5/tutorial_py_drawing_functions.html
+                    self._polygon_array = np.array([[p.x, p.y] for p in r[0][3]], np.int32)
+                    self._polygon_array = [self._polygon_array.reshape((len(self._polygon_array), 1, 2))]
+                    self.barcodeDetected.emit(r[0][0].decode('utf-8'))  # notify UI that we scanned a barcode
+                else:
+                    self._polygon_array = None
+                    return array
+
+            return cv2.polylines(
+                np.array(array),
+                    self._polygon_array,
+                    True,
+                    (118,230,0),  # accent green
+                    # (205, 90, 106),  # red
+                50  # nice and thick line that kind of looks like a barcode scanner
+            )
         except Exception as e:
-            self._logger.error(f"FAILED: {e}")
-            return None
+            return array
 
-    def get_value(self, i, key):
-        return self._records[i].value(key)
+        finally:
+            self._barcode_frames_scanned += 1
 
-    def roleNames(self):
-        _rec = self._query_model.record()
-        _fields = [_rec.field(f).name().lower() for f in range(0, _rec.count())]
-        return {Qt.DisplayRole + i: r.encode("utf-8") for i, r in enumerate(_fields)}
+    def _gaussian_blur(self, array):
+        return cv2.GaussianBlur(array, (0, 0), 25)
 
+    def _pencil_sketch(self, array):
+        _gray_img = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
+        _inverted_img = 255 - _gray_img
+        _gaussian = self._gaussian_blur(_inverted_img)
+        _inverted_gaussian = 255 - _gaussian
+        return cv2.divide(_gray_img, _inverted_gaussian, scale=256.0)
 
 class CameraManager(QObject):
 
@@ -211,6 +159,9 @@ class CameraManager(QObject):
     images_view_changed = Signal()
     images_model_changed = Signal()
     activeCameraChanged = Signal()
+    barcodeDetected = Signal(str, arguments=['barcode'])
+    videoFrameProcessed = Signal("QVariant", arguments=['new_frame'])
+    barcodeScannerChanged = Signal(bool, arguments=['is_on'])
 
     def __init__(self, db, app=None):
         super().__init__()
@@ -224,12 +175,19 @@ class CameraManager(QObject):
         self._capture_session.setCamera(self._camera)
         self._capture_session.setImageCapture(self._image_capture)
         self._is_capturing = False
-        # self.start_camera()
         self._is_camera_running = None
         self._images_model = ImagesModel(self._db)
         self._images_proxy = FramCamFilterProxyModel(self._images_model)
         # self._images_model.sendIndexToProxy.connect(lambda _i: self._images_proxy.setProxyIndexSilently(_i))
 
+        # setup sink from which we grab images prior to processing
+        self._source_sink = QVideoSink()
+        self._target_sink = None
+        self._capture_session.setVideoSink(self._source_sink)
+        # self._capture_session.videoSink().videoFrameChanged.connect(lambda f: self._process_video_frame(f))
+        self._video_output = None
+
+        # self._capture_session.setVideoOutput(self._video_sink)
         self._image_capture.imageSaved.connect(lambda ix, path: self._on_image_saved(path))  # image save is async, so hooking to signal
 
         self._app.data_selector.curHaulChanged.connect(self._filter_images_model)
@@ -238,6 +196,75 @@ class CameraManager(QObject):
         self._app.data_selector.curBioChanged.connect(self._filter_images_model)
         self._load_images_model()
         self._filter_images_model()
+
+        self._frameProcessor = VideoFrameProcessor()
+        self._cv_frame_worker = CVFrameWorker()
+        self._frameProcessor.setWorker(self._cv_frame_worker)
+        self._capture_session.videoSink().videoFrameChanged.connect(self._frameProcessor.processVideoFrame)
+        self._frameProcessor.videoFrameProcessed.connect(self._display_frame)
+
+        self._cv_frame_worker.barcodeDetected.connect(lambda bc: self._set_last_barcode(bc))
+        self._last_barcode_detected = None
+
+        self._is_barcode_scanner_on = None
+
+    @Property(bool, notify=barcodeScannerChanged)
+    def isBarcodeScannerOn(self):
+        return self._is_barcode_scanner_on
+
+    @isBarcodeScannerOn.setter
+    def isBarcodeScannerOn(self, scanner_status):
+        if self._is_barcode_scanner_on != scanner_status:
+            self._is_barcode_scanner_on = scanner_status
+            self.barcodeScannerChanged.emit(scanner_status)
+            self._cv_frame_worker.set_barcode_scan_status(scanner_status)
+            # self._cv_frame_worker.set_pencil_sketch_status(scanner_status)
+
+    @Property(QObject)
+    def targetSink(self):
+        return self._target_sink
+
+    @targetSink.setter
+    def targetSink(self, new_video_sink):
+        self._target_sink = new_video_sink
+
+    @staticmethod
+    def transform_barcode_tag(barcode_str):
+        """
+        since barcode doesn't store hyphens from whole specimen tags, we add them back in:
+        2022008900067006 --> 2022-008-900-067-006
+        :param barcode_str: value read from barcode vial/tag
+        :return: reformatted str
+        """
+        if len(barcode_str) == 16 and barcode_str[:2] == '20':  # loosely make sure its a whole specimen tag...
+            _yr = barcode_str[:4]
+            _other = barcode_str[4:]
+            barcode_str = _yr + '-' + '-'.join(f'{_other[i:i + 3]}' for i in range(0, len(_other), 3))
+
+        return barcode_str
+
+    @Property(str, notify=barcodeDetected)
+    def lastBarcodeDetected(self):
+        return self._last_barcode_detected
+
+    @lastBarcodeDetected.setter
+    def lastBarcodeDetected(self, bc):
+        bc = self.transform_barcode_tag(bc)
+        if self._last_barcode_detected != bc:
+            self._last_barcode_detected = bc
+            self.barcodeDetected.emit(bc)
+            # TODO: filter data_selector models...
+
+    def _set_last_barcode(self, bc):
+        self.lastBarcodeDetected = bc
+
+    def _display_frame(self, frame: QVideoFrame):
+        self._target_sink.setVideoFrame(frame)
+
+    def _process_video_frame(self, frame: QVideoFrame):
+        frame.map(QVideoFrame.ReadWrite)
+        frame.unmap()
+        self._target_sink.setVideoFrame(frame)
 
     def _filter_images_model(self):
         _haul = self._app.data_selector.cur_haul_num or 'NULL'

@@ -13,8 +13,9 @@ Item {
 
     property alias lvThumbnails: lvThumbnails
     Component.onCompleted: {
-        camera_manager.set_video_output(videoOutput)
-        switchPreview.position = camera_manager.is_camera_active ? 1 : 0
+        console.info("-----------------------------------------------------------------------")
+        camera_manager.targetSink = videoOutput.videoSink
+        console.info("-----------------------------------------------------------------------")
     }
     SoundEffect {
         id: clack
@@ -84,7 +85,6 @@ Item {
                         }
                     }
                 }
-
                 VideoOutput {
                     id: videoOutput
                     anchors.fill: parent
@@ -220,6 +220,9 @@ Item {
                             anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: 'qrc:/svgs/barcode.svg'
                             checkable: true
+                            onClicked: {
+                                camera_manager.isBarcodeScannerOn = checked
+                            }
                         }
                         FramCamButton {
                             id: btnTaxonScan
