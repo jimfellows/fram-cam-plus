@@ -7,8 +7,8 @@ import './qml/controls'
 import 'qrc:/qml'
 
 
-Item {
 
+Item {
     id: capturePage
 
     property alias lvThumbnails: lvThumbnails
@@ -17,7 +17,25 @@ Item {
         camera_manager.targetSink = videoOutput.videoSink
         console.info("-----------------------------------------------------------------------")
     }
+    SoundEffect {
+        id: clack
+        source: "qrc:/sounds/clack.wav"
+    }
+    SoundEffect {
+        id: shutter
+        source: "qrc:/sounds/shutter.wav"
+    }
+    SoundEffect {
+        id: shotgun
+        source: "qrc:/sounds/shotgun.wav"
 
+    }
+    Connections {
+            target: camera_manager
+            function onBarcodeDetected(barcode) {
+                shotgun.play()
+            }
+        }
     Rectangle {
         id: rectBg
         color: appstyle.elevatedSurface_L5
@@ -230,7 +248,11 @@ Item {
                     anchors.bottom: parent.bottom
                     anchors.rightMargin: 10
                     anchors.bottomMargin: 2
-                    onClicked: camera_manager.capture_image_to_file()
+                    onClicked: {
+                        camera_manager.capture_image_to_file()
+                        shutter.play()
+                    }
+
                 }
                 /*
                 Button {
@@ -389,6 +411,7 @@ Item {
                                         console.info("CLICK: Clicked image already selected, deselecting...")
                                         lvThumbnails.currentIndex = -1
                                     } else {
+                                        clack.play()
                                         console.info("CLICK: Selecting new image at index " + index)
                                         lvThumbnails.currentIndex = index
                                     }
@@ -494,9 +517,8 @@ Item {
                     backgroundColor: appstyle.elevatedSurface_L5
                     fontColor: appstyle.secondaryFontColor
                     borderColor: appstyle.iconColor
-                    // why does height affect the collapsed height, and implicit affect to popup?
                     height: parent.height
-                    implicitHeight: capturePage.height * 0.7
+                    maxPopupHeight: windowMain.height * 0.65
                     width: parent.width * 0.2
                     fontSize: 14
                     model: data_selector.hauls_model
@@ -522,7 +544,7 @@ Item {
                     fontColor: appstyle.secondaryFontColor
                     borderColor: appstyle.iconColor
                     height: parent.height
-                    implicitHeight: capturePage.height * 0.7
+                    maxPopupHeight: windowMain.height * 0.65
                     width: parent.width * 0.2
                     model: data_selector.catches_proxy
                     textRole: "display_name"
@@ -547,8 +569,8 @@ Item {
                     fontColor: appstyle.secondaryFontColor
                     borderColor: appstyle.iconColor
                     height: parent.height
+                    maxPopupHeight: windowMain.height * 0.65
                     width: parent.width * 0.2
-                    implicitHeight: capturePage.height * 0.7
                     model: data_selector.projects_proxy
                     textRole: "project_name"
                     fontSize: 14
@@ -572,8 +594,8 @@ Item {
                     fontColor: appstyle.secondaryFontColor
                     borderColor: appstyle.iconColor
                     height: parent.height
+                    maxPopupHeight: windowMain.height * 0.65
                     width: parent.width * 0.2
-                    implicitHeight: capturePage.height * 0.7
                     model: data_selector.bios_proxy
                     textRole: "bio_label"
                     fontSize: 14
