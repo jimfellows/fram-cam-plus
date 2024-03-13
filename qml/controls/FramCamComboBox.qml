@@ -25,6 +25,7 @@ ComboBox {
     property real radius: 12;
     property string placeholderText: "";
     property bool italicDisplay: false;
+    property int maxPopupHeight: 10000;
 
     /*
     delegate here represents each item in the popup aka the drop down,
@@ -116,18 +117,14 @@ ComboBox {
         id: popup
         y: root.height + 2 // set drop down just below main button
         width: root.width + 20  // bump out drop down slightly
-        height: root.height
+        implicitHeight: contentItem.implicitHeight
         padding: 4
         contentItem: ListView {
             clip: true
-            implicitHeight: popup.height
+            implicitHeight: contentHeight > root.maxPopupHeight ? root.maxPopupHeight : contentHeight
             model: root.popup.visible ? root.delegateModel : null
             currentIndex: root.highlightedIndex
             ScrollIndicator.vertical: ScrollIndicator { }
-            displaced: Transition {
-                //PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
-                NumberAnimation { properties: "x,y"; duration: 200 }
-            }
         }
         background: Rectangle {
             id: rectPopup
@@ -137,6 +134,7 @@ ComboBox {
             visible: true
             border.color: root.borderColor
         }
+        /*
         enter: Transition {
             NumberAnimation {
                 property: "height";
@@ -155,5 +153,6 @@ ComboBox {
                 duration: 300;
             }
         }
+        */
     }
 }
