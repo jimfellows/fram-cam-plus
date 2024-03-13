@@ -10,7 +10,6 @@
         <file alias="FramCamButton.qml">../qml/controls/FramCamButton.qml</file>
         <file>../qml/controls/FramCamButton.qml</file>
         <file alias="FramCamComboBox.qml">../qml/controls/FramCamComboBox.qml</file>
-        <file alias="FramCamComboBox2.qml">../qml/controls/FramCamComboBox2.qml</file>
         <file>../qml/controls/FramCamMenuButton.qml</file>
         <file>../qml/controls/FramCamNavButton.qml</file>
         <file>../qml/controls/FramCamSwitch.qml</file>
