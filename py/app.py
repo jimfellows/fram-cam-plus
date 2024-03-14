@@ -12,6 +12,7 @@ from py.data_selector import DataSelector
 from py.camera_manager import CameraManager
 from py.qsqlite import QSqlite
 from py.style import Style
+from py.settings import Settings
 from qrc import qresources  # need this to import compiled qrc resources
 
 # 3rd party imports
@@ -37,11 +38,13 @@ class FramCamPlus(QObject):
 
         # init python classes
         self.state = FramCamState(self.sqlite.db, app=self)
-        self.style = Style()
+        self.settings = Settings(self.sqlite.db, app=self)
+        self.style = Style(app=self)
         self.data_selector = DataSelector(self.sqlite.db, app=self)
         self.camera_manager = CameraManager(self.sqlite.db, self)
 
         self.context.setContextProperty('state', self.state)
+        self.context.setContextProperty('settings', self.settings)
         self.context.setContextProperty('appstyle', self.style)
         self.context.setContextProperty('data_selector', self.data_selector)
         self.context.setContextProperty('camera_manager', self.camera_manager)

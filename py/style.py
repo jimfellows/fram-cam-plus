@@ -9,8 +9,17 @@ class Style(QObject):
 
     modeChanged = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, app=None, parent=None):
         super().__init__(parent)
+        self._app = app
+        self._ui_mode = "Dark"
+        self._app.settings.uiModeChanged.connect(self._set_ui_mode)
+
+    def _set_ui_mode(self, new_mode):
+        print(f"UI MODE CHANGED TO {new_mode}")
+        if self._ui_mode != new_mode:
+            self._ui_mode = new_mode
+            self.modeChanged.emit()
 
     @Property(QColor, notify=modeChanged)
     def primaryColor(self):
@@ -47,7 +56,10 @@ class Style(QObject):
 
     @Property(QColor, notify=modeChanged)
     def surfaceColor(self):
-        return QColor('#121212')
+        if self._ui_mode == 'Dark':
+            return QColor('#121212')  # default surface base for dark material ui
+        if self._ui_mode == 'Light':
+            return QColor('white')
 
     @Property(QColor, notify=modeChanged)
     def elevatedSurface_L1(self):
@@ -91,11 +103,17 @@ class Style(QObject):
 
     @Property(QColor, notify=modeChanged)
     def primaryFontColor(self):
-        return QColor("#FFFFFFFF")
+        if self._ui_mode == 'Dark':
+            return QColor("#FFFFFFFF")
+        if self._ui_mode == 'Light':
+            return QColor("Black")
 
     @Property(QColor, notify=modeChanged)
     def secondaryFontColor(self):
-        return QColor('#B3FFFFFF')
+        if self._ui_mode == 'Dark':
+            return QColor('#B3FFFFFF')
+        if self._ui_mode == 'Light':
+            return QColor('Gray')
 
     @Property(QColor, notify=modeChanged)
     def iconColor(self):
@@ -104,18 +122,6 @@ class Style(QObject):
     @Property(QColor, notify=modeChanged)
     def fontFamily(self):
         return 'roboto'
-
-    @Property(float)
-    def fontOpacityHE(self):
-        return 0.87
-
-    @Property(float)
-    def fontOpacityME(self):
-        return 0.6
-
-    @Property(float)
-    def disabledFontOpacity(self):
-        return 0.38
 
     @Property(QColor, notify=modeChanged)
     def errorColor(self):

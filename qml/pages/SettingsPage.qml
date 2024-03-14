@@ -6,6 +6,13 @@ import Qt5Compat.GraphicalEffects
 import 'qrc:/qml'
 
 Item {
+
+    Connections {
+        target: settings
+        function onBackdeckPinged(pingStatus) {
+            console.info("PINGED BACKDECK, status = " + pingStatus)
+        }
+    }
     Rectangle {
         id: rectBg
         color: appstyle.elevatedSurface_L5
@@ -32,15 +39,27 @@ Item {
                             Layout.preferredWidth: gbNetwork.labelWidth
                         }
                         FramCamComboBox {
+                            id: cbSubnet
                             Layout.preferredWidth: 400
                             Layout.preferredHeight: 50
                             backgroundColor: appstyle.elevatedSurface_L5
-                            model: ['192.254.243', '192.254.242', '127.0.0.1 (test)']
+                            model: ['192.254.243', '192.254.242', '127.0.0.1']
                             placeholderText: 'Select a vessel subnet...'
+                            onCurrentIndexChanged: {
+                                settings.curVesselSubnet = model[currentIndex]
+                            }
+                            Connections {
+                                target: settings
+                                function onBackdeckPinged(status) {
+                                    cbSubnet.borderColor = status ? appstyle.accentColor : appstyle.errorColor
+                                }
+                            }
+
                         }
                         FramCamButton {
                             text: 'Ping'
                             Layout.preferredHeight: 50
+                            onClicked: settings.pingBackdeck()
                         }
                     }
                     RowLayout {
@@ -82,7 +101,9 @@ Item {
                             model: ['Dark', 'Light', 'Grey']
                             backgroundColor: appstyle.elevatedSurface_L5
                             placeholderText: 'Select UI color mode...'
-
+                            onCurrentIndexChanged: {
+                                settings.curUiMode = model[currentIndex]
+                            }
                         }
                     }
                 }
