@@ -21,7 +21,7 @@ ComboBox {
     property color backgroundColor: appstyle.elevatedSurface_L5;
     property color borderColor: appstyle.iconColor
     property color fontColor: appstyle.secondaryFontColor
-    property color hoveredColor: appstyle.appstyle.elevatedSurface_L5.darker(0.7)
+    property color hoveredColor: appstyle.elevatedSurface_L5.darker(0.7)
     property int fontSize: 18
     property real radius: 12;
     property string placeholderText: "";

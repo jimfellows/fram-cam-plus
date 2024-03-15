@@ -15,6 +15,7 @@
         <file>../qml/controls/FramCamSwitch.qml</file>
         <file>../qml/controls/FramCamWindowButton.qml</file>
         <file alias="FramCamGroupBox.qml">../qml/controls/FramCamGroupBox.qml</file>
+        <file alias="FramCamTextField.qml">../qml/controls/FramCamTextField.qml</file>
     </qresource>
     <qresource prefix="/svgs">
         <file alias="aperture.svg">../resources/svgs/aperture_1.svg</file>

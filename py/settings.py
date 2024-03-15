@@ -37,7 +37,6 @@ class PingWorker(QObject):
         self.pingStatus.emit(self._success)
 
     def ping_test(self):
-        print("starting ping!!!!")
         param = '-n' if platform.system().lower() == 'windows' else '-c'
         command = ['ping', param, '1', self._ip_address]
 
@@ -47,12 +46,6 @@ class PingWorker(QObject):
             return False
         return True
 
-    def ping_test_old(self):
-        print("PINGING FROM TRHEAD!")
-
-        r = os.system('ping %s -n 1' % (self._ip_address,))
-        print(r)
-
 
 class Settings(QObject):
 
@@ -60,40 +53,50 @@ class Settings(QObject):
     uiModeChanged = Signal(str, arguments=['new_mode'])
     backdeckPinged = Signal(bool, arguments=['pingResult'])
     pingStatusChanged = Signal()
+    backdeckDbChanged = Signal(str, arguments=['new_path'])
+    wheelhouseDataDirChanged = Signal(str, arguments=['new_dir'])
 
     def __init__(self, db, app=None, parent=None):
         super().__init__(parent)
         self._db = db
         self._app = app
-        self._cur_vessel_subnet = None
+
+        # vars that the user can set from the UI, lets try to pull them from FRAM_CAM_STATE on startup
+        self._cur_vessel_subnet = self._app.state.get_state_value('Current Vessel Subnet')
+        self._cur_ui_mode = self._app.state.get_state_value('Current UI Mode')
+        self._cur_backdeck_db = self._app.state.get_state_value('Current Backdeck DB')
+        self._cur_wheelhouse_data_dir = self._app.state.get_state_value('Current Wheelhouse Data Dir')
+
+        # for now the user doesnt set these, but are based on the subnet setting
         self._cur_backdeck_ip = None
         self._cur_backdeck_db = None
         self._cur_wheelhouse_ip = None
-        self._cur_ui_mode = None
+
+        # if backdeck/wheelhouse ping thread is running, set to true
         self._is_ping_running = False
 
+        # ping the subnet/access point?
         self._subnet_ping_worker = PingWorker()
-        # self._subnet_p
 
+        # backdeck ping worker/thread setup
         self._backdeck_ping_worker = PingWorker()
         self._backdeck_ping_thread = QThread()
         self._backdeck_ping_worker.moveToThread(self._backdeck_ping_thread)
         self._backdeck_ping_worker.pingStatus.connect(self._backdeck_pinged)
+        # TODO: started signal isnt calling update_ping_status in a timely fashion, why???
         self._backdeck_ping_thread.started.connect(self._backdeck_ping_worker.run)
         self._backdeck_ping_thread.started.connect(self._update_ping_status)
+        self._backdeck_ping_thread.finished.connect(self._update_ping_status)
 
+        # wheelhousee ping worker/thread setup
         self._wheelhouse_ping_worker = PingWorker()
         self._wheelhouse_ping_thread = QThread()
-
         self._wheelhouse_ping_thread.started.connect(self._update_ping_status)
         self._wheelhouse_ping_thread.finished.connect(self._update_ping_status)
 
-        self._backdeck_ping_thread.finished.connect(self._update_ping_status)
 
     def _update_ping_status(self):
-        print("UPDATING PING STATUS")
         _status = self._wheelhouse_ping_thread.isRunning() or self._backdeck_ping_thread.isRunning()
-        print(f"STATUS = {_status}")
         if self._is_ping_running != _status:
             self._is_ping_running = _status
             self.pingStatusChanged.emit()
@@ -121,12 +124,7 @@ class Settings(QObject):
 
     @Slot()
     def pingBackdeck(self):
-        print("STARTED")
         self._backdeck_ping_thread.start()
-
-    # @Property(QObject)
-    # def pingInProcess
-
 
     @Property(str, notify=vesselSubnetChanged)
     def curBackdeckIp(self):
@@ -154,4 +152,25 @@ class Settings(QObject):
             self.uiModeChanged.emit(new_mode)
 
 
+    @Property(str, notify=backdeckDbChanged)
+    def curBackdeckDb(self):
+        return self._cur_backdeck_db
+
+    @curBackdeckDb.setter
+    def curBackdeckDb(self, new_path):
+        if self._cur_backdeck_db != new_path:
+            self._cur_backdeck_db = new_path
+            self._app.state.set_state_value('Current Backdeck DB', new_path)
+            self.backdeckDbChanged.emit(new_path)
+
+    @Property(str, notify=wheelhouseDataDirChanged)
+    def curWheelhouseDataDir(self):
+        return self._cur_backdeck_db
+
+    @curWheelhouseDataDir.setter
+    def curWheelhouseDataDir(self, new_dir):
+        if self._cur_wheelhouse_data_dir != new_dir:
+            self._cur_wheelhouse_data_dir = new_dir
+            self._app.state.set_state_value('Current Wheelhouse Data Dir', new_dir)
+            self.wheelhouseDataDirChanged.emit(new_dir)
 
