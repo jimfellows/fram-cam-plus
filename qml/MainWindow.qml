@@ -292,7 +292,7 @@ Window {
                         target: rectLeftNavBar
                         property: "width"
                         to: if(rectLeftNavBar.width === 70) return 250; else return 70;
-                        duration:500
+                        duration:400
                         easing.type: Easing.InOutQuint
                     }
 

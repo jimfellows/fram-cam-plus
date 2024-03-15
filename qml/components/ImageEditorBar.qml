@@ -46,7 +46,7 @@ Rectangle {
                     leftMargin: 5
                     rightMargin: 5
                 }
-                source: "file:///" + camera_manager.images_model.curImgPath
+                source: camera_manager.images_model.curImgPath ? "file:///" + camera_manager.images_model.curImgPath : ''
                 fillMode: Image.PreserveAspectFit
             }
         }

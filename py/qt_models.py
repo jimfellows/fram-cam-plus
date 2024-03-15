@@ -401,47 +401,47 @@ class ImagesModel(FramCamSqlListModel):
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgPath(self):
-        return self.getData(self._current_index, 'full_path')
+        return self.getData(self._current_index, 'full_path') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgFileName(self):
-        return self.getData(self._current_index, 'file_name')
+        return self.getData(self._current_index, 'file_name') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgHaulNum(self):
-        return self.getData(self._current_index, 'haul_number')
+        return self.getData(self._current_index, 'haul_number') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgBioLabel(self):
-        return self.getData(self._current_index, 'bio_label')
+        return self.getData(self._current_index, 'bio_label') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgProject(self):
-        return self.getData(self._current_index, 'project_name')
+        return self.getData(self._current_index, 'project_name') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCatch(self):
-        return self.getData(self._current_index, 'display_name')
+        return self.getData(self._current_index, 'display_name') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCommonName(self):
-        return self.getData(self._current_index, 'common_name')
+        return self.getData(self._current_index, 'common_name') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgSciName(self):
-        return self.getData(self._current_index, 'scientific_name')
+        return self.getData(self._current_index, 'scientific_name')  or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCaptureDt(self):
-        return self.getData(self._current_index, 'captured_dt')
+        return self.getData(self._current_index, 'captured_dt')  or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgNotes(self):
-        return self.getData(self._current_index, 'notes')
+        return self.getData(self._current_index, 'notes') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgNotes(self):
-        return self.getData(self._current_index, 'notes')
+        return self.getData(self._current_index, 'notes') or ''
 
     def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
         """

@@ -2,7 +2,6 @@ import QtQuick.Controls 6.3
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
-
 import './qml/controls'
 import 'qrc:/qml'
 
@@ -109,7 +108,7 @@ Item {
                         target: rectControls
                         property: "height"
                         to: if(rectControls.height === 100) return 0; else return 100;
-                        duration:500
+                        duration:400
                         easing.type: Easing.InOutQuint
                     }
 
