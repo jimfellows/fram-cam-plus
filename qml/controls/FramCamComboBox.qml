@@ -15,7 +15,6 @@ ComboBox {
     currentIndex: -1
 
     Material.theme: Material.Dark
-    Material.accent: Material.Purple
 
     //custom props
     property color backgroundColor: appstyle.elevatedSurface_L5;

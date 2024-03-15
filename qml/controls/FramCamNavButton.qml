@@ -6,7 +6,6 @@ import QtQuick.Controls.Material
 
 Button {
     Material.theme: Material.Dark
-    Material.accent: Material.Purple
 
     id: btnLeftMenu
     font.family: appstyle.fontFamily

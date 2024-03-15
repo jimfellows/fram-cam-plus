@@ -10,7 +10,7 @@ import "./controls"
 
 Window {
     Material.theme: Material.Dark
-    Material.accent: Material.Purple
+
     id: windowMain
     width: 1200
     height: 700
