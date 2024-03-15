@@ -173,7 +173,6 @@ Item {
                             implicitHeight: 75
                             radius: 20
                             onClicked: camera_manager.toggle_camera()
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: 'qrc:/svgs/change_camera.svg'
                         }
                         FramCamButton {
@@ -181,7 +180,6 @@ Item {
                             width: 75
                             height: 75
                             radius: 20
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: checked ? 'qrc:/svgs/video_on.svg' : 'qrc:/svgs/video_off.svg'
                             checkable: true
                             onCheckedChanged: {
@@ -197,7 +195,6 @@ Item {
                             implicitWidth: 75
                             implicitHeight: 75
                             radius: 20
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: checked ? 'qrc:/svgs/flash_on.svg' : 'qrc:/svgs/flash_off.svg'
                             checkable: true
                             //visible: camera_manager.isFlashSupported
@@ -207,7 +204,6 @@ Item {
                             implicitWidth: 75
                             implicitHeight: 75
                             radius: 20
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: checked ? 'qrc:/svgs/torch_on.svg' : 'qrc:/svgs/torch_off.svg'
                             checkable: true
                             //visible: camera_manager.isTorchSupport
@@ -217,7 +213,6 @@ Item {
                             implicitWidth: 75
                             implicitHeight: 75
                             radius: 20
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: 'qrc:/svgs/barcode.svg'
                             checkable: true
                             onClicked: {
@@ -229,7 +224,6 @@ Item {
                             implicitWidth: 75
                             implicitHeight: 75
                             radius: 20
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: 'qrc:/svgs/kraken.svg'
                             checkable: true
                         }
@@ -267,12 +261,6 @@ Item {
                     anchors.rightMargin: 10
                     flat:true
                     onClicked: {
-                        //console.info("BUTTON CLICKED, is camera ready?")
-                        //console.info(captureSession.imageCapture.readyForCapture)
-                        //var x
-                        //x = captureSession.imageCapture.captureToFile('pic.jpeg')
-                        //                    captureSession.imageCapture.imageSaved()
-                        console.info(x)
                         camera_manager.capture_image_to_file()
                     }
 
