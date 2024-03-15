@@ -126,7 +126,7 @@ Item {
 
                         Connections {
                             target: animationControls
-                            onFinished: {
+                            function onFinished() {
                                 if (rectControls.height > 75) {
                                     //rectMoveControls.anchors.topMargin = 0
                                     imgMoveControls.source = "qrc:/svgs/down_arrow.svg"

@@ -16,7 +16,7 @@ Window {
     height: 700
     visible: true
     color: "transparent"
-    title: qsTr("FramCam")
+    title: qsTr("FramCam+")
 
     //props
     property bool isWindowMaximized: false;
@@ -111,7 +111,7 @@ Window {
                     anchors.left: parent.left
                     anchors.top: parent.top
                     colorMouseOver: appstyle.primaryColor
-                    colorDefault: appstyle.surfaceColor
+                    colorDefault: 'transparent'
                     anchors.topMargin: 0
                     anchors.leftMargin: 0
                     onClicked: animationLeftMenu.running = true
@@ -229,6 +229,8 @@ Window {
                             iconSource: "qrc:/svgs/close.svg"
                             iconColor: "white"
                             colorDefault: "#00000000"
+                            colorMouseOver: appstyle.errorColor
+                            colorPressed: appstyle.errorColor.darker(0.75)
                             onClicked: windowMain.close()
                         }
                     }
