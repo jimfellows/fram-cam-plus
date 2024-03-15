@@ -12,22 +12,25 @@ Button {
 
  //custom props
  property color backgroundColor: appstyle.elevatedSurface_L9
- property color textColor: appstyle.primaryFontColor
+ property color fontColor: appstyle.primaryFontColor
+ property color disabledFontColor: appstyle.disabledFontColor
  property color hoverColor: '#55aaff';
  property color pressedColor: appstyle.primaryColor
- property color pressedTextColor: appstyle.primaryFontColor
+ property color pressedFontColor: appstyle.primaryFontColor
  property color borderColor: appstyle.iconColor
  property color iconColor: appstyle.iconColor
+ property int fontSize: 16
  property int radius: 5
  property string iconSource
+ property alias img: img;
 
 
  text: qsTr('Custom Button')
 
  // text styling
  contentItem:
-    Image {
-
+    AnimatedImage {
+        id: img
         source: root.iconSource
         anchors.fill: root
         anchors.leftMargin: 10
@@ -35,21 +38,22 @@ Button {
         anchors.topMargin: 10
         anchors.bottomMargin: 10
         antialiasing: true
+        fillMode: Image.PreserveAspectFit
         smooth: true
         mipmap: true
         layer {
             enabled: true
             effect: ColorOverlay {
-                color: root.checked || root.down ? root.pressedTextColor : root.iconColor
+                color: root.checked || root.down ? root.pressedFontColor : root.iconColor
             }
         }
     }
     Text {
         id: buttonText
         text: root.text
-        color: root.textColor
-        font.pixelSize: 12
-        font.family: 'Arial'
+        color: root.enabled ? root.fontColor : root.disabledFontColor
+        font.pixelSize: root.fontSize
+        font.family: appstyle.fontFamily
         font.weight: Font.Thin
         elide: Text.ElideRight
         anchors {

@@ -116,6 +116,10 @@ class Style(QObject):
             return QColor('Gray')
 
     @Property(QColor, notify=modeChanged)
+    def disabledFontColor(self):
+        return QColor('#7c7c7d')
+
+    @Property(QColor, notify=modeChanged)
     def iconColor(self):
         return QColor("#80FFFFFF")
 

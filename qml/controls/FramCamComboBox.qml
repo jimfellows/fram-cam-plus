@@ -35,18 +35,27 @@ ComboBox {
         id: popupRow
         implicitHeight: root.height
         implicitWidth: root.width
+        anchors.leftMargin: -30
 
         // popup row background rectangle
         background: Rectangle {
-            color: root.backgroundColor
+            color: root.currentIndex === index ? root.backgroundColor.darker(0.7) : root.backgroundColor
             anchors.fill: parent
-            //border.color: root.borderColor
+            anchors.leftMargin: -50
+            anchors.rightMargin: -20
+            radius: root.radius
         }
-
         // row layout for the popup row
         RowLayout {
             anchors.fill: parent
             spacing: 2
+            Rectangle {
+                Layout.preferredWidth: 5
+                Layout.fillHeight: true
+                radius: root.radius
+                visible: root.currentIndex === index
+                color: appstyle.accentColor
+            }
             Label {
                 id: popupLabel
                 //opacity: 0.9
@@ -65,7 +74,7 @@ ComboBox {
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                 sourceSize.height: 20
                 sourceSize.width: 20
-                source: "qrc:/svgs/cam_scope.svg"
+                source: "qrc:/svgs/circle_selection.svg"
                 layer {
                     enabled: true
                     effect: ColorOverlay {

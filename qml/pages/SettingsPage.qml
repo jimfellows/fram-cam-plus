@@ -57,9 +57,14 @@ Item {
 
                         }
                         FramCamButton {
+                            id: btnPing
                             text: 'Ping'
                             Layout.preferredHeight: 50
-                            onClicked: settings.pingBackdeck()
+                            iconSource: settings.isPingRunning ? 'qrc:/svgs/loading_gif_youtube.svg' : null
+                            enabled: cbSubnet.currentIndex > -1
+                            onClicked: {
+                                settings.pingBackdeck()
+                            }
                         }
                     }
                     RowLayout {

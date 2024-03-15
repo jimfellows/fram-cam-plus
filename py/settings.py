@@ -12,6 +12,8 @@ class PingWorker(QObject):
     """
     Class to run ping tests for Victor in a thread
     """
+    pingStarted = Signal()
+    pingEnded = Signal()
     pingStatus = Signal(bool, arguments=['ping_status'])
 
     def __init__(self, ip_address=None):
@@ -35,6 +37,7 @@ class PingWorker(QObject):
         self.pingStatus.emit(self._success)
 
     def ping_test(self):
+        print("starting ping!!!!")
         param = '-n' if platform.system().lower() == 'windows' else '-c'
         command = ['ping', param, '1', self._ip_address]
 
@@ -56,6 +59,7 @@ class Settings(QObject):
     vesselSubnetChanged = Signal(str, arguments=['new_subnet'])
     uiModeChanged = Signal(str, arguments=['new_mode'])
     backdeckPinged = Signal(bool, arguments=['pingResult'])
+    pingStatusChanged = Signal()
 
     def __init__(self, db, app=None, parent=None):
         super().__init__(parent)
@@ -66,6 +70,7 @@ class Settings(QObject):
         self._cur_backdeck_db = None
         self._cur_wheelhouse_ip = None
         self._cur_ui_mode = None
+        self._is_ping_running = False
 
         self._subnet_ping_worker = PingWorker()
         # self._subnet_p
@@ -75,8 +80,27 @@ class Settings(QObject):
         self._backdeck_ping_worker.moveToThread(self._backdeck_ping_thread)
         self._backdeck_ping_worker.pingStatus.connect(self._backdeck_pinged)
         self._backdeck_ping_thread.started.connect(self._backdeck_ping_worker.run)
+        self._backdeck_ping_thread.started.connect(self._update_ping_status)
+
         self._wheelhouse_ping_worker = PingWorker()
         self._wheelhouse_ping_thread = QThread()
+
+        self._wheelhouse_ping_thread.started.connect(self._update_ping_status)
+        self._wheelhouse_ping_thread.finished.connect(self._update_ping_status)
+
+        self._backdeck_ping_thread.finished.connect(self._update_ping_status)
+
+    def _update_ping_status(self):
+        print("UPDATING PING STATUS")
+        _status = self._wheelhouse_ping_thread.isRunning() or self._backdeck_ping_thread.isRunning()
+        print(f"STATUS = {_status}")
+        if self._is_ping_running != _status:
+            self._is_ping_running = _status
+            self.pingStatusChanged.emit()
+
+    @Property(bool, notify=pingStatusChanged)
+    def isPingRunning(self):
+        return self._is_ping_running
 
     @Property(str, notify=vesselSubnetChanged)
     def curVesselSubnet(self):
@@ -95,10 +119,14 @@ class Settings(QObject):
         self.backdeckPinged.emit(status)
         self._backdeck_ping_thread.quit()
 
-
     @Slot()
     def pingBackdeck(self):
+        print("STARTED")
         self._backdeck_ping_thread.start()
+
+    # @Property(QObject)
+    # def pingInProcess
+
 
     @Property(str, notify=vesselSubnetChanged)
     def curBackdeckIp(self):

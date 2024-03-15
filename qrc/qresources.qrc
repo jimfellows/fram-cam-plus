@@ -23,6 +23,7 @@
         <file alias="cam_scope.svg">../resources/svgs/cam_scope.svg</file>
         <file alias="change_camera.svg">../resources/svgs/change_camera.svg</file>
         <file alias="check.svg">../resources/svgs/check_basic.svg</file>
+        <file alias="circle_selection.svg">../resources/svgs/circle_selection.svg</file>
         <file alias="close.svg">../resources/svgs/close_icon.svg</file>
         <file alias="construction_sign.svg">../resources/svgs/construction_sign.svg</file>
         <file>../resources/svgs/collapse_left.svg</file>
@@ -34,6 +35,8 @@
         <file alias="download.svg">../resources/svgs/download.svg</file>
         <file alias="eye_closed.svg">../resources/svgs/eye_closed_1.svg</file>
         <file alias="image_file.svg">../resources/svgs/image_file.svg</file>
+        <file alias="loading.svg">../resources/svgs/loading.svg</file>
+        <file alias="loading_gif_youtube.svg">../resources/svgs/loading_gif_youtube.gif</file>
         <file>../resources/svgs/file_upload_icon.svg</file>
         <file alias="fish.svg">../resources/svgs/fish.svg</file>
         <file alias="flash_on.svg">../resources/svgs/flash_on.svg</file>
