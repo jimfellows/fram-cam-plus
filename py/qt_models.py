@@ -509,6 +509,24 @@ class ImagesModel(FramCamSqlListModel):
         _img_id = self.insert_to_db(image_path, haul_id, catch_id, bio_id)
         self.load_image_from_view(_img_id)
 
+    @Slot(int)
+    def removeImage(self, row_ix):
+        # TODO: better way to delete from db?
+        _image_id = self.getData(row_ix, 'image_id')
+        _file_path = self.getData(row_ix, 'full_path')
+        os.remove(_file_path)
+        _table_ix = -1
+        for _i in range(self._table_model.rowCount()):
+            if self._table_model.record(_i).value('image_id') == _image_id:
+                self._table_model.removeRow(_i)
+                self._table_model.submitAll()
+                break
+
+        self.removeItem(row_ix)
+        if self.rowCount() != 0:
+            self.sendIndexToProxy.emit(row_ix)  # select the new image that is now in this index after deletion
+            self.currentImageChanged.emit()  # image changes but index stays the same, so calling this manually
+
 
 if __name__ == '__main__':
     from py.logger import Logger

@@ -15,6 +15,7 @@ Rectangle {
     clip: true
 
     property string imageSource;
+    property int labelWidth: 100;
 
     GridLayout {
         id: gridLayout
@@ -55,149 +56,155 @@ Rectangle {
             Layout.preferredHeight: parent.height * 0.5 - 5
             color: '#556a75'
             radius: 8
+            Label {
+                id: lblTitle
+                text: camera_manager.images_model.curImgFileName
+                color: appstyle.primaryFontColor
+                font.bold: true
 
-            ColumnLayout {
-                id: colImageInfo
+                anchors {
+                    top: parent.top
+                    left: parent.left
+                    topMargin: 10
+                    leftMargin: 10
+                }
+
+            }
+            RowLayout {
                 anchors.left: parent.left
                 anchors.right: parent.right
-                anchors.leftMargin: 5
+                anchors.leftMargin: 15
                 anchors.topMargin: 10
-                anchors.top: parent.top
-                spacing: 5
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label { text: 'Haul #:'; Layout.alignment: Qt.AlignRight }
-                    Label { text: camera_manager.images_model.curImgHaulNum; Layout.alignment: Qt.AlignLeft }
+                anchors.top: lblTitle.bottom
+
+                ColumnLayout {
+                    id: colImageInfo
+                    Layout.preferredWidth: parent.width * 0.6
+                    Layout.preferredHeight: parent.height
+                    spacing: 5
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Label { text: 'Haul #:'; Layout.alignment: Qt.AlignRight; Layout.preferredWidth: root.labelWidth; font.bold: true; font.underline: true; color: appstyle.secondaryFontColor }
+                        Label { text: camera_manager.images_model.curImgHaulNum; Layout.alignment: Qt.AlignLeft; color: appstyle.secondaryFontColor}
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        visible: false
+                        Label {
+                            text: 'File:'
+                            Layout.alignment: Qt.AlignRight
+                            Layout.preferredWidth: root.labelWidth
+                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                        }
+                        Label {
+                            text: camera_manager.images_model.curImgFileName
+                            Layout.alignment: Qt.AlignLeft
+                            color: appstyle.secondaryFontColor
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Label {
+                            text: 'Catch:'
+                            Layout.alignment: Qt.AlignRight
+                            Layout.preferredWidth: root.labelWidth
+                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                        }
+                        Label {
+                            text: camera_manager.images_model.curImgSciName ? camera_manager.images_model.curImgCatch+' ('+camera_manager.images_model.curImgSciName+')' : camera_manager.images_model.curImgCatch
+                            Layout.alignment: Qt.AlignLeft
+                            color: appstyle.secondaryFontColor
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Label {
+                            text: 'Project:'
+                            Layout.alignment: Qt.AlignRight
+                            Layout.preferredWidth: root.labelWidth
+                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                        }
+                        Label {
+                            text: camera_manager.images_model.curImgProject
+                            Layout.alignment: Qt.AlignLeft
+                            color: appstyle.secondaryFontColor
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Label {
+                            text: 'Tag/Barcode:'
+                            Layout.alignment: Qt.AlignRight
+                            Layout.preferredWidth: root.labelWidth
+                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                        }
+                        Label {
+                            text: camera_manager.images_model.curImgBioLabel
+                            Layout.alignment: Qt.AlignLeft
+                            color: appstyle.secondaryFontColor
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Label {
+                            text: 'Captured:'
+                            Layout.alignment: Qt.AlignRight
+                            Layout.preferredWidth: root.labelWidth
+                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                        }
+                        Label {
+                            text: camera_manager.images_model.curImgCaptureDt
+                            Layout.alignment: Qt.AlignLeft
+                            color: appstyle.secondaryFontColor
+                        }
+                    }
+                    TextArea {
+                        Layout.preferredWidth: parent.width
+                        Layout.preferredHeight: 50
+                        placeholderText: "Take notes using the keyboard below..."
+                        focus: root.width > 0
+                        //color: appstyle.iconColor
+                    }
                 }
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label {
-                        text: 'File Name:'
-                        Layout.alignment: Qt.AlignRight
-                    }
-                    Label {
-                        text: camera_manager.images_model.curImgFileName
-                        Layout.alignment: Qt.AlignLeft
-                    }
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label {
-                        text: 'Catch Display:'
-                        Layout.alignment: Qt.AlignRight
-                    }
-                    Label {
-                        text: camera_manager.images_model.curImgCatch
-                        Layout.alignment: Qt.AlignLeft
-                    }
-                }
-                /*
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label {
-                        text: 'Common Name:'
-                        Layout.alignment: Qt.AlignRight
-                    }
-                    Label {
-                        text: camera_manager.images_model.curImgCommonName
-                        Layout.alignment: Qt.AlignLeft
-                    }
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label {
-                        text: 'Scientific Name:'
-                        Layout.alignment: Qt.AlignRight
-                    }
-                    Label {
-                        text: camera_manager.images_model.curImgSciName
-                        Layout.alignment: Qt.AlignLeft
-                    }
-                }
-                */
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label {
-                        text: 'Project:'
-                        Layout.alignment: Qt.AlignRight
-                    }
-                    Label {
-                        text: camera_manager.images_model.curImgProject
-                        Layout.alignment: Qt.AlignLeft
-                    }
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label {
-                        text: 'Tag/Barcode #:'
-                        Layout.alignment: Qt.AlignRight
-                    }
-                    Label {
-                        text: camera_manager.images_model.curImgBioLabel
-                        Layout.alignment: Qt.AlignLeft
-                    }
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label {
-                        text: 'Captured Date & Time:'
-                        Layout.alignment: Qt.AlignRight
-                    }
-                    Label {
-                        text: camera_manager.images_model.curImgCaptureDt
-                        Layout.alignment: Qt.AlignLeft
-                    }
-                }
-                Label {
-                    text: "Notes"
-                    font.underline: true
-                    font.italic: true
-                    font.bold: true
-                }
-                TextArea {
-                    Layout.preferredWidth: parent.width
-                    Layout.preferredHeight: 50
-                }
-                RowLayout {
-                    Layout.preferredWidth: parent.width
-                    Layout.preferredHeight: 50
-                    visible: false
+                ColumnLayout {
+                    Layout.fillHeight: true
+                    Layout.rightMargin: 5
+                    spacing: 3
                     FramCamButton {
-                        Layout.preferredWidth: parent.width * 0.25
-                        text: "Save & Close"
-                        Layout.preferredHeight: 75
+                        text: 'Save & Close'
+                        Layout.preferredHeight: 60
                     }
                     FramCamButton {
-                        text: "Delete"
-                        Layout.preferredWidth: parent.width * 0.25
-                        Layout.preferredHeight: 75
+                        text: 'Delete'
+                        Layout.preferredHeight: 60
+                        onClicked: {
+                            camera_manager.images_model.removeImage(camera_manager.images_model.currentIndex)
+                        }
                     }
                     FramCamButton {
-                        text: "Sync"
-                        Layout.preferredWidth: parent.width * 0.25
-                        Layout.preferredHeight: 75
+                        text: 'Sync to Wheelhouse'
+                        Layout.preferredHeight: 60
                     }
                 }
-            }
+            }  //rowlayout for image info
         }
         Rectangle {
             id: rectKeyboardArea
             Layout.preferredWidth: parent.width
             Layout.preferredHeight: parent.height * 0.5 - 5
             Layout.columnSpan: 2
-            color: 'transparent'
+            color: 'black'
             radius: 8
             InputPanel  {
                 id: keyboard
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    topMargin: 10
-                    leftMargin: 70
-                    rightMargin: 70
-                }
-
+                width: parent.width
             }
+            /*
+            HandwritingInputPanel {
+                inputPanel: keyboard
+                active: true
+            }
+            */
         }
     }
 

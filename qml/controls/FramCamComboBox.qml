@@ -11,20 +11,22 @@ import QtQuick.Controls.Material
 ComboBox {
     id: root
     implicitWidth: 200
-    implicitHeight: 5000
+    implicitHeight: 50
     currentIndex: -1
 
     Material.theme: Material.Dark
     Material.accent: Material.Purple
 
     //custom props
-    property color backgroundColor: "transparent";
-    property color borderColor: "white"
+    property color backgroundColor: appstyle.elevatedSurface_L5;
+    property color borderColor: appstyle.iconColor
     property color fontColor: appstyle.secondaryFontColor
+    property color hoveredColor: appstyle.elevatedSurface_L5.darker(0.7)
     property int fontSize: 18
     property real radius: 12;
     property string placeholderText: "";
     property bool italicDisplay: false;
+    property int maxPopupHeight: 10000;
 
     /*
     delegate here represents each item in the popup aka the drop down,
@@ -34,23 +36,32 @@ ComboBox {
         id: popupRow
         implicitHeight: root.height
         implicitWidth: root.width
+        anchors.leftMargin: -30
 
         // popup row background rectangle
         background: Rectangle {
-            color: root.backgroundColor
+            color: root.currentIndex === index || popupRow.hovered ? root.backgroundColor.darker(0.7) : root.backgroundColor
             anchors.fill: parent
-            //border.color: root.borderColor
+            anchors.leftMargin: -50
+            anchors.rightMargin: -20
+            radius: root.radius
         }
-
         // row layout for the popup row
         RowLayout {
             anchors.fill: parent
             spacing: 2
+            Rectangle {
+                Layout.preferredWidth: 5
+                Layout.fillHeight: true
+                radius: root.radius
+                visible: root.currentIndex === index
+                color: appstyle.accentColor
+            }
             Label {
                 id: popupLabel
                 //opacity: 0.9
                 text: model[root.textRole]
-                color: root.fontColor
+                color: popupRow.hovered ? appstyle.primaryFontColor : root.fontColor
                 font.bold: true
                 font.pixelSize: root.fontSize
                 font.family: appstyle.fontFamily
@@ -64,7 +75,7 @@ ComboBox {
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                 sourceSize.height: 20
                 sourceSize.width: 20
-                source: "qrc:/svgs/cam_scope.svg"
+                source: "qrc:/svgs/circle_selection.svg"
                 layer {
                     enabled: true
                     effect: ColorOverlay {
@@ -116,18 +127,14 @@ ComboBox {
         id: popup
         y: root.height + 2 // set drop down just below main button
         width: root.width + 20  // bump out drop down slightly
-        height: root.height
+        implicitHeight: contentItem.implicitHeight
         padding: 4
         contentItem: ListView {
             clip: true
-            implicitHeight: popup.height
+            implicitHeight: contentHeight > root.maxPopupHeight ? root.maxPopupHeight : contentHeight
             model: root.popup.visible ? root.delegateModel : null
             currentIndex: root.highlightedIndex
             ScrollIndicator.vertical: ScrollIndicator { }
-            displaced: Transition {
-                //PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
-                NumberAnimation { properties: "x,y"; duration: 200 }
-            }
         }
         background: Rectangle {
             id: rectPopup
@@ -137,6 +144,7 @@ ComboBox {
             visible: true
             border.color: root.borderColor
         }
+        /*
         enter: Transition {
             NumberAnimation {
                 property: "height";
@@ -155,5 +163,6 @@ ComboBox {
                 duration: 300;
             }
         }
+        */
     }
 }

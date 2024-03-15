@@ -7,16 +7,35 @@ import './qml/controls'
 import 'qrc:/qml'
 
 
-Item {
 
+Item {
     id: capturePage
 
     property alias lvThumbnails: lvThumbnails
     Component.onCompleted: {
-        camera_manager.set_video_output(videoOutput)
-        switchPreview.position = camera_manager.is_camera_active ? 1 : 0
+        console.info("-----------------------------------------------------------------------")
+        camera_manager.targetSink = videoOutput.videoSink
+        console.info("-----------------------------------------------------------------------")
     }
+    SoundEffect {
+        id: clack
+        source: "qrc:/sounds/clack.wav"
+    }
+    SoundEffect {
+        id: shutter
+        source: "qrc:/sounds/shutter.wav"
+    }
+    SoundEffect {
+        id: shotgun
+        source: "qrc:/sounds/shotgun.wav"
 
+    }
+    Connections {
+            target: camera_manager
+            function onBarcodeDetected(barcode) {
+                shotgun.play()
+            }
+        }
     Rectangle {
         id: rectBg
         color: appstyle.elevatedSurface_L5
@@ -66,7 +85,6 @@ Item {
                         }
                     }
                 }
-
                 VideoOutput {
                     id: videoOutput
                     anchors.fill: parent
@@ -90,7 +108,7 @@ Item {
                         id: animationControls
                         target: rectControls
                         property: "height"
-                        to: if(rectControls.height === 100) return 5; else return 100;
+                        to: if(rectControls.height === 100) return 0; else return 100;
                         duration:500
                         easing.type: Easing.InOutQuint
                     }
@@ -118,8 +136,6 @@ Item {
                                 }
                             }
                         }
-
-
                         Image {
                             id: imgMoveControls
                             anchors.fill: parent
@@ -204,6 +220,9 @@ Item {
                             anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: 'qrc:/svgs/barcode.svg'
                             checkable: true
+                            onClicked: {
+                                camera_manager.isBarcodeScannerOn = checked
+                            }
                         }
                         FramCamButton {
                             id: btnTaxonScan
@@ -223,14 +242,17 @@ Item {
                     width: 100
                     height: 100
                     iconSource: 'qrc:/svgs/record.svg'
-                    iconColor: appstyle.errorColor
-                    borderColor: "transparent"
-
+                    iconColor: appstyle.primaryColor
+                    borderColor: appstyle.iconColor
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
                     anchors.rightMargin: 10
                     anchors.bottomMargin: 2
-                    onClicked: camera_manager.capture_image_to_file()
+                    onClicked: {
+                        camera_manager.capture_image_to_file()
+                        shutter.play()
+                    }
+
                 }
                 /*
                 Button {
@@ -389,10 +411,19 @@ Item {
                                         console.info("CLICK: Clicked image already selected, deselecting...")
                                         lvThumbnails.currentIndex = -1
                                     } else {
+                                        clack.play()
                                         console.info("CLICK: Selecting new image at index " + index)
                                         lvThumbnails.currentIndex = index
                                     }
                                 }
+                            }
+                            Colorize {
+                                anchors.fill: imgThumbnail
+                                source: imgThumbnail
+                                hue: 0.0
+                                saturation: 0
+                                lightness: 0
+                                visible: index === camera_manager.images_proxy.proxyIndex
                             }
                             /*
                             Connections {
@@ -409,14 +440,14 @@ Item {
                             font.pixelSize: 8
                             font.bold: true
                             font.family: 'roboto'
-                            color: "white"
+                            color: appstyle.secondaryFontColor
                             anchors.left: rectUnderline.left
                         }
                         Rectangle {
                             id: rectUnderline
                             height: index === camera_manager.images_proxy.proxyIndex ? 3 : 1
                             width: imgThumbnail.width - 10
-                            color: "white"
+                            color: index === camera_manager.images_proxy.proxyIndex ? appstyle.accentColor : appstyle.secondaryFontColor
                             anchors.topMargin: 10
                             anchors.left: imgThumbnail.left
                             anchors.leftMargin: 15
@@ -486,9 +517,8 @@ Item {
                     backgroundColor: appstyle.elevatedSurface_L5
                     fontColor: appstyle.secondaryFontColor
                     borderColor: appstyle.iconColor
-                    // why does height affect the collapsed height, and implicit affect to popup?
                     height: parent.height
-                    implicitHeight: capturePage.height * 0.7
+                    maxPopupHeight: windowMain.height * 0.65
                     width: parent.width * 0.2
                     fontSize: 14
                     model: data_selector.hauls_model
@@ -514,7 +544,7 @@ Item {
                     fontColor: appstyle.secondaryFontColor
                     borderColor: appstyle.iconColor
                     height: parent.height
-                    implicitHeight: capturePage.height * 0.7
+                    maxPopupHeight: windowMain.height * 0.65
                     width: parent.width * 0.2
                     model: data_selector.catches_proxy
                     textRole: "display_name"
@@ -539,8 +569,8 @@ Item {
                     fontColor: appstyle.secondaryFontColor
                     borderColor: appstyle.iconColor
                     height: parent.height
+                    maxPopupHeight: windowMain.height * 0.65
                     width: parent.width * 0.2
-                    implicitHeight: capturePage.height * 0.7
                     model: data_selector.projects_proxy
                     textRole: "project_name"
                     fontSize: 14
@@ -564,8 +594,8 @@ Item {
                     fontColor: appstyle.secondaryFontColor
                     borderColor: appstyle.iconColor
                     height: parent.height
+                    maxPopupHeight: windowMain.height * 0.65
                     width: parent.width * 0.2
-                    implicitHeight: capturePage.height * 0.7
                     model: data_selector.bios_proxy
                     textRole: "bio_label"
                     fontSize: 14

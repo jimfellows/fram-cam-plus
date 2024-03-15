@@ -21,6 +21,7 @@ Window {
     //props
     property bool isWindowMaximized: false;
     property int windowMargin: 10;
+    property alias stackView: stackView
 
     //removing default title bar
     flags: Qt.Window | Qt.FramelessWindowHint
@@ -436,7 +437,17 @@ Window {
                         color: appstyle.secondaryFontColor
                         font.family: appstyle.fontFamily
                     }
-
+                    Label {
+                        id: lblBarcode
+                        font.bold: true
+                        font.family: appstyle.fontFamily
+                        color: appstyle.accentColor
+                        text: camera_manager.lastBarcodeDetected ? "Barcode Detected: " + camera_manager.lastBarcodeDetected : ''
+                        anchors.top: parent.top
+                        anchors.right: parent.right
+                        anchors.rightMargin: 10
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
             }
         }
