@@ -111,7 +111,7 @@ Window {
                     anchors.left: parent.left
                     anchors.top: parent.top
                     colorMouseOver: appstyle.primaryColor
-                    colorDefault: 'transparent'
+                    colorDefault: appstyle.surfaceColor
                     anchors.topMargin: 0
                     anchors.leftMargin: 0
                     onClicked: animationLeftMenu.running = true

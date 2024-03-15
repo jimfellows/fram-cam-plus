@@ -31,6 +31,7 @@ Button {
     background: Rectangle {
         id: rectBg
         color: internal.dynamicColor
+        anchors.fill: parent
 
         Image {
             id: imgMenuIcon
