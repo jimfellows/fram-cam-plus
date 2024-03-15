@@ -18,9 +18,10 @@ ComboBox {
     Material.accent: Material.Purple
 
     //custom props
-    property color backgroundColor: "transparent";
-    property color borderColor: "white"
+    property color backgroundColor: appstyle.elevatedSurface_L5;
+    property color borderColor: appstyle.iconColor
     property color fontColor: appstyle.secondaryFontColor
+    property color hoveredColor: appstyle.appstyle.elevatedSurface_L5.darker(0.7)
     property int fontSize: 18
     property real radius: 12;
     property string placeholderText: "";
@@ -39,7 +40,7 @@ ComboBox {
 
         // popup row background rectangle
         background: Rectangle {
-            color: root.currentIndex === index ? root.backgroundColor.darker(0.7) : root.backgroundColor
+            color: root.currentIndex === index || popupRow.hovered ? root.backgroundColor.darker(0.7) : root.backgroundColor
             anchors.fill: parent
             anchors.leftMargin: -50
             anchors.rightMargin: -20
@@ -60,7 +61,7 @@ ComboBox {
                 id: popupLabel
                 //opacity: 0.9
                 text: model[root.textRole]
-                color: root.fontColor
+                color: popupRow.hovered ? appstyle.primaryFontColor : root.fontColor
                 font.bold: true
                 font.pixelSize: root.fontSize
                 font.family: appstyle.fontFamily
