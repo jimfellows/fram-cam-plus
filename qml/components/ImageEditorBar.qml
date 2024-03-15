@@ -197,8 +197,10 @@ Rectangle {
             radius: 8
             InputPanel  {
                 id: keyboard
-                width: parent.width
+                implicitWidth: rectKeyboardArea.width * 0.8
+                anchors.horizontalCenter: parent.horizontalCenter
             }
+
             /*
             HandwritingInputPanel {
                 inputPanel: keyboard
