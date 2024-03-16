@@ -115,13 +115,15 @@ class DataSelector(QObject):
         self.cur_bio_label = self._bios_model.getData(new_bio_index, 'bio_label')
         self.cur_bio_id = self._bios_model.getData(new_bio_index, 'fram_cam_bio_id')
         self._logger.info(f"Selected bio label changed to {self._cur_bio_label}")
-        # TODO: if project isnt set, set it (the conversion to proxy index isnt working here)
+
+        # TODO: all of the next lines work, but tthings are pretty messy...
         if self._projects_model.currentIndex == -1 and new_bio_index > -1:
             self._logger.info("Bio label selected before project, trying to select project menu...")
             _proj = self._bios_model.getData(new_bio_index, 'project_name')
-            _proj_ix = self._projects_model.getRowIndexByValue('project_name', _proj)
+            _proj_ix = self._projects_model.getRowIndexByValue('bio_filter_str', f'"display_name":"{self._cur_catch_display}","project_name":"{_proj}"')
             _proxy_proj_ix = self._projects_proxy.getProxyRowFromSource(_proj_ix)
-            self._projects_proxy.setProxyIndexSilently(_proxy_proj_ix)
+            self._projects_model.setIndexSilently(_proj_ix)
+            self._on_project_changed(_proj_ix)
 
 
     @Property(QObject, notify=unusedSignal)
