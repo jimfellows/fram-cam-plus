@@ -56,6 +56,7 @@ Item {
             anchors.topMargin: 0
             anchors.rightMargin: 0
             anchors.leftMargin: 0
+            radius: 8
 
             Rectangle {
                 id: rectImgPreview
@@ -94,6 +95,7 @@ Item {
                     id: rectControls
                     y: 325
                     height: 100
+                    radius: 8
                     color: appstyle.elevatedSurface_L5
                     border.color: appstyle.iconColor
                     anchors.left: parent.left
@@ -183,9 +185,9 @@ Item {
                             checkable: true
                             onCheckedChanged: {
                                 if(checked) {
-                                    camera_manager.start_camera()
+                                    camera_manager.unfreeze_frame()
                                 } else {
-                                    camera_manager.stop_camera()
+                                    camera_manager.freeze_frame()
                                 }
                             }
                         }
