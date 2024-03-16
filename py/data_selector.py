@@ -36,9 +36,9 @@ class DataSelector(QObject):
         self._bios_model = BiosModel(db)
 
         # proxy models will allow us to filter further based on upstream selections
-        self._catches_proxy = FramCamFilterProxyModel(self._catches_model)
-        self._projects_proxy = FramCamFilterProxyModel(self._projects_model)
-        self._bios_proxy = FramCamFilterProxyModel(self._bios_model)
+        self._catches_proxy = FramCamFilterProxyModel(self._catches_model, name='CatchesProxy')
+        self._projects_proxy = FramCamFilterProxyModel(self._projects_model, name='ProjectsProxy')
+        self._bios_proxy = FramCamFilterProxyModel(self._bios_model, name='BiosProxy')
 
         # when one model changes, we need to do things to others  TODO: push this connection trigger down to cur property changed?
         self._hauls_model.currentIndexChanged.connect(lambda i: self._on_haul_changed(i))
@@ -83,11 +83,14 @@ class DataSelector(QObject):
     def _on_haul_changed(self, new_haul_index):
         self.cur_haul_num = self._hauls_model.getData(new_haul_index, 'haul_number')
         self.cur_haul_id = self._hauls_model.getData(new_haul_index, 'fram_cam_haul_id')
-
         _haul_id_binding = {':fram_cam_haul_id': self._cur_haul_id}
         self._catches_model.loadModel(bind_params=_haul_id_binding)
         self._projects_model.loadModel(bind_params=_haul_id_binding)
         self._bios_model.loadModel(bind_params=_haul_id_binding)
+
+        # filter here should blank out these proxies (we want user to select a catch first)
+        self._projects_proxy.filterRoleOnRegex('display_name', f'"display_name":"{self._cur_catch_display}"')
+        self._bios_proxy.filterRoleOnRegex('bio_filter_str', f'"display_name":"{self._cur_catch_display}"')
 
     def _on_catch_changed(self, new_catch_index):
         """
@@ -98,7 +101,7 @@ class DataSelector(QObject):
         self.cur_catch_display = self._catches_model.getData(new_catch_index, 'display_name')
         self.cur_catch_id = self._catches_model.getData(new_catch_index, 'fram_cam_catch_id')
         self._logger.info(f"Selected catch changed to {self._cur_catch_display}")
-        self._projects_proxy.filterRoleOnStr('display_name', self._cur_catch_display)
+        self._projects_proxy.filterRoleOnRegex('bio_filter_str', f'"display_name":"{self._cur_catch_display}"')
         self._bios_proxy.filterRoleOnRegex('bio_filter_str', f'"display_name":"{self._cur_catch_display}"')
 
     def _on_project_changed(self, new_project_index):
@@ -112,12 +115,13 @@ class DataSelector(QObject):
         self.cur_bio_label = self._bios_model.getData(new_bio_index, 'bio_label')
         self.cur_bio_id = self._bios_model.getData(new_bio_index, 'fram_cam_bio_id')
         self._logger.info(f"Selected bio label changed to {self._cur_bio_label}")
-        # TODO: if project isnt set, set it
+        # TODO: if project isnt set, set it (the conversion to proxy index isnt working here)
         if self._projects_model.currentIndex == -1 and new_bio_index > -1:
-            self._logger.info("TRYING TO SELECT PROJECT FROM BIO")
+            self._logger.info("Bio label selected before project, trying to select project menu...")
             _proj = self._bios_model.getData(new_bio_index, 'project_name')
             _proj_ix = self._projects_model.getRowIndexByValue('project_name', _proj)
-            self._projects_model.setIndexSilently(_proj_ix)
+            _proxy_proj_ix = self._projects_proxy.getProxyRowFromSource(_proj_ix)
+            self._projects_proxy.setProxyIndexSilently(_proxy_proj_ix)
 
 
     @Property(QObject, notify=unusedSignal)

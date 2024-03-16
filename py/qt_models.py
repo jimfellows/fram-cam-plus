@@ -244,12 +244,15 @@ class CatchesModel(FramCamSqlListModel):
 class ProjectsModel(FramCamSqlListModel):
     def __init__(self, db):
         super().__init__(db)
+        # get distinct list of projects, display names, and filter str, project must be not null
         self.sql = '''
             select  distinct
                     project_name
                     ,display_name
+                    ,bio_filter_str
             from    BIO_OPTIONS_VW
             where   opt_instance = 1
+                    and project_name is not null
                     and fram_cam_haul_id = :fram_cam_haul_id
         '''
 
@@ -262,6 +265,7 @@ class BiosModel(FramCamSqlListModel):
             from    BIO_OPTIONS_VW
             where   opt_instance = 1
                     and fram_cam_haul_id = :fram_cam_haul_id
+                    and bio_label is not null
         '''
 
 class FramCamFilterProxyModel(QSortFilterProxyModel):
@@ -270,11 +274,12 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
     indexSetSilently = Signal(int, arguments=['newIndex'])
 
 
-    def __init__(self, source_model, parent=None):
+    def __init__(self, source_model, parent=None, name=None):
         super().__init__(parent)
         self._logger = Logger.get_root()
         self._proxy_index = -1
         self.setSourceModel(source_model)
+        self._name = name if name else self.__class__.__name__
 
     def setProxyIndexSilently(self, new_index):
         self._proxy_index = new_index
@@ -285,7 +290,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
 
     @proxyIndex.setter
     def proxyIndex(self, new_index):
-        self._logger.info(f"Setting {self.__class__.__name__} proxy index: {self._proxy_index} --> {new_index}")
+        self._logger.info(f"Setting {self._name} proxy index: {self._proxy_index} --> {new_index}")
         if self._proxy_index != new_index:
             self._proxy_index = new_index
             self.proxyIndexChanged.emit(new_index)
@@ -299,12 +304,14 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
     def getSourceRowFromProxy(self, proxy_row: int):
         _proxy_index = self.index(proxy_row, 0, QModelIndex())
         _source_index = self.mapToSource(_proxy_index)
+        self._logger.info(f"Converted {self._name} proxy row {proxy_row} to source row {_source_index.row()}")
         return _source_index.row()
 
     @Slot(int, result=int)
     def getProxyRowFromSource(self, source_row: int):
         _source_index = self.sourceModel().index(source_row, 0, QModelIndex())
         _proxy_index = self.mapFromSource(_source_index)
+        self._logger.info(f"Converted {self._name} source model row {source_row} to proxy row {_proxy_index.row()}")
         return _proxy_index.row()
 
     @Slot(int)
@@ -320,19 +327,21 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         try:
             self.sourceModel().currentIndex = _source_index.row()
         except AttributeError:
-            self._logger.error(f"Source model of {self.__class__.__name__} does not have currentIndex property!")
+            self._logger.error(f"Source model of {self._name} does not have currentIndex property!")
 
     def filterRoleOnStr(self, role_name: str, value: str):
-
+        self._logger.info(f"Filtering {self._name} ({self.rowCount} rows), role {role_name}={value}")
         try:
             _role_num = self.sourceModel().getRoleByName(role_name)
         except AttributeError:
-            self._logger.error(f"Source model of {self.__class__.__name__} does not have getRoleByName method!")
+            self._logger.error(f"Source model of {self._name} does not have getRoleByName method!")
             return
 
+        self.invalidateRowsFilter()
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterFixedString(value)
+        self._logger.info(f"{self._name} rows after fixed str filter: {self.rowCount()}")
 
     def filterRoleOnRegex(self, role_name: str, regex_pattern: str):
         """
@@ -340,16 +349,18 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         :param role_name: name of field/role we'd like to filter on
         :param regex_pattern: regular expression pattern that QT likes
         """
+        self._logger.info(f"Filtering {self._name} ({self.rowCount()} rows), role {role_name}, regex: {regex_pattern}")
         try:
             _role_num = self.sourceModel().getRoleByName(role_name)
         except AttributeError:
-            self._logger.error(f"Source model of {self.__class__.__name__} does not have getRoleByName method!")
+            self._logger.error(f"Source model of {self._name} does not have getRoleByName method!")
             return
-        self._logger.info(f"Filtering on: {regex_pattern}")
+
+        #self.invalidateRowsFilter()
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterRegularExpression(regex_pattern)
-        self._logger.info(f"Row count for {self.__class__.__name__} after filter {self.rowCount()}")
+        self._logger.info(f"{self._name} rows after regex filter: {self.rowCount()}")
 
     def filterRoleWildcard(self, role_name: str, pattern: str):
         """
@@ -357,6 +368,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         :param role_name: name of field/role we'd like to filter on
         :param regex_pattern: regular expression pattern that QT likes
         """
+        self._logger.info(f"Filtering {self._name} ({self.rowCount()} rows), role {role_name}, wildcard*: {pattern}")
         try:
             _role_num = self.sourceModel().getRoleByName(role_name)
         except AttributeError:
@@ -366,6 +378,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterWildcard(pattern)
+        self._logger.info(f"{self._name} rows after wildcard filter: {self.rowCount()}")
 
 
 class ImagesModel(FramCamSqlListModel):
