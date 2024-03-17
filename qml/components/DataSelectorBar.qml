@@ -130,5 +130,15 @@ Rectangle {
             radius: 20
             iconSource: 'qrc:/svgs/download.svg'
         }
+        FramCamButton {
+            id: btnClear
+            implicitWidth: 75
+            implicitHeight: 75
+            radius: 20
+            iconSource: 'qrc:/svgs/sweep.svg'
+            onClicked: {
+                comboCatch.currentIndex = -1
+            }
+        }
     }
 }

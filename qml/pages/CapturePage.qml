@@ -70,6 +70,7 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.rightMargin: 150
                 radius: 8
+                clip: true
 
                 Image {
                     id: image
@@ -78,6 +79,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/svgs/eye_closed.svg"
                     anchors.horizontalCenter: parent.horizontalCenter
+
                     fillMode: Image.PreserveAspectFit
                     layer {
                         enabled: true

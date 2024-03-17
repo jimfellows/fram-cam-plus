@@ -4,6 +4,7 @@ import QtQuick.Layouts 6.3
 import Qt5Compat.GraphicalEffects
 
 import 'qrc:/controls'
+import 'qrc:/components'
 
 Item {
     Rectangle {
@@ -15,11 +16,25 @@ Item {
         anchors.bottomMargin: 5
         anchors.topMargin: 5
 
+        DataSelectorBar {
+            id: dataSelectorBar
+            anchors {
+                right: parent.right
+                left: parent.left
 
+            }
+            height: 75
+
+        }
         ListView {
             id: lvImages
-            model: camera_manager.images_model
-            anchors.fill: parent
+            model: camera_manager.images_proxy
+            anchors {
+                top: dataSelectorBar.bottom
+                bottom: parent.bottom
+                left: parent.left
+                right: parent.right
+            }
             delegate: ItemDelegate {
                 id: delegate
                 width: rectParent.width

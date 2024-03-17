@@ -328,27 +328,6 @@ Window {
 
                             }
                         }
-
-                        FramCamNavButton {
-                            id: btnSpeciesSelect
-                            width: rectLeftNavBar.width
-                            text: 'Species Select'
-                            height: 75
-                            colorDefault: "transparent"
-                            font.bold: true
-                            font.pointSize: 13
-                            isActive: false
-                            iconSource: "qrc:/svgs/coral.svg"
-                            onClicked: {
-                                if (!isActive) {
-                                    isActive = true;
-                                    btnCaptureScreen.isActive = false;
-                                    btnSettingsMenu.isActive = false;
-                                    btnSummary.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('qrc:/pages/SpeciesPage.qml'))
-                                }
-                            }
-                        }
                         FramCamNavButton {
                             id: btnSummary
                             width: rectLeftNavBar.width
@@ -369,6 +348,26 @@ Window {
                                 }
                             }
                         }
+                        FramCamNavButton {
+                            id: btnSpeciesSelect
+                            width: rectLeftNavBar.width
+                            text: 'Species Select'
+                            height: 75
+                            colorDefault: "transparent"
+                            font.bold: true
+                            font.pointSize: 13
+                            isActive: false
+                            iconSource: "qrc:/svgs/coral.svg"
+                            onClicked: {
+                                if (!isActive) {
+                                    isActive = true;
+                                    btnCaptureScreen.isActive = false;
+                                    btnSettingsMenu.isActive = false;
+                                    btnSummary.isActive = false;
+                                    stackView.push(Qt.resolvedUrl('qrc:/pages/SpeciesPage.qml'))
+                                }
+                            }
+                        }
                     }
 
                     FramCamNavButton {
@@ -385,7 +384,7 @@ Window {
                         font.bold: true
                         font.pointSize: 13
                         isActive: false
-                        iconSource: "qrc:/svgs/settings.svg"
+                        iconSource: "qrc:/svgs/helm.svg"
                         onClicked: {
                             if (!isActive) {
                             isActive = true;
