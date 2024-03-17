@@ -3,6 +3,8 @@ import QtQuick 2.15
 import QtQuick.Layouts 6.3
 import Qt5Compat.GraphicalEffects
 
+import 'qrc:/controls'
+
 Item {
     Rectangle {
         id: rectParent

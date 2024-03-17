@@ -4,7 +4,7 @@ import QtQuick.Controls 6.3
 import Qt5Compat.GraphicalEffects
 import QtQuick.Dialogs
 
-import 'qrc:/qml'
+import 'qrc:/controls'
 
 Item {
 

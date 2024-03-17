@@ -2,7 +2,7 @@ import QtQuick 2.0
 import QtQuick.Layouts 6.3
 import QtQuick.Controls 2.15
 
-import 'qrc:/qml'
+import 'qrc:/controls'
 import QtQuick.VirtualKeyboard 2.1
 
 Rectangle {

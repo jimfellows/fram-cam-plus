@@ -5,8 +5,9 @@ import Qt5Compat.GraphicalEffects
 //import QtGraphicalEffects 1.15
 import QtQuick.Controls.Material
 
-import "./pages"
-import "./controls"
+import 'qrc:/controls'
+import 'qrc:/pages'
+
 
 Window {
     Material.theme: Material.Dark
@@ -322,7 +323,7 @@ Window {
                                     btnSpeciesSelect.isActive = false;
                                     btnSettingsMenu.isActive = false;
                                     btnSummary.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('qrc:/qml/CapturePage.qml'))
+                                    stackView.push(Qt.resolvedUrl('qrc:/pages/CapturePage.qml'))
                                 }
 
                             }
@@ -344,7 +345,7 @@ Window {
                                     btnCaptureScreen.isActive = false;
                                     btnSettingsMenu.isActive = false;
                                     btnSummary.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('qrc:/qml/SpeciesPage.qml'))
+                                    stackView.push(Qt.resolvedUrl('qrc:/pages/SpeciesPage.qml'))
                                 }
                             }
                         }
@@ -364,7 +365,7 @@ Window {
                                     btnSpeciesSelect.isActive = false;
                                     btnSettingsMenu.isActive = false;
                                     btnCaptureScreen.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('qrc:/qml/ImageManagerPage.qml'))
+                                    stackView.push(Qt.resolvedUrl('qrc:/pages/ImageManagerPage.qml'))
                                 }
                             }
                         }
@@ -391,12 +392,10 @@ Window {
                             btnSpeciesSelect.isActive = false;
                             btnSummary.isActive = false;
                             btnCaptureScreen.isActive = false;
-                            stackView.push(Qt.resolvedUrl('qrc:/qml/SettingsPage.qml'))
+                            stackView.push(Qt.resolvedUrl('qrc:/pages/SettingsPage.qml'))
                          }
                         }
                     }
-
-
                 }
 
                 Rectangle {
@@ -413,8 +412,8 @@ Window {
                     StackView {
                         id: stackView
                         anchors.fill: parent
-                        initialItem: Qt.resolvedUrl('qrc:/qml/CapturePage.qml')
-                        Component.onCompleted: push(Qt.resolvedUrl('qrc:/qml/CapturePage.qml'))
+                        initialItem: Qt.resolvedUrl('qrc:/pages/CapturePage.qml')
+                        Component.onCompleted: push(Qt.resolvedUrl('qrc:/pages/CapturePage.qml'))
                     }
                 }
 

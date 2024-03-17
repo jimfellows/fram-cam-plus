@@ -2,8 +2,9 @@ import QtQuick.Controls 6.3
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
-import './qml/controls'
-import 'qrc:/qml'
+
+import 'qrc:/controls'
+import 'qrc:/components'
 
 
 
