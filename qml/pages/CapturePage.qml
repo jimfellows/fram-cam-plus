@@ -387,7 +387,6 @@ Item {
                             height: 50
                             fillMode: Image.PreserveAspectFit
                             scale: camera_manager.images_proxy.proxyIndex === index ? 1.2 : 1
-                            layer.enabled: camera_manager.images_proxy.proxyIndex === index
                             layer.effect: DropShadow {
                                 verticalOffset: 0
                                 horizontalOffset: 0
