@@ -213,6 +213,15 @@ Item {
                             //visible: camera_manager.isTorchSupport
                         }
                         FramCamButton {
+                            id: btnAutofocus
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            iconSource: 'qrc:/svgs/autofocus.svg'
+                            checkable: true
+                            //visible: camera_manager.isTorchSupport
+                        }
+                        FramCamButton {
                             id: btnBarcodeScan
                             implicitWidth: 75
                             implicitHeight: 75
