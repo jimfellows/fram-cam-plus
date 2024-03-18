@@ -8,6 +8,7 @@ CheckBox {
     id: control
     text: qsTr("")
     checked: false
+    property color checkColor: appstyle.primaryColor
 
     indicator: Rectangle {
         width: control.width
@@ -32,7 +33,7 @@ CheckBox {
             layer {
                 enabled: true
                 effect: ColorOverlay {
-                    color: appstyle.accentColor
+                    color: checkColor
                 }
             }
         }

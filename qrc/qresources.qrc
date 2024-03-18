@@ -32,6 +32,7 @@
         <file alias="construction_sign.svg">../resources/svgs/construction_sign.svg</file>
         <file alias="check_photo.svg">../resources/svgs/check_photo.svg</file>
         <file alias="check.svg">../resources/svgs/check.svg</file>
+        <file alias="right_arrow.svg">../resources/svgs/right_arrow.svg</file>
         <file>../resources/svgs/collapse_left.svg</file>
         <file>../resources/svgs/collapse_right.svg</file>
         <file alias="coral.svg">../resources/svgs/coral_1.svg</file>
