@@ -67,6 +67,39 @@ Window {
         function restoreMargins() {
             windowMargin = 10
         }
+
+    }
+
+    function navigateToPage(pageName) {
+        console.info("Navigating to " + pageName)
+        if (pageName.toLowerCase() === 'capture' && !btnCapturePage.isActive) {
+            btnCapturePage.isActive = true;
+            btnSpeciesPage.isActive = false;
+            btnSettingsPage.isActive = false;
+            btnImageManagerPage.isActive = false;
+            stackView.push(Qt.resolvedUrl('qrc:/pages/CapturePage.qml'))
+        }
+        else if (pageName.toLowerCase() === 'imagemanager' && !btnImageManagerPage.isActive) {
+            btnImageManagerPage.isActive = true;
+            btnSpeciesPage.isActive = false;
+            btnSettingsPage.isActive = false;
+            btnCapturePage.isActive = false;
+            stackView.push(Qt.resolvedUrl('qrc:/pages/ImageManagerPage.qml'))
+        }
+        else if (pageName.toLowerCase() === 'settings' && !btnSettingsPage.isActive) {
+            btnImageManagerPage.isActive = false;
+            btnSpeciesPage.isActive = false;
+            btnSettingsPage.isActive = true;
+            btnCapturePage.isActive = false;
+            stackView.push(Qt.resolvedUrl('qrc:/pages/SettingsPage.qml'))
+        }
+        else if (pageName.toLowerCase() === 'species' && !btnSpeciesPage.isActive) {
+            btnImageManagerPage.isActive = false;
+            btnSpeciesPage.isActive = true;
+            btnSettingsPage.isActive = false;
+            btnCapturePage.isActive = false;
+            stackView.push(Qt.resolvedUrl('qrc:/pages/SpeciesPage.qml'))
+        }
     }
 
     Rectangle {
@@ -308,7 +341,7 @@ Window {
                         anchors.rightMargin: 0
                         anchors.leftMargin: 0
                         FramCamNavButton {
-                            id: btnCaptureScreen
+                            id: btnCapturePage
                             width: rectLeftNavBar.width
                             height: 75
                             text: "Image Capture"
@@ -316,20 +349,10 @@ Window {
                             font.bold: true
                             font.pointSize: 13
                             iconSource: "qrc:/svgs/aperture.svg"
-
-                            onClicked: {
-                                if (!isActive) {
-                                    isActive = true;
-                                    btnSpeciesSelect.isActive = false;
-                                    btnSettingsMenu.isActive = false;
-                                    btnSummary.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('qrc:/pages/CapturePage.qml'))
-                                }
-
-                            }
+                            onClicked: windowMain.navigateToPage('capture')
                         }
                         FramCamNavButton {
-                            id: btnSummary
+                            id: btnImageManagerPage
                             width: rectLeftNavBar.width
                             text: "File Manager"
                             height: 75
@@ -338,18 +361,10 @@ Window {
                             font.pointSize: 13
                             isActive: false
                             iconSource: "qrc:/svgs/report.svg"
-                            onClicked: {
-                                if (!isActive) {
-                                    isActive = true;
-                                    btnSpeciesSelect.isActive = false;
-                                    btnSettingsMenu.isActive = false;
-                                    btnCaptureScreen.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('qrc:/pages/ImageManagerPage.qml'))
-                                }
-                            }
+                            onClicked: windowMain.navigateToPage('imagemanager')
                         }
                         FramCamNavButton {
-                            id: btnSpeciesSelect
+                            id: btnSpeciesPage
                             width: rectLeftNavBar.width
                             text: 'Species Select'
                             height: 75
@@ -358,20 +373,12 @@ Window {
                             font.pointSize: 13
                             isActive: false
                             iconSource: "qrc:/svgs/coral.svg"
-                            onClicked: {
-                                if (!isActive) {
-                                    isActive = true;
-                                    btnCaptureScreen.isActive = false;
-                                    btnSettingsMenu.isActive = false;
-                                    btnSummary.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('qrc:/pages/SpeciesPage.qml'))
-                                }
-                            }
+                            onClicked: windowMain.navigateToPage('species')
                         }
                     }
 
                     FramCamNavButton {
-                        id: btnSettingsMenu
+                        id: btnSettingsPage
                         y: 0
                         width: rectLeftNavBar.width
                         text: 'Settings'
@@ -385,15 +392,7 @@ Window {
                         font.pointSize: 13
                         isActive: false
                         iconSource: "qrc:/svgs/helm.svg"
-                        onClicked: {
-                            if (!isActive) {
-                            isActive = true;
-                            btnSpeciesSelect.isActive = false;
-                            btnSummary.isActive = false;
-                            btnCaptureScreen.isActive = false;
-                            stackView.push(Qt.resolvedUrl('qrc:/pages/SettingsPage.qml'))
-                         }
-                        }
+                        onClicked: windowMain.navigateToPage('settings')
                     }
                 }
 
