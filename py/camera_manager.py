@@ -201,6 +201,7 @@ class CameraManager(QObject):
         self._logger = Logger.get_root()
         self._devices = QMediaDevices()
         self._camera = QCamera(QMediaDevices.defaultVideoInput())
+        self._view_camera_features()
         self._image_capture = QImageCapture()
         self._capture_session = QMediaCaptureSession()
         self._capture_session.setCamera(self._camera)
@@ -395,8 +396,26 @@ class CameraManager(QObject):
         return self._camera.isTorchModeSupported(QCamera.TorchOn)
 
     def _view_camera_features(self):
-        print(QCamera.FlashOn)
-        self._logger.info(f"Is flash on supported? {self._camera.isFlashModeSupported(QCamera.FlashOn)}")
+        self._logger.info(
+            f'''
+            ------------------------------------------------------------------------------------------
+                Camera {self._camera.cameraDevice().description()} supports the following features:
+                
+                Flash On: {self._camera.isFlashModeSupported(QCamera.FlashOn)}
+                Auto Flash: {self._camera.isFlashModeSupported(QCamera.FlashAuto)}
+                Torch: {self._camera.isTorchModeSupported(QCamera.TorchOn)}
+                Auto Focus: {self._camera.isFocusModeSupported(QCamera.FocusModeAuto)}
+                Manual focus: {self._camera.isFocusModeSupported(QCamera.FocusModeManual)}
+                
+                Barcode Exposure Mode: {self._camera.isExposureModeSupported(QCamera.ExposureBarcode)}
+                Beach Exposure Mode: {self._camera.isExposureModeSupported(QCamera.ExposureBeach)}
+                Manual Exposure Mode: {self._camera.isExposureModeSupported(QCamera.ExposureManual)}
+                Auto Exposure Mode: {self._camera.isExposureModeSupported(QCamera.ExposureAuto)}
+                
+                {self._camera.supportedFeatures}
+            ------------------------------------------------------------------------------------------
+            '''
+        )
 
     @Property(QObject)
     def image_capture(self):
