@@ -68,7 +68,7 @@ Item {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                anchors.rightMargin: 150
+                anchors.rightMargin: 175  // make room for thumbnails here
                 radius: 8
                 clip: true
 
@@ -357,8 +357,7 @@ Item {
             Rectangle {
                 id: rectThumbnails
                 y: 0
-
-                color: appstyle.elevatedSurface_L5
+                color: appstyle.surfaceColor
                 anchors.left: rectImgPreview.right
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -392,10 +391,8 @@ Item {
                         Image {
                             id: imgThumbnail
                             source: "file:///" + model.full_path
-                            width: lvThumbnails.width - 10
-                            height: 50
+                            width: camera_manager.images_proxy.proxyIndex === index ? lvThumbnails.width : lvThumbnails.width - 30
                             fillMode: Image.PreserveAspectFit
-                            scale: camera_manager.images_proxy.proxyIndex === index ? 1.2 : 1
                             layer.effect: DropShadow {
                                 verticalOffset: 0
                                 horizontalOffset: 0
