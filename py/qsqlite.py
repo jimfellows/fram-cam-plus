@@ -4,7 +4,7 @@ import os
 import sqlite3
 
 # local imports
-from config import LOCAL_DB_PATH
+from py.config import LOCAL_DB_PATH
 from py.logger import Logger
 
 # 3rd party imports

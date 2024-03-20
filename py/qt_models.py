@@ -18,8 +18,8 @@ from PySide6.QtCore import (
     QAbstractListModel,
     QSortFilterProxyModel
 )
-from py.logger import Logger
 from py.utils import Utils
+from py.logger import Logger
 import os
 from datetime import datetime
 
@@ -69,6 +69,18 @@ class FramCamSqlListModel(QAbstractListModel):
         except Exception as e:
             self._logger.error(f"Failed to retrieve data from {self.__class__.__name__}: {e}")
             return None
+
+    def setData(self, index, value, role=Qt.DisplayRole):
+        if not index.isValid():
+            return
+        try:
+            self._data[index.row()][self.roleNames()[role].decode('utf-8')] = value
+            self.dataChanged.emit(index, index)
+        except Exception as e:
+            self._logger.error(f"Error in {self.__class__.__name__}.setData: {e}")
+
+    def flags(self, index):
+        return Qt.ItemIsEditable
 
     def roleNames(self):
         """
@@ -402,6 +414,7 @@ class ImagesModel(FramCamSqlListModel):
         self._table_model.setTable('IMAGES')
         self._table_model.setEditStrategy(QSqlTableModel.OnManualSubmit)
         self._table_model.select()
+        self._table_proxy = QSortFilterProxyModel()
 
         self._cur_image = None
         self._cur_image_file_name = None
@@ -411,6 +424,10 @@ class ImagesModel(FramCamSqlListModel):
     def _set_cur_image(self):
         self._cur_image = self.getItem(self._current_index)
         self.currentImageChanged.emit()
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgId(self):
+        return self.getData(self._current_index, 'image_id')
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgPath(self):
@@ -452,9 +469,25 @@ class ImagesModel(FramCamSqlListModel):
     def curImgNotes(self):
         return self.getData(self._current_index, 'notes') or ''
 
-    @Property("QVariant", notify=currentImageChanged)
-    def curImgNotes(self):
-        return self.getData(self._current_index, 'notes') or ''
+    @curImgNotes.setter
+    def curImgNotes(self, new_notes):
+        pass
+        # if new_notes != self.getData(self._current_index, 'notes'):
+        #     _image_id_field_pos = self._table_model.fieldIndex('IMAGE_ID')
+        #     self._table_proxy.setFilterRole(_image_id_field_pos)
+        #     self._table_proxy.setFilterFixedString(self.curImgId)
+        #
+        #     if self._table_proxy.rowCount() > 0:
+        #         _proxy_ix = self._table_proxy.index(0, _image_id_field_pos)
+        #         self._table_model.setData(_proxy_ix, new_notes)
+        #
+        #         _role = self.getRoleByName('notes')
+        #         self.setData(QModelIndex(self._current_index, _role), new_notes)
+        #
+        #
+        #     _table_ix =
+        #     self._table_model.setData()
+        #     self.setData(QModelIndex(self._current_index, ))
 
     def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
         """
@@ -543,7 +576,7 @@ class ImagesModel(FramCamSqlListModel):
 
 if __name__ == '__main__':
     from py.logger import Logger
-    from config import LOCAL_DB_PATH
+    from py.config import LOCAL_DB_PATH
     from py.qsqlite import QSqlite
 
     l = Logger().configure()

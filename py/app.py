@@ -6,7 +6,7 @@ import sys
 
 # local imports
 from py.logger import Logger
-from config import LOCAL_DB_PATH, QML_DIR
+from py.config import LOCAL_DB_PATH, QML_DIR
 from py.fram_cam_state import FramCamState
 from py.data_selector import DataSelector
 from py.camera_manager import CameraManager
@@ -50,7 +50,7 @@ class FramCamPlus(QObject):
         self.context.setContextProperty('camera_manager', self.camera_manager)
 
         # lastly, load up qml
-        self.engine.load(os.path.join(QML_DIR, 'MainWindow.qml'))
+        self.engine.load('qrc:/windows/MainWindow.qml')
 
 
         if not self.engine.rootObjects():

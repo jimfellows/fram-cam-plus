@@ -55,4 +55,19 @@ python
 ## Running the App
 
 ## Building the App
+This app uses cx_Freeze to freeze and distribute an exectueable to run this application.
+See the link below, to date (March 2024), the latest release of cx_Freeze isn't compatible with ptyyhono 
+3.12, see link below:
+
+https://stackoverflow.com/questions/77861331/cant-create-a-a-exe-file-using-cxfreeze-keyerror-import-star
+
+Also, shiboken6 DLL files aren't fully copying to the bundled cx_Freeze app, so the entirety
+of lib/shiboken6 needs to be copied (TODO: fix this?)
+
+cx_Freeze params are set in the pyproject.toml file, to build, call the following from the root dir:
+
+```commandline
+cxfreeze build
+```
+
 [NSIS](https://nsis.sourceforge.io/Download)

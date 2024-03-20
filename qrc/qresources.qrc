@@ -1,4 +1,7 @@
 <RCC>
+    <qresource prefix="/windows">
+        <file alias="MainWindow.qml">../qml/MainWindow.qml</file>
+    </qresource>
     <qresource prefix="/pages">
         <file alias="CapturePage.qml">../qml/pages/CapturePage.qml</file>
         <file alias="SettingsPage.qml">../qml/pages/SettingsPage.qml</file>
