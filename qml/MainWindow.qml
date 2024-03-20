@@ -13,8 +13,8 @@ Window {
     Material.theme: Material.Dark
 
     id: windowMain
-    width: 1200
-    height: 700
+    width: 1000  // seems to be pretty close to panasonic size
+    height: 650  // seems to be pretty close to panasonic size
     visible: true
     color: "transparent"
     title: qsTr("FramCam+")

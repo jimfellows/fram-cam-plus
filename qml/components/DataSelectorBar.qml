@@ -8,7 +8,7 @@ import 'qrc:/controls'
 
 Rectangle {
     id: root
-    implicitHeight: 75
+    implicitHeight: 60
     implicitWidth: 500
     color: "#00ffffff"
     anchors.left: parent.left
@@ -29,8 +29,8 @@ Rectangle {
             borderColor: appstyle.iconColor
             height: parent.height
             maxPopupHeight: windowMain.height * 0.65
-            width: parent.width * 0.2
-            fontSize: 14
+            width: parent.width * 0.15
+            fontSize: 12
             model: data_selector.hauls_model
             textRole: "haul_number"
             placeholderText: data_selector.hauls_model.row_count === 0 ? 'N/A' : 'Select Haul...'
@@ -55,11 +55,11 @@ Rectangle {
             borderColor: appstyle.iconColor
             height: parent.height
             maxPopupHeight: windowMain.height * 0.65
-            width: parent.width * 0.2
+            width: parent.width * 0.225
             model: data_selector.catches_proxy
             textRole: "display_name"
             placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
-            fontSize: 14
+            fontSize: 12
             onCurrentIndexChanged: {
                 model.proxyIndex = currentIndex
             }
@@ -80,10 +80,10 @@ Rectangle {
             borderColor: appstyle.iconColor
             height: parent.height
             maxPopupHeight: windowMain.height * 0.65
-            width: parent.width * 0.2
+            width: parent.width * 0.225
             model: data_selector.projects_proxy
             textRole: "project_name"
-            fontSize: 14
+            fontSize: 12
             placeholderText: data_selector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
             onCurrentIndexChanged: {
                 model.proxyIndex = currentIndex
@@ -108,7 +108,7 @@ Rectangle {
             width: parent.width * 0.2
             model: data_selector.bios_proxy
             textRole: "bio_label"
-            fontSize: 14
+            fontSize: 12
             placeholderText: data_selector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
             onCurrentIndexChanged: {
                 model.proxyIndex = currentIndex
@@ -125,15 +125,15 @@ Rectangle {
         }
         FramCamButton {
             id: btnDownloadData
-            implicitWidth: 75
-            implicitHeight: 75
+            implicitWidth: 60
+            implicitHeight: 60
             radius: 20
             iconSource: 'qrc:/svgs/download.svg'
         }
         FramCamButton {
             id: btnClear
-            implicitWidth: 75
-            implicitHeight: 75
+            implicitWidth: 60
+            implicitHeight: 60
             radius: 20
             iconSource: 'qrc:/svgs/sweep.svg'
             onClicked: {

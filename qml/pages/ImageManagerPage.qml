@@ -23,7 +23,6 @@ Item {
                 left: parent.left
 
             }
-            height: 75
         }
         ListView {
             id: lvImages
@@ -71,7 +70,9 @@ Item {
                         //radius: 8
                         RowLayout {
                             anchors.fill: parent
+                            spacing: 5
                             RowLayout {
+                                spacing: 10
                                 FramCamCheckBox {
                                     id: check
                                     Layout.preferredHeight: 50
@@ -92,10 +93,9 @@ Item {
                                 Label {
                                     text: model.file_name
                                     font.family: appstyle.fontFamily
-                                    font.pixelSize: 12
+                                    font.pixelSize: 10
                                     font.bold: true
                                     color: appstyle.secondaryFontColor
-                                    Layout.preferredWidth: 500
                                     Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 }
                                 ColumnLayout {
@@ -142,9 +142,10 @@ Item {
                             RowLayout {
                             FramCamButton {
                                 id: btnDelete
-                                text: "Delete"
+                                text: "Delete\nX"
+                                pressedColor: appstyle.errorColor
                                 Layout.preferredHeight: delegate.height
-                                Layout.preferredWidth: 100
+                                Layout.preferredWidth: 75
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 onClicked: {
                                     var sourceIndex = camera_manager.images_proxy.getSourceRowFromProxy(index)
@@ -153,9 +154,9 @@ Item {
                             }
                             FramCamButton {
                                 id: btnEdit
-                                text: "Edit >>"
+                                text: "Edit\n>>"
                                 Layout.preferredHeight: delegate.height
-                                Layout.preferredWidth: 100
+                                Layout.preferredWidth: 75
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 onClicked: {
                                     windowMain.navigateToPage('capture')
@@ -189,7 +190,7 @@ Item {
 
                 FramCamButton {
                     id: btnSelectAll
-                    text: "Select All"
+                    text: "Select\nAll"
                     Layout.preferredHeight: 75
                     onClicked: lvImages.updateAllChecks(true)
                 }
@@ -202,6 +203,7 @@ Item {
                 FramCamButton {
                     id: btnDeleteSelection
                     text: "Delete\nSelected"
+                    pressedColor: appstyle.errorColor
                     Layout.preferredHeight: 75
                     onClicked: lvImages.deleteSelected()
                 }
