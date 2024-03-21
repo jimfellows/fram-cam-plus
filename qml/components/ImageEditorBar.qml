@@ -34,6 +34,7 @@ Rectangle {
             radius: 8
             Label {
                 id: lblTitle
+                fontSizeMode: Text.Fit
                 text: camera_manager.images_model.curImgFileName
                 color: appstyle.primaryFontColor
                 font.bold: true
@@ -59,6 +60,7 @@ Rectangle {
                     id: colImageInfo
                     Layout.preferredWidth: parent.width * 0.5
                     Layout.fillHeight: true
+                    Layout.fillWidth: true
                     spacing: 5
                     RowLayout {
                         Layout.fillWidth: true
@@ -73,11 +75,13 @@ Rectangle {
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
                             font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            fontSizeMode: Text.Fit
                         }
                         Label {
                             text: camera_manager.images_model.curImgFileName
                             Layout.alignment: Qt.AlignLeft
                             color: appstyle.secondaryFontColor
+                            fontSizeMode: Text.Fit
                         }
                     }
                     RowLayout {
@@ -87,11 +91,13 @@ Rectangle {
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
                             font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            fontSizeMode: Text.Fit
                         }
                         Label {
                             text: camera_manager.images_model.curImgSciName ? camera_manager.images_model.curImgCatch+' ('+camera_manager.images_model.curImgSciName+')' : camera_manager.images_model.curImgCatch
                             Layout.alignment: Qt.AlignLeft
                             color: appstyle.secondaryFontColor
+                            fontSizeMode: Text.Fit
                         }
                     }
                     RowLayout {
@@ -100,12 +106,14 @@ Rectangle {
                             text: 'Project:'
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
+                            fontSizeMode: Text.Fit
                             font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
                         }
                         Label {
                             text: camera_manager.images_model.curImgProject
                             Layout.alignment: Qt.AlignLeft
                             color: appstyle.secondaryFontColor
+                            fontSizeMode: Text.Fit
                         }
                     }
                     RowLayout {
@@ -115,11 +123,13 @@ Rectangle {
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
                             font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            fontSizeMode: Text.Fit
                         }
                         Label {
                             text: camera_manager.images_model.curImgBioLabel
                             Layout.alignment: Qt.AlignLeft
                             color: appstyle.secondaryFontColor
+                            fontSizeMode: Text.Fit
                         }
                     }
                     RowLayout {
@@ -129,11 +139,13 @@ Rectangle {
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
                             font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            fontSizeMode: Text.Fit
                         }
                         Label {
                             text: camera_manager.images_model.curImgCaptureDt
                             Layout.alignment: Qt.AlignLeft
                             color: appstyle.secondaryFontColor
+                            fontSizeMode: Text.Fit
                         }
                     }
                 }  // end column for image info
@@ -167,6 +179,8 @@ Rectangle {
                     implicitWidth: rectKeyboardArea.width * 0.85
                 }
                 ColumnLayout {
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                    Layout.fillWidth: true
                     FramCamButton {
                         text: 'Save\n& Close'
                         Layout.preferredHeight: 75
