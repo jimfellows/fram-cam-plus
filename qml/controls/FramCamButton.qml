@@ -18,6 +18,7 @@ Button {
  property color pressedColor: appstyle.primaryColor
  property color pressedFontColor: appstyle.primaryFontColor
  property color borderColor: appstyle.iconColor
+ property int borderWidth: 1
  property color iconColor: appstyle.iconColor
  property int fontSize: 16
  property int radius: 5
@@ -25,7 +26,7 @@ Button {
  property alias img: img;
 
 
- text: qsTr('Custom Button')
+ text: qsTr('')
 
  // text styling
  contentItem:
@@ -73,6 +74,7 @@ Button {
     radius: root.radius
     layer.enabled: true
     border.color: root.borderColor
+    border.width: root.borderWidth
     layer.effect: DropShadow {
         transparentBorder: true
         color: root.down ? root.pressedColor : root.backgroundColor

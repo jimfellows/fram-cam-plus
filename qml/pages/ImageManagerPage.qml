@@ -100,7 +100,7 @@ Item {
                                 ColumnLayout {
                                     Layout.fillHeight: true
                                     Layout.fillWidth: true
-                                    Layout.leftMargin: 20
+                                    Layout.leftMargin: 50
                                     Image {
                                         id: imgSyncArrow
                                         fillMode: Image.PreserveAspectFit
@@ -122,7 +122,7 @@ Item {
                                     Label {
                                         text: "To WH?"
                                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
-                                        Layout.topMargin: -10
+                                        Layout.topMargin: -5
                                         font.family: appstyle.fontFamily
                                         font.pixelSize: 8
                                         font.bold: true

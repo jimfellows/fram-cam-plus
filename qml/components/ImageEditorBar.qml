@@ -15,7 +15,7 @@ Rectangle {
     clip: true
 
     property string imageSource;
-    property int labelWidth: 100;
+    property int labelWidth: 80;
 
     ColumnLayout {  // col to hold all things, top to bottom
         id: columnLayout
@@ -42,7 +42,7 @@ Rectangle {
                     top: parent.top
                     left: parent.left
                     topMargin: 10
-                    leftMargin: 10
+                    leftMargin: 8
                 }
 
             }
@@ -53,7 +53,7 @@ Rectangle {
                     left: parent.left
                     right: parent.right
                     bottomMargin: 10
-                    leftMargin: 20
+                    leftMargin: 10
                     topMargin: 10
                 }
                 ColumnLayout {  // column for image info
@@ -185,6 +185,9 @@ Rectangle {
                         text: 'Save\n& Close'
                         Layout.preferredHeight: 75
                         Layout.preferredWidth: 90
+                        onClicked: {
+                            camera_manager.images_proxy.proxyIndex = -1
+                        }
                     }
                     FramCamButton {
                         text: 'Delete'

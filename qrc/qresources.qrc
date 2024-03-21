@@ -81,6 +81,8 @@
         <file alias="propeller.svg">../resources/svgs/propeller.svg</file>
         <file alias="gear.svg">../resources/svgs/gear.svg</file>
         <file alias="helm.svg">../resources/svgs/helm.svg</file>
+        <file alias="target.svg">../resources/svgs/target.svg</file>
+        <file alias="box_target.svg">../resources/svgs/box_target.svg</file>
         <file>../resources/svgs/satellite-dish.svg</file>
         <file>../resources/svgs/satellite-icon.svg</file>
         <file>../resources/svgs/save_icon.svg</file>

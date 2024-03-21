@@ -43,7 +43,7 @@ Item {
         anchors.fill: parent
         anchors.rightMargin: 5
         anchors.leftMargin: 5
-        anchors.bottomMargin: 5
+        anchors.bottomMargin: 0
         anchors.topMargin: 5
 
         Rectangle {
@@ -58,7 +58,32 @@ Item {
             anchors.rightMargin: 0
             anchors.leftMargin: 0
             radius: 8
+            FramCamButton {
+                id: btnCapture
+                iconSource: 'qrc:/svgs/box_target.svg'
+                //iconColor: appstyle.primaryColor
+                //iconColor: '#003087'
+                iconColor: appstyle.elevatedSurface_L2
+                backgroundColor: appstyle.secondaryFontColor
+                borderColor: appstyle.iconColor
+                borderWidth: 5
+                radius: 20
+                anchors {
+                    right: parent.right
+                    left: rectImgPreview.right
+                    top: rectThumbnails.bottom
+                    bottom: parent.bottom
+                    leftMargin: 15
+                    rightMargin: 15
 
+                }
+                //height: 100
+                onClicked: {
+                    camera_manager.capture_image_to_file()
+                    shutter.play()
+                }
+
+            }
             Rectangle {
                 id: rectImgPreview
                 //visible: false
@@ -242,82 +267,7 @@ Item {
                         }
 
                     }
-
                 }
-                FramCamButton {
-                    id: btnCapture
-                    width: 100
-                    height: 100
-                    iconSource: 'qrc:/svgs/record.svg'
-                    iconColor: appstyle.primaryColor
-                    borderColor: appstyle.iconColor
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.rightMargin: 10
-                    anchors.bottomMargin: 2
-                    onClicked: {
-                        camera_manager.capture_image_to_file()
-                        shutter.play()
-                    }
-
-                }
-                /*
-                Button {
-                    id: btnCapture
-                    x: 345
-                    y: 467
-                    width: 92
-                    height: 82
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 10
-                    anchors.rightMargin: 10
-                    flat:true
-                    onClicked: {
-                        camera_manager.capture_image_to_file()
-                    }
-
-                    background: Rectangle{
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.fill:parent
-                        color: "#cfcfcf"
-                        radius: 10
-                        Image {
-                            id: imgButtonCapture
-                            source: 'qrc:/svgs/record.svg'
-                            sourceSize.height: 40
-                            sourceSize.width: 40
-                            anchors.left: parent.left
-                            height: 40
-                            width: 40
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            fillMode: Image.PreserveAspectFit
-                            antialiasing: true
-                        }
-
-                        ColorOverlay {
-                            source: imgButtonCapture
-                            color: 'red'
-                            //                        anchors.verticalCenter: parent.verticalCenter
-                            anchors.top: imgButtonCapture.top
-                            anchors.bottom: imgButtonCapture.bottom
-                            //                        anchors.horizontalCenter: parent.horizontalCenter
-                            antialiasing: true
-                            width: imgButtonCapture.width
-                            height: imgButtonCapture.height
-                        }
-                        Label {
-                            text: 'Capture'
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.bottom: parent.bottom
-                            anchors.bottomMargin: 5
-                            font.italic: true
-                        }
-                    }
-                }
-                */
             }
             ImageEditorBar {
                 id: editBar
@@ -363,6 +313,7 @@ Item {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.leftMargin: 0
+                anchors.bottomMargin: 100
 
                 ListView {
                     id: lvThumbnails
@@ -422,14 +373,6 @@ Item {
                                 lightness: 0
                                 visible: index === camera_manager.images_proxy.proxyIndex
                             }
-                            /*
-                            Connections {
-                                target: camera_manager.images_proxy
-                                function onIndexSetSilently(newIndex) {
-                                    lvThumbnails.currentIndex = newIndex
-                                }
-                            }
-                            */
                         }
                         Label {
                             id: imgLabel
@@ -467,32 +410,9 @@ Item {
                     }
                 }
             }
-
             ListModel {
                 id: imagePaths
             }
-            /*
-            Camera {
-                id: camDefault
-            }
-            */
-            /*
-            FramCamCaptureSession {
-                id: captureSession
-                videoOutput: videoOutput
-                camera: camera_manager.camera
-                imageCapture: camera_manager.image_capture
-
-                imageCapture: ImageCapture {
-                    onImageSaved: function (id, path) {
-                        console.info("IMAGE TAKEN!!!")
-                        imagePaths.append({"path": path})
-                        lvThumbnails.positionViewAtEnd()
-                    }
-                }
-
-            }
-            */
         }
         DataSelectorBar {
             id: rectDataSelection

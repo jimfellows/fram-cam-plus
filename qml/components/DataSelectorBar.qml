@@ -124,21 +124,21 @@ Rectangle {
             }
         }
         FramCamButton {
-            id: btnDownloadData
-            implicitWidth: 60
-            implicitHeight: 60
-            radius: 20
-            iconSource: 'qrc:/svgs/download.svg'
-        }
-        FramCamButton {
             id: btnClear
             implicitWidth: 60
             implicitHeight: 60
             radius: 20
             iconSource: 'qrc:/svgs/sweep.svg'
             onClicked: {
-                comboCatch.currentIndex = -1
+                comboHauls.currentIndex = -1
             }
+        }
+        FramCamButton {
+            id: btnDownloadData
+            implicitWidth: 60
+            implicitHeight: 60
+            radius: 20
+            iconSource: 'qrc:/svgs/download.svg'
         }
     }
 }
