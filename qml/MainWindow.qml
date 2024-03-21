@@ -289,6 +289,7 @@ Window {
                         font.family: appstyle.fontFamily
                         text: qsTr("Intelligent image capture for NOAA West Coast Groundfish Bottom Trawl Survey")
                         anchors.left: parent.left
+                        font.italic: true
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
                         anchors.leftMargin: 5

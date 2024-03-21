@@ -67,17 +67,16 @@ Item {
                         anchors.bottomMargin: -2
                         color: index % 2 ? appstyle.elevatedSurface_L6 : appstyle.elevatedSurface_L9
                         border.color: "transparent"
-                        //radius: 8
                         RowLayout {
                             anchors.fill: parent
                             spacing: 5
+                            Layout.leftMargin: 5
                             RowLayout {
-                                spacing: 10
+                                spacing: 2
                                 FramCamCheckBox {
                                     id: check
                                     Layout.preferredHeight: 50
                                     Layout.preferredWidth: 50
-                                    Layout.leftMargin: 10
                                     Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 }
                                 Image {
@@ -100,13 +99,15 @@ Item {
                                 }
                                 ColumnLayout {
                                     Layout.fillHeight: true
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 20
                                     Image {
                                         id: imgSyncArrow
                                         fillMode: Image.PreserveAspectFit
-                                        Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                                        Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                                         Layout.bottomMargin: -10
-                                        sourceSize.height: 60
-                                        sourceSize.width: 60
+                                        sourceSize.height: 40
+                                        sourceSize.width: 40
                                         source: "qrc:/svgs/right_arrow.svg"
                                         antialiasing: true
                                         smooth: true
@@ -119,11 +120,11 @@ Item {
                                         }
                                     }
                                     Label {
-                                        text: "Wheelhouse sync?"
+                                        text: "To WH?"
                                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
-                                        Layout.topMargin: -15
+                                        Layout.topMargin: -10
                                         font.family: appstyle.fontFamily
-                                        font.pixelSize: 10
+                                        font.pixelSize: 8
                                         font.bold: true
                                         color: appstyle.secondaryFontColor
                                     }
@@ -143,6 +144,7 @@ Item {
                             FramCamButton {
                                 id: btnDelete
                                 text: "Delete\nX"
+                                visible: false  // going to force user to select, then delete
                                 pressedColor: appstyle.errorColor
                                 Layout.preferredHeight: delegate.height
                                 Layout.preferredWidth: 75
