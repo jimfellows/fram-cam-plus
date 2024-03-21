@@ -194,6 +194,9 @@ class CameraManager(QObject):
     videoFrameProcessed = Signal("QVariant", arguments=['new_frame'])
     barcodeScannerChanged = Signal(bool, arguments=['is_on'])
 
+
+    cameraControlsChange = Signal()
+
     def __init__(self, db, app=None):
         super().__init__()
         self._app = app
@@ -202,6 +205,14 @@ class CameraManager(QObject):
         self._devices = QMediaDevices()
         self._camera = QCamera(QMediaDevices.defaultVideoInput())
         self._view_camera_features()
+
+        # camera control props
+        self._is_barcode_scanner_on = True
+        self._is_taxon_scanner_on = False
+        self._is_auto_focus_on = False
+        self._is_auto_flash_on = False
+        self._is_torch_on = False
+
         self._image_capture = QImageCapture()
         self._capture_session = QMediaCaptureSession()
         self._capture_session.setCamera(self._camera)
@@ -243,7 +254,13 @@ class CameraManager(QObject):
         self._cv_frame_worker.feedFrozen.connect(self.stop_camera)
         self._cv_frame_worker.feedUnfrozen.connect(self.start_camera)
 
-    @Property(bool, notify=barcodeScannerChanged)
+        # pass native camera signals to our generic one
+        self._camera.torchModeChanged.connect(self.cameraControlsChange)
+        self._camera.focusModeChanged.connect(self.cameraControlsChange)
+        self._camera.flashModeChanged.connect(self.cameraControlsChange)
+
+
+    @Property(bool, notify=cameraControlsChange)
     def isBarcodeScannerOn(self):
         return self._is_barcode_scanner_on
 
@@ -251,9 +268,8 @@ class CameraManager(QObject):
     def isBarcodeScannerOn(self, scanner_status):
         if self._is_barcode_scanner_on != scanner_status:
             self._is_barcode_scanner_on = scanner_status
-            self.barcodeScannerChanged.emit(scanner_status)
+            self.cameraControlsChange.emit()
             self._cv_frame_worker.set_barcode_scan_status(scanner_status)
-            # self._cv_frame_worker.set_pencil_sketch_status(scanner_status)
 
     @Property(QObject)
     def targetSink(self):
@@ -387,6 +403,9 @@ class CameraManager(QObject):
             self.activeCameraChanged.emit()
             self._view_camera_features()
 
+    # @Property("QVariant", notify=)
+    # def isCameraRunning(self):
+
     @Property("QVariant", notify=activeCameraChanged)
     def isFlashSupported(self):
         return self._camera.isFlashModeSupported(QCamera.FlashOn)
@@ -394,6 +413,10 @@ class CameraManager(QObject):
     @Property("QVariant", notify=activeCameraChanged)
     def isTorchSupported(self):
         return self._camera.isTorchModeSupported(QCamera.TorchOn)
+
+    @Property("QVariant", notify=activeCameraChanged)
+    def isFocusModeSupported(self):
+        return self._camera.isFocusModeSupported(QCamera.FocusModeAuto) and self._camera.isFocusModeSupported(QCamera.FocusModeManual)
 
     def _view_camera_features(self):
         self._logger.info(
@@ -428,6 +451,8 @@ class CameraManager(QObject):
     @Property(QObject)
     def capture_session(self):
         return self._capture_session
+
+
 
     @Slot()
     def start_camera(self):

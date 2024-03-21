@@ -109,7 +109,7 @@ Item {
                     layer {
                         enabled: true
                         effect: ColorOverlay {
-                            color: appstyle.accentColor
+                            color: appstyle.iconColor
                         }
                     }
                 }
@@ -211,7 +211,8 @@ Item {
                             radius: 20
                             iconSource: checked ? 'qrc:/svgs/video_on.svg' : 'qrc:/svgs/video_off.svg'
                             checkable: true
-                            onCheckedChanged: {
+                            checked: camera_manager.camera.active
+                            onClicked: {
                                 if(checked) {
                                     camera_manager.unfreeze_frame()
                                 } else {
@@ -226,7 +227,7 @@ Item {
                             radius: 20
                             iconSource: checked ? 'qrc:/svgs/flash_on.svg' : 'qrc:/svgs/flash_off.svg'
                             checkable: true
-                            //visible: camera_manager.isFlashSupported
+                            visible: camera_manager.isFlashSupported
                         }
                         FramCamButton {
                             id: btnTorch
@@ -235,7 +236,7 @@ Item {
                             radius: 20
                             iconSource: checked ? 'qrc:/svgs/torch_on.svg' : 'qrc:/svgs/torch_off.svg'
                             checkable: true
-                            //visible: camera_manager.isTorchSupport
+                            visible: camera_manager.isTorchSupported
                         }
                         FramCamButton {
                             id: btnAutofocus
@@ -244,7 +245,7 @@ Item {
                             radius: 20
                             iconSource: 'qrc:/svgs/autofocus.svg'
                             checkable: true
-                            //visible: camera_manager.isTorchSupport
+                            visible: camera_manager.isFocusModeSupported
                         }
                         FramCamButton {
                             id: btnBarcodeScan
@@ -253,6 +254,7 @@ Item {
                             radius: 20
                             iconSource: 'qrc:/svgs/barcode.svg'
                             checkable: true
+                            checked: camera_manager.isBarcodeScannerOn
                             onClicked: {
                                 camera_manager.isBarcodeScannerOn = checked
                             }
