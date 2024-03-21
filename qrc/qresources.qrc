@@ -92,6 +92,9 @@
         <file alias="video_on.svg">../resources/svgs/video_on.svg</file>
         <file alias="video_off.svg">../resources/svgs/video_off.svg</file>
     </qresource>
+    <qresource prefix="/icons">
+        <file alias="nautilus_colored.png">../resources/icons/nautilus_colored.png</file>
+    </qresource>
     <qresource prefix="/sounds">
         <file alias="clack.wav">../resources/sounds/clack.wav</file>
         <file alias="shutter.wav">../resources/sounds/shutter.wav</file>
