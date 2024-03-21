@@ -61,13 +61,14 @@ Item {
             FramCamButton {
                 id: btnCapture
                 iconSource: 'qrc:/svgs/box_target.svg'
-                //iconColor: appstyle.primaryColor
-                //iconColor: '#003087'
                 iconColor: appstyle.elevatedSurface_L2
                 backgroundColor: appstyle.secondaryFontColor
                 borderColor: appstyle.iconColor
+                disabledBackgroundColor: appstyle.elevatedSurface_L9
                 borderWidth: 5
                 radius: 20
+                enabled: camera_manager.camera.active && lvThumbnails.currentIndex === -1
+
                 anchors {
                     right: parent.right
                     left: rectImgPreview.right
@@ -75,14 +76,11 @@ Item {
                     bottom: parent.bottom
                     leftMargin: 15
                     rightMargin: 15
-
                 }
-                //height: 100
                 onClicked: {
                     camera_manager.capture_image_to_file()
                     shutter.play()
                 }
-
             }
             Rectangle {
                 id: rectImgPreview

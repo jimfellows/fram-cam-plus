@@ -14,6 +14,8 @@ Button {
  property color backgroundColor: appstyle.elevatedSurface_L9
  property color fontColor: appstyle.primaryFontColor
  property color disabledFontColor: appstyle.disabledFontColor
+ property color disabledBackgroundColor: appstyle.disabledFontColor.darker(1.2)
+ property color disabledBorderColor: appstyle.disabledFontColor.darker(1.2)
  property color hoverColor: '#55aaff';
  property color pressedColor: appstyle.primaryColor
  property color pressedFontColor: appstyle.primaryFontColor
@@ -70,10 +72,10 @@ Button {
  background: Rectangle {
     implicitWidth: root.width
     implicitHeight: root.height
-    color: root.down || root.checked ? root.pressedColor : root.backgroundColor
+    color: root.down || root.checked ? root.pressedColor : root.enabled ? root.backgroundColor : root.disabledBackgroundColor
     radius: root.radius
     layer.enabled: true
-    border.color: root.borderColor
+    border.color: root.enabled ? root.borderColor : root.disabledBorderColor
     border.width: root.borderWidth
     layer.effect: DropShadow {
         transparentBorder: true
