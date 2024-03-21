@@ -17,6 +17,13 @@ Rectangle {
     property string imageSource;
     property int labelWidth: 80;
 
+    // make sure notes are active so keyboard knows where to go
+    onWidthChanged: if (width > 0) {
+        taNotes.forceActiveFocus()
+    } else {
+        lblTitle.forceActiveFocus()  // just need to make sure we unselect our notes
+    }
+
     ColumnLayout {  // col to hold all things, top to bottom
         id: columnLayout
         anchors {
@@ -154,12 +161,18 @@ Rectangle {
                     Layout.fillHeight: true
                     spacing: 3
                     TextArea {
+                        id: taNotes
+                        background: Rectangle {
+                            color: appstyle.iconColor
+                            anchors.fill: taNotes
+                            radius: 8
+                        }
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         Layout.rightMargin: 10
                         placeholderText: "Take notes using the keyboard below..."
                         focus: root.width > 0
-                        color: appstyle.iconColor
+                        color: appstyle.surfaceColor
                     }
                 }  // end col layout for notes text area
             }  //rowlayout for image info
@@ -186,7 +199,7 @@ Rectangle {
                         Layout.preferredHeight: 75
                         Layout.preferredWidth: 90
                         onClicked: {
-                            camera_manager.images_proxy.proxyIndex = -1
+                            capturePage.lvThumbnails.currentIndex = -1
                         }
                     }
                     FramCamButton {
