@@ -16,7 +16,7 @@ from py.settings import Settings
 from qrc import qresources  # need this to import compiled qrc resources
 
 # 3rd party imports
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QGuiApplication, QIcon, QPixmap
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtCore import QObject
 
@@ -25,10 +25,13 @@ class FramCamPlus(QObject):
     def __init__(self):
         super().__init__()
         os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
+
         self._logger = Logger().configure()
 
         # create qml engine, make python classes available to qml context
         self.app = QGuiApplication(sys.argv)
+        self.app.setWindowIcon(QIcon('qrc:/svgs/nautilus.svg'))
+        # self.app.setWindowIcon(QIcon(r"C:\Users\jim-f\dev\fram-cam-plus\resources\icons\nautilus_colored.png"))
         self.engine = QQmlApplicationEngine()
         self.context = self.engine.rootContext()
 
