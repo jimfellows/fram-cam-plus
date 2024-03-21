@@ -447,7 +447,7 @@ Item {
                             color: index === camera_manager.images_proxy.proxyIndex ? appstyle.accentColor : appstyle.secondaryFontColor
                             anchors.topMargin: 10
                             anchors.left: imgThumbnail.left
-                            anchors.leftMargin: 15
+                            //anchors.leftMargin: camera_manager.images_proxy.proxyIndex === index ? -10 : 0
 
                         }
                     }

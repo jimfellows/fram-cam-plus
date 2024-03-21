@@ -17,8 +17,8 @@ Rectangle {
     property string imageSource;
     property int labelWidth: 100;
 
-    GridLayout {
-        id: gridLayout
+    ColumnLayout {  // col to hold all things, top to bottom
+        id: columnLayout
         anchors {
             fill: parent
             leftMargin: 10
@@ -26,34 +26,10 @@ Rectangle {
             topMargin: 10
             bottomMargin: 10
         }
-        rows: 2
-        columns: 2
-
-        Rectangle {
-            id: rectImageArea
-            Layout.preferredWidth: parent.width * 0.4 - 5
-            Layout.preferredHeight: parent.height * 0.5 - 5
-            //color: appstyle.elevatedSurface_L9
-            color: '#556a75'
-            radius: 8
-
-            Image {
-                id: imgPreview
-                anchors {
-                    fill: parent
-                    topMargin: 5
-                    bottomMargin: 5
-                    leftMargin: 5
-                    rightMargin: 5
-                }
-                source: camera_manager.images_model.curImgPath ? "file:///" + camera_manager.images_model.curImgPath : ''
-                fillMode: Image.PreserveAspectFit
-            }
-        }
-        Rectangle {
+        Rectangle {  // area with image info + notes field
             id: rectEditArea
-            Layout.preferredWidth: parent.width * 0.6 - 5
-            Layout.preferredHeight: parent.height * 0.5 - 5
+            Layout.preferredWidth: parent.width
+            Layout.preferredHeight: parent.height * 0.35 - 5
             color: '#556a75'
             radius: 8
             Label {
@@ -61,7 +37,6 @@ Rectangle {
                 text: camera_manager.images_model.curImgFileName
                 color: appstyle.primaryFontColor
                 font.bold: true
-
                 anchors {
                     top: parent.top
                     left: parent.left
@@ -70,17 +45,20 @@ Rectangle {
                 }
 
             }
-            RowLayout {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: 15
-                anchors.topMargin: 10
-                anchors.top: lblTitle.bottom
-
-                ColumnLayout {
+            RowLayout {  // inside our edit rectangle, we have a row containing our labels + text area for notes
+                anchors {
+                    top: lblTitle.bottom
+                    bottom: parent.bottom
+                    left: parent.left
+                    right: parent.right
+                    bottomMargin: 10
+                    leftMargin: 20
+                    topMargin: 10
+                }
+                ColumnLayout {  // column for image info
                     id: colImageInfo
-                    Layout.preferredWidth: parent.width * 0.6
-                    Layout.preferredHeight: parent.height
+                    Layout.preferredWidth: parent.width * 0.5
+                    Layout.fillHeight: true
                     spacing: 5
                     RowLayout {
                         Layout.fillWidth: true
@@ -158,34 +136,20 @@ Rectangle {
                             color: appstyle.secondaryFontColor
                         }
                     }
+                }  // end column for image info
+                ColumnLayout {  // col layout for notes text area
+                    Layout.preferredWidth: parent.width * 0.4
+                    Layout.fillHeight: true
+                    spacing: 3
                     TextArea {
-                        Layout.preferredWidth: parent.width
-                        Layout.preferredHeight: 50
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        Layout.rightMargin: 10
                         placeholderText: "Take notes using the keyboard below..."
                         focus: root.width > 0
-                        //color: appstyle.iconColor
+                        color: appstyle.iconColor
                     }
-                }
-                ColumnLayout {
-                    Layout.fillHeight: true
-                    Layout.rightMargin: 5
-                    spacing: 3
-                    FramCamButton {
-                        text: 'Save & Close'
-                        Layout.preferredHeight: 60
-                    }
-                    FramCamButton {
-                        text: 'Delete'
-                        Layout.preferredHeight: 60
-                        onClicked: {
-                            camera_manager.images_model.removeImage(camera_manager.images_model.currentIndex)
-                        }
-                    }
-                    FramCamButton {
-                        text: 'Sync to Wheelhouse'
-                        Layout.preferredHeight: 60
-                    }
-                }
+                }  // end col layout for notes text area
             }  //rowlayout for image info
         }
         Rectangle {
@@ -195,10 +159,34 @@ Rectangle {
             Layout.columnSpan: 2
             color: 'black'
             radius: 8
-            InputPanel  {
-                id: keyboard
-                implicitWidth: rectKeyboardArea.width * 0.8
-                anchors.horizontalCenter: parent.horizontalCenter
+            RowLayout {
+                anchors.fill: parent
+                InputPanel  {
+                    Layout.preferredWidth: parent.width * 0.85
+                    id: keyboard
+                    implicitWidth: rectKeyboardArea.width * 0.85
+                }
+                ColumnLayout {
+                    FramCamButton {
+                        text: 'Save\n& Close'
+                        Layout.preferredHeight: 75
+                        Layout.preferredWidth: 90
+                    }
+                    FramCamButton {
+                        text: 'Delete'
+                        Layout.preferredHeight: 75
+                        Layout.preferredWidth: 90
+                        pressedColor: appstyle.errorColor
+                        onClicked: {
+                            camera_manager.images_model.removeImage(camera_manager.images_model.currentIndex)
+                        }
+                    }
+                    FramCamButton {
+                        text: 'Sync to\nWH'
+                        Layout.preferredHeight: 75
+                        Layout.preferredWidth: 90
+                    }
+                }
             }
 
             /*
