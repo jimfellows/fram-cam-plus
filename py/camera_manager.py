@@ -7,7 +7,7 @@ import re
 # local imports
 from py.logger import Logger
 from py.utils import Utils
-from config import IMAGES_DIR
+from py.config import IMAGES_DIR
 from py.qt_models import ImagesModel, FramCamFilterProxyModel
 
 # 3rd party imports
@@ -56,6 +56,8 @@ class CVFrameWorker(VideoFrameWorker):
     """
     barcodeDetected = Signal(str, arguments=['barcode'])
     taxonDetected = Signal(str, arguments=['taxon_name'])
+    feedFrozen = Signal()
+    feedUnfrozen = Signal()
 
     def __init__(self):
         VideoFrameWorker.__init__(self)
@@ -67,6 +69,29 @@ class CVFrameWorker(VideoFrameWorker):
         self._do_scan_taxon = False
         self._do_gaussian_blur = False
         self._do_pencil_sketch = False
+        self._freeze_requested = False
+
+    def request_freeze_frame(self):
+        """
+        allows us to do the following, synchronously:
+        1. process one last frame using the pencil sketch effect
+        2. tell processArray method that, once finished, emit signal to freeze processing
+        3. this signal can then be picked up / connected to elsewhere to stop the camera
+        TODO: should we also set a param called self._frames_frozen, to make sure we stop?
+        """
+        self.set_pencil_sketch_status(True)
+        self._freeze_requested = True
+
+    def request_unfreeze(self):
+        """
+        idea here is to undo pencil sketch and re-enable frame-by-frame processing.
+        The unfrozen signal should be picked up and connected to restarting the camera to
+        begin re-piping data back through the frame processor
+        :return:
+        """
+        self.set_pencil_sketch_status(False)
+        self._freeze_requested = False
+        self.feedUnfrozen.emit()
 
     def set_barcode_scan_status(self, status):
         self._logger.info(f"Barcode scanner status set to: {status}")
@@ -102,6 +127,9 @@ class CVFrameWorker(VideoFrameWorker):
 
         if self._do_pencil_sketch:
             array = self._pencil_sketch(array)
+
+        if self._freeze_requested:
+            self.feedFrozen.emit()
 
         return array
 
@@ -147,11 +175,14 @@ class CVFrameWorker(VideoFrameWorker):
         return cv2.GaussianBlur(array, (0, 0), 25)
 
     def _pencil_sketch(self, array):
-        _gray_img = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
-        _inverted_img = 255 - _gray_img
-        _gaussian = self._gaussian_blur(_inverted_img)
-        _inverted_gaussian = 255 - _gaussian
-        return cv2.divide(_gray_img, _inverted_gaussian, scale=256.0)
+        """
+        https://subscription.packtpub.com/book/data/9781785282690/1/ch01lvl1sec10/creating-a-black-and-white-pencil-sketch
+        :param array: cv image array
+        :return: cv image array, with pencial scketch effect
+        """
+        _gray_img = cv2.cvtColor(array, cv2.COLOR_RGB2GRAY)
+        _gaussian = cv2.GaussianBlur(_gray_img, (21, 21), 0, 0)
+        return cv2.divide(_gray_img, _gaussian, scale=256.0)
 
 class CameraManager(QObject):
 
@@ -163,6 +194,9 @@ class CameraManager(QObject):
     videoFrameProcessed = Signal("QVariant", arguments=['new_frame'])
     barcodeScannerChanged = Signal(bool, arguments=['is_on'])
 
+
+    cameraControlsChange = Signal()
+
     def __init__(self, db, app=None):
         super().__init__()
         self._app = app
@@ -170,6 +204,15 @@ class CameraManager(QObject):
         self._logger = Logger.get_root()
         self._devices = QMediaDevices()
         self._camera = QCamera(QMediaDevices.defaultVideoInput())
+        self._view_camera_features()
+
+        # camera control props
+        self._is_barcode_scanner_on = True
+        self._is_taxon_scanner_on = False
+        self._is_auto_focus_on = False
+        self._is_auto_flash_on = False
+        self._is_torch_on = False
+
         self._image_capture = QImageCapture()
         self._capture_session = QMediaCaptureSession()
         self._capture_session.setCamera(self._camera)
@@ -208,7 +251,16 @@ class CameraManager(QObject):
 
         self._is_barcode_scanner_on = None
 
-    @Property(bool, notify=barcodeScannerChanged)
+        self._cv_frame_worker.feedFrozen.connect(self.stop_camera)
+        self._cv_frame_worker.feedUnfrozen.connect(self.start_camera)
+
+        # pass native camera signals to our generic one
+        self._camera.torchModeChanged.connect(self.cameraControlsChange)
+        self._camera.focusModeChanged.connect(self.cameraControlsChange)
+        self._camera.flashModeChanged.connect(self.cameraControlsChange)
+
+
+    @Property(bool, notify=cameraControlsChange)
     def isBarcodeScannerOn(self):
         return self._is_barcode_scanner_on
 
@@ -216,9 +268,8 @@ class CameraManager(QObject):
     def isBarcodeScannerOn(self, scanner_status):
         if self._is_barcode_scanner_on != scanner_status:
             self._is_barcode_scanner_on = scanner_status
-            self.barcodeScannerChanged.emit(scanner_status)
+            self.cameraControlsChange.emit()
             self._cv_frame_worker.set_barcode_scan_status(scanner_status)
-            # self._cv_frame_worker.set_pencil_sketch_status(scanner_status)
 
     @Property(QObject)
     def targetSink(self):
@@ -352,6 +403,9 @@ class CameraManager(QObject):
             self.activeCameraChanged.emit()
             self._view_camera_features()
 
+    # @Property("QVariant", notify=)
+    # def isCameraRunning(self):
+
     @Property("QVariant", notify=activeCameraChanged)
     def isFlashSupported(self):
         return self._camera.isFlashModeSupported(QCamera.FlashOn)
@@ -360,9 +414,31 @@ class CameraManager(QObject):
     def isTorchSupported(self):
         return self._camera.isTorchModeSupported(QCamera.TorchOn)
 
+    @Property("QVariant", notify=activeCameraChanged)
+    def isFocusModeSupported(self):
+        return self._camera.isFocusModeSupported(QCamera.FocusModeAuto) and self._camera.isFocusModeSupported(QCamera.FocusModeManual)
+
     def _view_camera_features(self):
-        print(QCamera.FlashOn)
-        self._logger.info(f"Is flash on supported? {self._camera.isFlashModeSupported(QCamera.FlashOn)}")
+        self._logger.info(
+            f'''
+            ------------------------------------------------------------------------------------------
+                Camera {self._camera.cameraDevice().description()} supports the following features:
+                
+                Flash On: {self._camera.isFlashModeSupported(QCamera.FlashOn)}
+                Auto Flash: {self._camera.isFlashModeSupported(QCamera.FlashAuto)}
+                Torch: {self._camera.isTorchModeSupported(QCamera.TorchOn)}
+                Auto Focus: {self._camera.isFocusModeSupported(QCamera.FocusModeAuto)}
+                Manual focus: {self._camera.isFocusModeSupported(QCamera.FocusModeManual)}
+                
+                Barcode Exposure Mode: {self._camera.isExposureModeSupported(QCamera.ExposureBarcode)}
+                Beach Exposure Mode: {self._camera.isExposureModeSupported(QCamera.ExposureBeach)}
+                Manual Exposure Mode: {self._camera.isExposureModeSupported(QCamera.ExposureManual)}
+                Auto Exposure Mode: {self._camera.isExposureModeSupported(QCamera.ExposureAuto)}
+                
+                {self._camera.supportedFeatures}
+            ------------------------------------------------------------------------------------------
+            '''
+        )
 
     @Property(QObject)
     def image_capture(self):
@@ -376,6 +452,8 @@ class CameraManager(QObject):
     def capture_session(self):
         return self._capture_session
 
+
+
     @Slot()
     def start_camera(self):
         self._logger.info(f"Starting camera {self._camera.cameraDevice().description()}")
@@ -386,6 +464,14 @@ class CameraManager(QObject):
     def stop_camera(self):
         self._camera.stop()
         # self._is_camera_running =
+
+    @Slot()
+    def freeze_frame(self):
+        self._cv_frame_worker.request_freeze_frame()
+
+    @Slot()
+    def unfreeze_frame(self):
+        self._cv_frame_worker.request_unfreeze()
 
     @Property(bool)
     def is_camera_active(self):

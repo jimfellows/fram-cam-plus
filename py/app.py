@@ -6,7 +6,7 @@ import sys
 
 # local imports
 from py.logger import Logger
-from config import LOCAL_DB_PATH, QML_DIR
+from py.config import LOCAL_DB_PATH, QML_DIR
 from py.fram_cam_state import FramCamState
 from py.data_selector import DataSelector
 from py.camera_manager import CameraManager
@@ -16,7 +16,7 @@ from py.settings import Settings
 from qrc import qresources  # need this to import compiled qrc resources
 
 # 3rd party imports
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QGuiApplication, QIcon, QPixmap
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtCore import QObject
 
@@ -25,10 +25,13 @@ class FramCamPlus(QObject):
     def __init__(self):
         super().__init__()
         os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
+
         self._logger = Logger().configure()
 
         # create qml engine, make python classes available to qml context
         self.app = QGuiApplication(sys.argv)
+        self.app.setWindowIcon(QIcon('qrc:/svgs/nautilus.svg'))
+        # self.app.setWindowIcon(QIcon(r"C:\Users\jim-f\dev\fram-cam-plus\resources\icons\nautilus_colored.png"))
         self.engine = QQmlApplicationEngine()
         self.context = self.engine.rootContext()
 
@@ -50,7 +53,7 @@ class FramCamPlus(QObject):
         self.context.setContextProperty('camera_manager', self.camera_manager)
 
         # lastly, load up qml
-        self.engine.load(os.path.join(QML_DIR, 'MainWindow.qml'))
+        self.engine.load('qrc:/windows/MainWindow.qml')
 
 
         if not self.engine.rootObjects():

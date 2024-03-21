@@ -6,7 +6,6 @@ import QtQuick.Controls.Material
 
 Button {
     Material.theme: Material.Dark
-    Material.accent: Material.Purple
 
     id: btnLeftMenu
     font.family: appstyle.fontFamily
@@ -16,6 +15,7 @@ Button {
     implicitHeight: 60
     flat:true  //allows dynamic color to work properly
     highlighted: false  //allows dyanmic color to work
+
     //custom props
     property color colorDefault: '#55aaff';
     property color colorMouseOver: '#0085CA';

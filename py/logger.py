@@ -10,7 +10,7 @@ from enum import Enum
 from PySide6 import QtCore
 # from PyQt5.QtCore import pyqtProperty, QVariant, QObject, pyqtSignal, pyqtSlot, QMessageLogger, qInstallMessageHandler
 from io import StringIO
-from config import LOGS_DIR
+from py.config import LOGS_DIR
 # from
 
 

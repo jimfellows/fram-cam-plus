@@ -14,10 +14,13 @@ Button {
  property color backgroundColor: appstyle.elevatedSurface_L9
  property color fontColor: appstyle.primaryFontColor
  property color disabledFontColor: appstyle.disabledFontColor
+ property color disabledBackgroundColor: appstyle.disabledFontColor.darker(1.2)
+ property color disabledBorderColor: appstyle.disabledFontColor.darker(1.2)
  property color hoverColor: '#55aaff';
  property color pressedColor: appstyle.primaryColor
  property color pressedFontColor: appstyle.primaryFontColor
  property color borderColor: appstyle.iconColor
+ property int borderWidth: 1
  property color iconColor: appstyle.iconColor
  property int fontSize: 16
  property int radius: 5
@@ -25,7 +28,7 @@ Button {
  property alias img: img;
 
 
- text: qsTr('Custom Button')
+ text: qsTr('')
 
  // text styling
  contentItem:
@@ -69,10 +72,11 @@ Button {
  background: Rectangle {
     implicitWidth: root.width
     implicitHeight: root.height
-    color: root.down || root.checked ? root.pressedColor : root.backgroundColor
+    color: root.down || root.checked ? root.pressedColor : root.enabled ? root.backgroundColor : root.disabledBackgroundColor
     radius: root.radius
     layer.enabled: true
-    border.color: root.borderColor
+    border.color: root.enabled ? root.borderColor : root.disabledBorderColor
+    border.width: root.borderWidth
     layer.effect: DropShadow {
         transparentBorder: true
         color: root.down ? root.pressedColor : root.backgroundColor

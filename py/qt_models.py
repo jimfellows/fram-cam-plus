@@ -18,8 +18,8 @@ from PySide6.QtCore import (
     QAbstractListModel,
     QSortFilterProxyModel
 )
-from py.logger import Logger
 from py.utils import Utils
+from py.logger import Logger
 import os
 from datetime import datetime
 
@@ -69,6 +69,18 @@ class FramCamSqlListModel(QAbstractListModel):
         except Exception as e:
             self._logger.error(f"Failed to retrieve data from {self.__class__.__name__}: {e}")
             return None
+
+    def setData(self, index, value, role=Qt.DisplayRole):
+        if not index.isValid():
+            return
+        try:
+            self._data[index.row()][self.roleNames()[role].decode('utf-8')] = value
+            self.dataChanged.emit(index, index)
+        except Exception as e:
+            self._logger.error(f"Error in {self.__class__.__name__}.setData: {e}")
+
+    def flags(self, index):
+        return Qt.ItemIsEditable
 
     def roleNames(self):
         """
@@ -244,12 +256,15 @@ class CatchesModel(FramCamSqlListModel):
 class ProjectsModel(FramCamSqlListModel):
     def __init__(self, db):
         super().__init__(db)
+        # get distinct list of projects, display names, and filter str, project must be not null
         self.sql = '''
             select  distinct
                     project_name
                     ,display_name
+                    ,bio_filter_str
             from    BIO_OPTIONS_VW
             where   opt_instance = 1
+                    and project_name is not null
                     and fram_cam_haul_id = :fram_cam_haul_id
         '''
 
@@ -262,6 +277,7 @@ class BiosModel(FramCamSqlListModel):
             from    BIO_OPTIONS_VW
             where   opt_instance = 1
                     and fram_cam_haul_id = :fram_cam_haul_id
+                    and bio_label is not null
         '''
 
 class FramCamFilterProxyModel(QSortFilterProxyModel):
@@ -270,11 +286,12 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
     indexSetSilently = Signal(int, arguments=['newIndex'])
 
 
-    def __init__(self, source_model, parent=None):
+    def __init__(self, source_model, parent=None, name=None):
         super().__init__(parent)
         self._logger = Logger.get_root()
         self._proxy_index = -1
         self.setSourceModel(source_model)
+        self._name = name if name else self.__class__.__name__
 
     def setProxyIndexSilently(self, new_index):
         self._proxy_index = new_index
@@ -285,7 +302,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
 
     @proxyIndex.setter
     def proxyIndex(self, new_index):
-        self._logger.info(f"Setting {self.__class__.__name__} proxy index: {self._proxy_index} --> {new_index}")
+        self._logger.info(f"Setting {self._name} proxy index: {self._proxy_index} --> {new_index}")
         if self._proxy_index != new_index:
             self._proxy_index = new_index
             self.proxyIndexChanged.emit(new_index)
@@ -299,12 +316,14 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
     def getSourceRowFromProxy(self, proxy_row: int):
         _proxy_index = self.index(proxy_row, 0, QModelIndex())
         _source_index = self.mapToSource(_proxy_index)
+        self._logger.info(f"Converted {self._name} proxy row {proxy_row} to source row {_source_index.row()}")
         return _source_index.row()
 
     @Slot(int, result=int)
     def getProxyRowFromSource(self, source_row: int):
         _source_index = self.sourceModel().index(source_row, 0, QModelIndex())
         _proxy_index = self.mapFromSource(_source_index)
+        self._logger.info(f"Converted {self._name} source model row {source_row} to proxy row {_proxy_index.row()}")
         return _proxy_index.row()
 
     @Slot(int)
@@ -320,19 +339,21 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         try:
             self.sourceModel().currentIndex = _source_index.row()
         except AttributeError:
-            self._logger.error(f"Source model of {self.__class__.__name__} does not have currentIndex property!")
+            self._logger.error(f"Source model of {self._name} does not have currentIndex property!")
 
     def filterRoleOnStr(self, role_name: str, value: str):
-
+        self._logger.info(f"Filtering {self._name} ({self.rowCount} rows), role {role_name}={value}")
         try:
             _role_num = self.sourceModel().getRoleByName(role_name)
         except AttributeError:
-            self._logger.error(f"Source model of {self.__class__.__name__} does not have getRoleByName method!")
+            self._logger.error(f"Source model of {self._name} does not have getRoleByName method!")
             return
 
+        self.invalidateRowsFilter()
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterFixedString(value)
+        self._logger.info(f"{self._name} rows after fixed str filter: {self.rowCount()}")
 
     def filterRoleOnRegex(self, role_name: str, regex_pattern: str):
         """
@@ -340,16 +361,18 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         :param role_name: name of field/role we'd like to filter on
         :param regex_pattern: regular expression pattern that QT likes
         """
+        self._logger.info(f"Filtering {self._name} ({self.rowCount()} rows), role {role_name}, regex: {regex_pattern}")
         try:
             _role_num = self.sourceModel().getRoleByName(role_name)
         except AttributeError:
-            self._logger.error(f"Source model of {self.__class__.__name__} does not have getRoleByName method!")
+            self._logger.error(f"Source model of {self._name} does not have getRoleByName method!")
             return
-        self._logger.info(f"Filtering on: {regex_pattern}")
+
+        #self.invalidateRowsFilter()
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterRegularExpression(regex_pattern)
-        self._logger.info(f"Row count for {self.__class__.__name__} after filter {self.rowCount()}")
+        self._logger.info(f"{self._name} rows after regex filter: {self.rowCount()}")
 
     def filterRoleWildcard(self, role_name: str, pattern: str):
         """
@@ -357,6 +380,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         :param role_name: name of field/role we'd like to filter on
         :param regex_pattern: regular expression pattern that QT likes
         """
+        self._logger.info(f"Filtering {self._name} ({self.rowCount()} rows), role {role_name}, wildcard*: {pattern}")
         try:
             _role_num = self.sourceModel().getRoleByName(role_name)
         except AttributeError:
@@ -366,6 +390,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterWildcard(pattern)
+        self._logger.info(f"{self._name} rows after wildcard filter: {self.rowCount()}")
 
 
 class ImagesModel(FramCamSqlListModel):
@@ -389,6 +414,7 @@ class ImagesModel(FramCamSqlListModel):
         self._table_model.setTable('IMAGES')
         self._table_model.setEditStrategy(QSqlTableModel.OnManualSubmit)
         self._table_model.select()
+        self._table_proxy = QSortFilterProxyModel()
 
         self._cur_image = None
         self._cur_image_file_name = None
@@ -400,48 +426,68 @@ class ImagesModel(FramCamSqlListModel):
         self.currentImageChanged.emit()
 
     @Property("QVariant", notify=currentImageChanged)
+    def curImgId(self):
+        return self.getData(self._current_index, 'image_id')
+
+    @Property("QVariant", notify=currentImageChanged)
     def curImgPath(self):
-        return self.getData(self._current_index, 'full_path')
+        return self.getData(self._current_index, 'full_path') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgFileName(self):
-        return self.getData(self._current_index, 'file_name')
+        return self.getData(self._current_index, 'file_name') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgHaulNum(self):
-        return self.getData(self._current_index, 'haul_number')
+        return self.getData(self._current_index, 'haul_number') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgBioLabel(self):
-        return self.getData(self._current_index, 'bio_label')
+        return self.getData(self._current_index, 'bio_label') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgProject(self):
-        return self.getData(self._current_index, 'project_name')
+        return self.getData(self._current_index, 'project_name') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCatch(self):
-        return self.getData(self._current_index, 'display_name')
+        return self.getData(self._current_index, 'display_name') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCommonName(self):
-        return self.getData(self._current_index, 'common_name')
+        return self.getData(self._current_index, 'common_name') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgSciName(self):
-        return self.getData(self._current_index, 'scientific_name')
+        return self.getData(self._current_index, 'scientific_name')  or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCaptureDt(self):
-        return self.getData(self._current_index, 'captured_dt')
+        return self.getData(self._current_index, 'captured_dt')  or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgNotes(self):
-        return self.getData(self._current_index, 'notes')
+        return self.getData(self._current_index, 'notes') or ''
 
-    @Property("QVariant", notify=currentImageChanged)
-    def curImgNotes(self):
-        return self.getData(self._current_index, 'notes')
+    @curImgNotes.setter
+    def curImgNotes(self, new_notes):
+        pass
+        # if new_notes != self.getData(self._current_index, 'notes'):
+        #     _image_id_field_pos = self._table_model.fieldIndex('IMAGE_ID')
+        #     self._table_proxy.setFilterRole(_image_id_field_pos)
+        #     self._table_proxy.setFilterFixedString(self.curImgId)
+        #
+        #     if self._table_proxy.rowCount() > 0:
+        #         _proxy_ix = self._table_proxy.index(0, _image_id_field_pos)
+        #         self._table_model.setData(_proxy_ix, new_notes)
+        #
+        #         _role = self.getRoleByName('notes')
+        #         self.setData(QModelIndex(self._current_index, _role), new_notes)
+        #
+        #
+        #     _table_ix =
+        #     self._table_model.setData()
+        #     self.setData(QModelIndex(self._current_index, ))
 
     def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
         """
@@ -530,7 +576,7 @@ class ImagesModel(FramCamSqlListModel):
 
 if __name__ == '__main__':
     from py.logger import Logger
-    from config import LOCAL_DB_PATH
+    from py.config import LOCAL_DB_PATH
     from py.qsqlite import QSqlite
 
     l = Logger().configure()

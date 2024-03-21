@@ -2,7 +2,7 @@
 
 from build.build_utils import compile_qrc_file
 import subprocess
-from config import QRC_DIR
+from py.config import QRC_DIR
 import os
 import sys
 

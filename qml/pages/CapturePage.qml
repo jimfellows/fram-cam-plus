@@ -3,8 +3,8 @@ import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
 
-import './qml/controls'
-import 'qrc:/qml'
+import 'qrc:/controls'
+import 'qrc:/components'
 
 
 
@@ -43,7 +43,7 @@ Item {
         anchors.fill: parent
         anchors.rightMargin: 5
         anchors.leftMargin: 5
-        anchors.bottomMargin: 5
+        anchors.bottomMargin: 0
         anchors.topMargin: 5
 
         Rectangle {
@@ -57,7 +57,31 @@ Item {
             anchors.topMargin: 0
             anchors.rightMargin: 0
             anchors.leftMargin: 0
+            radius: 8
+            FramCamButton {
+                id: btnCapture
+                iconSource: 'qrc:/svgs/box_target.svg'
+                iconColor: appstyle.elevatedSurface_L2
+                backgroundColor: appstyle.secondaryFontColor
+                borderColor: appstyle.iconColor
+                disabledBackgroundColor: appstyle.elevatedSurface_L9
+                borderWidth: 5
+                radius: 20
+                enabled: camera_manager.camera.active && lvThumbnails.currentIndex === -1
 
+                anchors {
+                    right: parent.right
+                    left: rectImgPreview.right
+                    top: rectThumbnails.bottom
+                    bottom: parent.bottom
+                    leftMargin: 15
+                    rightMargin: 15
+                }
+                onClicked: {
+                    camera_manager.capture_image_to_file()
+                    shutter.play()
+                }
+            }
             Rectangle {
                 id: rectImgPreview
                 //visible: false
@@ -67,8 +91,9 @@ Item {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                anchors.rightMargin: 150
+                anchors.rightMargin: 175  // make room for thumbnails here
                 radius: 8
+                clip: true
 
                 Image {
                     id: image
@@ -77,11 +102,12 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     source: "qrc:/svgs/eye_closed.svg"
                     anchors.horizontalCenter: parent.horizontalCenter
+
                     fillMode: Image.PreserveAspectFit
                     layer {
                         enabled: true
                         effect: ColorOverlay {
-                            color: appstyle.accentColor
+                            color: appstyle.iconColor
                         }
                     }
                 }
@@ -95,6 +121,7 @@ Item {
                     id: rectControls
                     y: 325
                     height: 100
+                    radius: 8
                     color: appstyle.elevatedSurface_L5
                     border.color: appstyle.iconColor
                     anchors.left: parent.left
@@ -109,7 +136,7 @@ Item {
                         target: rectControls
                         property: "height"
                         to: if(rectControls.height === 100) return 0; else return 100;
-                        duration:500
+                        duration:400
                         easing.type: Easing.InOutQuint
                     }
 
@@ -126,7 +153,7 @@ Item {
 
                         Connections {
                             target: animationControls
-                            onFinished: {
+                            function onFinished() {
                                 if (rectControls.height > 75) {
                                     //rectMoveControls.anchors.topMargin = 0
                                     imgMoveControls.source = "qrc:/svgs/down_arrow.svg"
@@ -173,7 +200,6 @@ Item {
                             implicitHeight: 75
                             radius: 20
                             onClicked: camera_manager.toggle_camera()
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: 'qrc:/svgs/change_camera.svg'
                         }
                         FramCamButton {
@@ -181,14 +207,14 @@ Item {
                             width: 75
                             height: 75
                             radius: 20
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: checked ? 'qrc:/svgs/video_on.svg' : 'qrc:/svgs/video_off.svg'
                             checkable: true
-                            onCheckedChanged: {
+                            checked: camera_manager.camera.active
+                            onClicked: {
                                 if(checked) {
-                                    camera_manager.start_camera()
+                                    camera_manager.unfreeze_frame()
                                 } else {
-                                    camera_manager.stop_camera()
+                                    camera_manager.freeze_frame()
                                 }
                             }
                         }
@@ -197,29 +223,36 @@ Item {
                             implicitWidth: 75
                             implicitHeight: 75
                             radius: 20
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: checked ? 'qrc:/svgs/flash_on.svg' : 'qrc:/svgs/flash_off.svg'
                             checkable: true
-                            //visible: camera_manager.isFlashSupported
+                            visible: camera_manager.isFlashSupported
                         }
                         FramCamButton {
                             id: btnTorch
                             implicitWidth: 75
                             implicitHeight: 75
                             radius: 20
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: checked ? 'qrc:/svgs/torch_on.svg' : 'qrc:/svgs/torch_off.svg'
                             checkable: true
-                            //visible: camera_manager.isTorchSupport
+                            visible: camera_manager.isTorchSupported
+                        }
+                        FramCamButton {
+                            id: btnAutofocus
+                            implicitWidth: 75
+                            implicitHeight: 75
+                            radius: 20
+                            iconSource: 'qrc:/svgs/autofocus.svg'
+                            checkable: true
+                            visible: camera_manager.isFocusModeSupported
                         }
                         FramCamButton {
                             id: btnBarcodeScan
                             implicitWidth: 75
                             implicitHeight: 75
                             radius: 20
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: 'qrc:/svgs/barcode.svg'
                             checkable: true
+                            checked: camera_manager.isBarcodeScannerOn
                             onClicked: {
                                 camera_manager.isBarcodeScannerOn = checked
                             }
@@ -229,94 +262,12 @@ Item {
                             implicitWidth: 75
                             implicitHeight: 75
                             radius: 20
-                            anchors.verticalCenter: switchPreview.verticalCenter
                             iconSource: 'qrc:/svgs/kraken.svg'
                             checkable: true
                         }
 
                     }
-
                 }
-                FramCamButton {
-                    id: btnCapture
-                    width: 100
-                    height: 100
-                    iconSource: 'qrc:/svgs/record.svg'
-                    iconColor: appstyle.primaryColor
-                    borderColor: appstyle.iconColor
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.rightMargin: 10
-                    anchors.bottomMargin: 2
-                    onClicked: {
-                        camera_manager.capture_image_to_file()
-                        shutter.play()
-                    }
-
-                }
-                /*
-                Button {
-                    id: btnCapture
-                    x: 345
-                    y: 467
-                    width: 92
-                    height: 82
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 10
-                    anchors.rightMargin: 10
-                    flat:true
-                    onClicked: {
-                        //console.info("BUTTON CLICKED, is camera ready?")
-                        //console.info(captureSession.imageCapture.readyForCapture)
-                        //var x
-                        //x = captureSession.imageCapture.captureToFile('pic.jpeg')
-                        //                    captureSession.imageCapture.imageSaved()
-                        console.info(x)
-                        camera_manager.capture_image_to_file()
-                    }
-
-                    background: Rectangle{
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.fill:parent
-                        color: "#cfcfcf"
-                        radius: 10
-                        Image {
-                            id: imgButtonCapture
-                            source: 'qrc:/svgs/record.svg'
-                            sourceSize.height: 40
-                            sourceSize.width: 40
-                            anchors.left: parent.left
-                            height: 40
-                            width: 40
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            fillMode: Image.PreserveAspectFit
-                            antialiasing: true
-                        }
-
-                        ColorOverlay {
-                            source: imgButtonCapture
-                            color: 'red'
-                            //                        anchors.verticalCenter: parent.verticalCenter
-                            anchors.top: imgButtonCapture.top
-                            anchors.bottom: imgButtonCapture.bottom
-                            //                        anchors.horizontalCenter: parent.horizontalCenter
-                            antialiasing: true
-                            width: imgButtonCapture.width
-                            height: imgButtonCapture.height
-                        }
-                        Label {
-                            text: 'Capture'
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.bottom: parent.bottom
-                            anchors.bottomMargin: 5
-                            font.italic: true
-                        }
-                    }
-                }
-                */
             }
             ImageEditorBar {
                 id: editBar
@@ -356,13 +307,13 @@ Item {
             Rectangle {
                 id: rectThumbnails
                 y: 0
-
-                color: appstyle.elevatedSurface_L5
+                color: appstyle.surfaceColor
                 anchors.left: rectImgPreview.right
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.leftMargin: 0
+                anchors.bottomMargin: 100
 
                 ListView {
                     id: lvThumbnails
@@ -391,11 +342,8 @@ Item {
                         Image {
                             id: imgThumbnail
                             source: "file:///" + model.full_path
-                            width: lvThumbnails.width - 10
-                            height: 50
+                            width: camera_manager.images_proxy.proxyIndex === index ? lvThumbnails.width : lvThumbnails.width - 30
                             fillMode: Image.PreserveAspectFit
-                            scale: camera_manager.images_proxy.proxyIndex === index ? 1.2 : 1
-                            layer.enabled: camera_manager.images_proxy.proxyIndex === index
                             layer.effect: DropShadow {
                                 verticalOffset: 0
                                 horizontalOffset: 0
@@ -425,14 +373,6 @@ Item {
                                 lightness: 0
                                 visible: index === camera_manager.images_proxy.proxyIndex
                             }
-                            /*
-                            Connections {
-                                target: camera_manager.images_proxy
-                                function onIndexSetSilently(newIndex) {
-                                    lvThumbnails.currentIndex = newIndex
-                                }
-                            }
-                            */
                         }
                         Label {
                             id: imgLabel
@@ -450,7 +390,7 @@ Item {
                             color: index === camera_manager.images_proxy.proxyIndex ? appstyle.accentColor : appstyle.secondaryFontColor
                             anchors.topMargin: 10
                             anchors.left: imgThumbnail.left
-                            anchors.leftMargin: 15
+                            //anchors.leftMargin: camera_manager.images_proxy.proxyIndex === index ? -10 : 0
 
                         }
                     }
@@ -470,159 +410,19 @@ Item {
                     }
                 }
             }
-
             ListModel {
                 id: imagePaths
             }
-            /*
-            Camera {
-                id: camDefault
-            }
-            */
-            /*
-            FramCamCaptureSession {
-                id: captureSession
-                videoOutput: videoOutput
-                camera: camera_manager.camera
-                imageCapture: camera_manager.image_capture
-
-                imageCapture: ImageCapture {
-                    onImageSaved: function (id, path) {
-                        console.info("IMAGE TAKEN!!!")
-                        imagePaths.append({"path": path})
-                        lvThumbnails.positionViewAtEnd()
-                    }
-                }
-
-            }
-            */
         }
-        Rectangle {
+        DataSelectorBar {
             id: rectDataSelection
-            height: 75
-            color: "#00ffffff"
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.leftMargin: 0
             anchors.rightMargin: 0
             anchors.topMargin: 0
-
-            Row {
-                anchors.fill: parent
-                spacing: 10
-                anchors.rightMargin: 50
-                FramCamComboBox {
-                    id: comboHauls
-                    backgroundColor: appstyle.elevatedSurface_L5
-                    fontColor: appstyle.secondaryFontColor
-                    borderColor: appstyle.iconColor
-                    height: parent.height
-                    maxPopupHeight: windowMain.height * 0.65
-                    width: parent.width * 0.2
-                    fontSize: 14
-                    model: data_selector.hauls_model
-                    textRole: "haul_number"
-                    placeholderText: data_selector.hauls_model.row_count === 0 ? 'N/A' : 'Select Haul...'
-                    onCurrentIndexChanged: {
-                        model.currentIndex = currentIndex
-                    }
-                    Component.onCompleted: {  // set ix based on settings saved value
-                        comboHauls.currentIndex = model.currentIndex
-                    }
-                    Connections {
-                        target: data_selector.hauls_model
-                        function onIndexSetSilently(new_index) {
-                            comboHauls.currentIndex = new_index
-                        }
-                    }
-                }
-
-                FramCamComboBox {
-                    id: comboCatch
-                    backgroundColor: appstyle.elevatedSurface_L5
-                    fontColor: appstyle.secondaryFontColor
-                    borderColor: appstyle.iconColor
-                    height: parent.height
-                    maxPopupHeight: windowMain.height * 0.65
-                    width: parent.width * 0.2
-                    model: data_selector.catches_proxy
-                    textRole: "display_name"
-                    placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
-                    fontSize: 14
-                    onCurrentIndexChanged: {
-                        model.proxyIndex = currentIndex
-                    }
-                    Component.onCompleted: {  // set ix based on settings saved value
-                        comboCatch.currentIndex = model.getProxyRowFromSource(data_selector.catches_model.currentIndex)
-                    }
-                    Connections {
-                        target: data_selector.catches_model
-                        function onIndexSetSilently(new_index) {
-                            comboCatch.currentIndex = model.getProxyRowFromSource(new_index)
-                        }
-                    }
-                }
-                FramCamComboBox {
-                    id: comboProject
-                    backgroundColor: appstyle.elevatedSurface_L5
-                    fontColor: appstyle.secondaryFontColor
-                    borderColor: appstyle.iconColor
-                    height: parent.height
-                    maxPopupHeight: windowMain.height * 0.65
-                    width: parent.width * 0.2
-                    model: data_selector.projects_proxy
-                    textRole: "project_name"
-                    fontSize: 14
-                    placeholderText: data_selector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
-                    onCurrentIndexChanged: {
-                        model.proxyIndex = currentIndex
-                    }
-                    Component.onCompleted: {  // set ix based on settings saved value
-                        comboProject.currentIndex = model.getProxyRowFromSource(data_selector.projects_model.currentIndex)
-                    }
-                    Connections {
-                        target: data_selector.projects_model
-                        function onIndexSetSilently(new_index) {
-                            comboProject.currentIndex = data_selector.projects_proxy.getProxyRowFromSource(new_index)
-                        }
-                    }
-                }
-                FramCamComboBox {
-                    id: comboBiolabel
-                    backgroundColor: appstyle.elevatedSurface_L5
-                    fontColor: appstyle.secondaryFontColor
-                    borderColor: appstyle.iconColor
-                    height: parent.height
-                    maxPopupHeight: windowMain.height * 0.65
-                    width: parent.width * 0.2
-                    model: data_selector.bios_proxy
-                    textRole: "bio_label"
-                    fontSize: 14
-                    placeholderText: data_selector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
-                    onCurrentIndexChanged: {
-                        model.proxyIndex = currentIndex
-                    }
-                    Component.onCompleted: {  // set ix based on settings saved value
-                        comboBiolabel.currentIndex = model.getProxyRowFromSource(data_selector.bios_model.currentIndex)
-                    }
-                    Connections {
-                        target: data_selector.bios_model
-                        function onIndexSetSilently(new_index) {
-                            comboBiolabel.currentIndex = model.getProxyRowFromSource(new_index)
-                        }
-                    }
-                }
-                FramCamButton {
-                    id: btnDownloadData
-                    implicitWidth: 75
-                    implicitHeight: 75
-                    radius: 20
-                    iconSource: 'qrc:/svgs/download.svg'
-                }
-            }
         }
-
     }
 
 }

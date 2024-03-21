@@ -15,7 +15,6 @@ ComboBox {
     currentIndex: -1
 
     Material.theme: Material.Dark
-    Material.accent: Material.Purple
 
     //custom props
     property color backgroundColor: appstyle.elevatedSurface_L5;
@@ -85,6 +84,33 @@ ComboBox {
             }
         }
     }  // popup row item delegate
+
+    indicator: Canvas {
+        id: canvas
+        x: root.width - width - root.rightPadding
+        y: root.topPadding + (root.availableHeight - height) * 0.8
+        width: 12
+        height: 8
+        contextType: "2d"
+
+        Connections {
+            target: root
+            function onPressedChanged() { canvas.requestPaint(); }
+        }
+
+        onPaint: {
+            context.reset();
+            context.strokeStyle = root.fontColor
+            context.lineWidth = 1
+            context.beginPath()
+            context.moveTo(0, 0);
+            context.lineTo(width / 2, height);
+            context.lineTo(width, 0);
+            context.closePath();
+            context.stroke()
+        }
+    }
+
     /*
     background here represents that of the button independent of the
     popup/drop down that is displayed, displayed when combobox is collapsed

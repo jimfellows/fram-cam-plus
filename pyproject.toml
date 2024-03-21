@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fram-cam-plus"
-dynamic = ["version"]
 version = "2024.0.0"
 readme = "README.md"
 authors = [
@@ -34,7 +33,7 @@ classifiers = [
   # Specify the Python versions you support here.
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11"
+  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12"
 ]
 
@@ -43,9 +42,16 @@ Repository = "https://github.com/jimfellows/fram-cam-plus"
 
 [tool.cxfreeze]
 executables = [
-    {script = "main.py", base="FramCam+"}
+    {script = "main.py", base="Win32GUI"}
 ]
 
 [tool.cxfreeze.build_exe]
-excludes = ["tkinter", "unittest"]
-zip_include_packages = ["encodings", "PySide6", "shiboken6"]
+excludes = []
+packages=["PySide6", "pyzbar", "cv2", 'araviq6', 'sqlite3',"shiboken6", "encodings"]
+include_files = [
+  ['py', 'lib/py'],  # puts local py imports into lib
+  ['qrc', 'lib/qrc'],
+  ['data/trawl_backdeck.db', 'data/lib/trawl_backdeck.db'],   # data also into lib
+  ['venv/lib/shiboken6', 'lib/shiboken6'],  # WARNING: this is currently hardcoded.  CX freeze isntt hooking all shiboken DLLs
+  ['C:/Users/jim-f/dev/fram-cam-plus/venv/Lib/site-packages/pyzbar/libiconv.dll', 'lib/libiconv.dll'],  # did adding opencv resolve the need for this?
+  ]

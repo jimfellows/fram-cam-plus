@@ -12,7 +12,6 @@ Button {
     highlighted: false  //allows dyanmic color to work
 
     Material.theme: Material.Dark
-    Material.accent: Material.Purple
 
     //custom props
     property color colorDefault: '#55aaff';

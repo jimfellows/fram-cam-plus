@@ -5,18 +5,19 @@ import Qt5Compat.GraphicalEffects
 //import QtGraphicalEffects 1.15
 import QtQuick.Controls.Material
 
-import "./pages"
-import "./controls"
+import 'qrc:/controls'
+import 'qrc:/pages'
+
 
 Window {
     Material.theme: Material.Dark
-    Material.accent: Material.Purple
+
     id: windowMain
-    width: 1200
-    height: 700
+    width: 1000  // seems to be pretty close to panasonic size
+    height: 650  // seems to be pretty close to panasonic size
     visible: true
     color: "transparent"
-    title: qsTr("FramCam")
+    title: qsTr("FramCam+")
 
     //props
     property bool isWindowMaximized: false;
@@ -65,6 +66,39 @@ Window {
 
         function restoreMargins() {
             windowMargin = 10
+        }
+
+    }
+
+    function navigateToPage(pageName) {
+        console.info("Navigating to " + pageName)
+        if (pageName.toLowerCase() === 'capture' && !btnCapturePage.isActive) {
+            btnCapturePage.isActive = true;
+            btnSpeciesPage.isActive = false;
+            btnSettingsPage.isActive = false;
+            btnImageManagerPage.isActive = false;
+            stackView.push(Qt.resolvedUrl('qrc:/pages/CapturePage.qml'))
+        }
+        else if (pageName.toLowerCase() === 'imagemanager' && !btnImageManagerPage.isActive) {
+            btnImageManagerPage.isActive = true;
+            btnSpeciesPage.isActive = false;
+            btnSettingsPage.isActive = false;
+            btnCapturePage.isActive = false;
+            stackView.push(Qt.resolvedUrl('qrc:/pages/ImageManagerPage.qml'))
+        }
+        else if (pageName.toLowerCase() === 'settings' && !btnSettingsPage.isActive) {
+            btnImageManagerPage.isActive = false;
+            btnSpeciesPage.isActive = false;
+            btnSettingsPage.isActive = true;
+            btnCapturePage.isActive = false;
+            stackView.push(Qt.resolvedUrl('qrc:/pages/SettingsPage.qml'))
+        }
+        else if (pageName.toLowerCase() === 'species' && !btnSpeciesPage.isActive) {
+            btnImageManagerPage.isActive = false;
+            btnSpeciesPage.isActive = true;
+            btnSettingsPage.isActive = false;
+            btnCapturePage.isActive = false;
+            stackView.push(Qt.resolvedUrl('qrc:/pages/SpeciesPage.qml'))
         }
     }
 
@@ -229,6 +263,8 @@ Window {
                             iconSource: "qrc:/svgs/close.svg"
                             iconColor: "white"
                             colorDefault: "#00000000"
+                            colorMouseOver: appstyle.errorColor
+                            colorPressed: appstyle.errorColor.darker(0.75)
                             onClicked: windowMain.close()
                         }
                     }
@@ -253,6 +289,7 @@ Window {
                         font.family: appstyle.fontFamily
                         text: qsTr("Intelligent image capture for NOAA West Coast Groundfish Bottom Trawl Survey")
                         anchors.left: parent.left
+                        font.italic: true
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
                         anchors.leftMargin: 5
@@ -290,7 +327,7 @@ Window {
                         target: rectLeftNavBar
                         property: "width"
                         to: if(rectLeftNavBar.width === 70) return 250; else return 70;
-                        duration:500
+                        duration:400
                         easing.type: Easing.InOutQuint
                     }
 
@@ -305,7 +342,7 @@ Window {
                         anchors.rightMargin: 0
                         anchors.leftMargin: 0
                         FramCamNavButton {
-                            id: btnCaptureScreen
+                            id: btnCapturePage
                             width: rectLeftNavBar.width
                             height: 75
                             text: "Image Capture"
@@ -313,41 +350,10 @@ Window {
                             font.bold: true
                             font.pointSize: 13
                             iconSource: "qrc:/svgs/aperture.svg"
-
-                            onClicked: {
-                                if (!isActive) {
-                                    isActive = true;
-                                    btnSpeciesSelect.isActive = false;
-                                    btnSettingsMenu.isActive = false;
-                                    btnSummary.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('qrc:/qml/CapturePage.qml'))
-                                }
-
-                            }
-                        }
-
-                        FramCamNavButton {
-                            id: btnSpeciesSelect
-                            width: rectLeftNavBar.width
-                            text: 'Species Select'
-                            height: 75
-                            colorDefault: "transparent"
-                            font.bold: true
-                            font.pointSize: 13
-                            isActive: false
-                            iconSource: "qrc:/svgs/coral.svg"
-                            onClicked: {
-                                if (!isActive) {
-                                    isActive = true;
-                                    btnCaptureScreen.isActive = false;
-                                    btnSettingsMenu.isActive = false;
-                                    btnSummary.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('qrc:/qml/SpeciesPage.qml'))
-                                }
-                            }
+                            onClicked: windowMain.navigateToPage('capture')
                         }
                         FramCamNavButton {
-                            id: btnSummary
+                            id: btnImageManagerPage
                             width: rectLeftNavBar.width
                             text: "File Manager"
                             height: 75
@@ -356,20 +362,24 @@ Window {
                             font.pointSize: 13
                             isActive: false
                             iconSource: "qrc:/svgs/report.svg"
-                            onClicked: {
-                                if (!isActive) {
-                                    isActive = true;
-                                    btnSpeciesSelect.isActive = false;
-                                    btnSettingsMenu.isActive = false;
-                                    btnCaptureScreen.isActive = false;
-                                    stackView.push(Qt.resolvedUrl('qrc:/qml/ImageManagerPage.qml'))
-                                }
-                            }
+                            onClicked: windowMain.navigateToPage('imagemanager')
+                        }
+                        FramCamNavButton {
+                            id: btnSpeciesPage
+                            width: rectLeftNavBar.width
+                            text: 'Species Select'
+                            height: 75
+                            colorDefault: "transparent"
+                            font.bold: true
+                            font.pointSize: 13
+                            isActive: false
+                            iconSource: "qrc:/svgs/coral.svg"
+                            onClicked: windowMain.navigateToPage('species')
                         }
                     }
 
                     FramCamNavButton {
-                        id: btnSettingsMenu
+                        id: btnSettingsPage
                         y: 0
                         width: rectLeftNavBar.width
                         text: 'Settings'
@@ -382,19 +392,9 @@ Window {
                         font.bold: true
                         font.pointSize: 13
                         isActive: false
-                        iconSource: "qrc:/svgs/settings.svg"
-                        onClicked: {
-                            if (!isActive) {
-                            isActive = true;
-                            btnSpeciesSelect.isActive = false;
-                            btnSummary.isActive = false;
-                            btnCaptureScreen.isActive = false;
-                            stackView.push(Qt.resolvedUrl('qrc:/qml/SettingsPage.qml'))
-                         }
-                        }
+                        iconSource: "qrc:/svgs/helm.svg"
+                        onClicked: windowMain.navigateToPage('settings')
                     }
-
-
                 }
 
                 Rectangle {
@@ -411,8 +411,8 @@ Window {
                     StackView {
                         id: stackView
                         anchors.fill: parent
-                        initialItem: Qt.resolvedUrl('qrc:/qml/CapturePage.qml')
-                        Component.onCompleted: push(Qt.resolvedUrl('qrc:/qml/CapturePage.qml'))
+                        initialItem: Qt.resolvedUrl('qrc:/pages/CapturePage.qml')
+                        Component.onCompleted: push(Qt.resolvedUrl('qrc:/pages/CapturePage.qml'))
                     }
                 }
 
