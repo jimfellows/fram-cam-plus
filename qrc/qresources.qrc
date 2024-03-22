@@ -7,6 +7,7 @@
         <file alias="SettingsPage.qml">../qml/pages/SettingsPage.qml</file>
         <file alias="ImageManagerPage.qml">../qml/pages/ImageManagerPage.qml</file>
         <file alias="SpeciesPage.qml">../qml/pages/SpeciesPage.qml</file>
+        <file alias="UploadPage.qml">../qml/pages/UploadPage.qml</file>
     </qresource>
     <qresource prefix="/controls">
         <file alias="FramCamGroupBox.qml">../qml/controls/FramCamGroupBox.qml</file>
@@ -25,6 +26,7 @@
     </qresource>
     <qresource prefix="/svgs">
         <file alias="aperture.svg">../resources/svgs/aperture_1.svg</file>
+        <file alias="cloud_upload.svg">../resources/svgs/cloud_upload.svg</file>
         <file alias="barcode.svg">../resources/svgs/barcode.svg</file>
         <file>../resources/svgs/boat-icon.svg</file>
         <file alias="cam_scope.svg">../resources/svgs/cam_scope.svg</file>

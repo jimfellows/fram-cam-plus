@@ -77,6 +77,7 @@ Window {
             btnSpeciesPage.isActive = false;
             btnSettingsPage.isActive = false;
             btnImageManagerPage.isActive = false;
+            btnUploadPage.isActive = false;
             stackView.push(Qt.resolvedUrl('qrc:/pages/CapturePage.qml'))
         }
         else if (pageName.toLowerCase() === 'imagemanager' && !btnImageManagerPage.isActive) {
@@ -84,6 +85,7 @@ Window {
             btnSpeciesPage.isActive = false;
             btnSettingsPage.isActive = false;
             btnCapturePage.isActive = false;
+            btnUploadPage.isActive = false;
             stackView.push(Qt.resolvedUrl('qrc:/pages/ImageManagerPage.qml'))
         }
         else if (pageName.toLowerCase() === 'settings' && !btnSettingsPage.isActive) {
@@ -91,6 +93,7 @@ Window {
             btnSpeciesPage.isActive = false;
             btnSettingsPage.isActive = true;
             btnCapturePage.isActive = false;
+            btnUploadPage.isActive = false;
             stackView.push(Qt.resolvedUrl('qrc:/pages/SettingsPage.qml'))
         }
         else if (pageName.toLowerCase() === 'species' && !btnSpeciesPage.isActive) {
@@ -98,7 +101,16 @@ Window {
             btnSpeciesPage.isActive = true;
             btnSettingsPage.isActive = false;
             btnCapturePage.isActive = false;
+            btnUploadPage.isActive = false;
             stackView.push(Qt.resolvedUrl('qrc:/pages/SpeciesPage.qml'))
+        }
+        else if (pageName.toLowerCase() === 'upload' && !btnUploadPage.isActive) {
+            btnUploadPage.isActive = true;
+            btnImageManagerPage.isActive = false;
+            btnSpeciesPage.isActive = false;
+            btnSettingsPage.isActive = false;
+            btnCapturePage.isActive = false;
+            stackView.push(Qt.resolvedUrl('qrc:/pages/UploadPage.qml'))
         }
     }
 
@@ -375,6 +387,18 @@ Window {
                             isActive: false
                             iconSource: "qrc:/svgs/coral.svg"
                             onClicked: windowMain.navigateToPage('species')
+                        }
+                        FramCamNavButton {
+                            id: btnUploadPage
+                            width: rectLeftNavBar.width
+                            text: 'Species Select'
+                            height: 75
+                            colorDefault: "transparent"
+                            font.bold: true
+                            font.pointSize: 13
+                            isActive: false
+                            iconSource: "qrc:/svgs/cloud_upload.svg"
+                            onClicked: windowMain.navigateToPage('upload')
                         }
                     }
 
