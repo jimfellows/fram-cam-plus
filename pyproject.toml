@@ -36,4 +36,5 @@ include_files = [
   ['data/trawl_backdeck.db', 'lib/data/trawl_backdeck.db'],   # data also into lib
   ['venv/lib/shiboken6', 'lib/shiboken6'],  # WARNING: this is currently hardcoded.  CX freeze isntt hooking all shiboken DLLs
   ['C:/Users/jim-f/dev/fram-cam-plus/venv/Lib/site-packages/pyzbar/libiconv.dll', 'lib/libiconv.dll'],  # did adding opencv resolve the need for this?
+  ['resources/icons', 'lib/icons']
   ]
