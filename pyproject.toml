@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "fram-cam-plus"
-version = "2024.00+1"
+version = "2024.0+1"
 description = "PySide6 + Qt Camera Tablet App"
 authors = ["Jim Fellows <james.fellows@noaa.gov>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
@@ -20,7 +21,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [project.urls]
-Repository = "https://github.com/jimfellows/fram-cam-plus"
+Repository = "https://github.nwfsc2.noaa.gov/jfellows/fram-cam-plus"
 
 [tool.cxfreeze]
 executables = [
