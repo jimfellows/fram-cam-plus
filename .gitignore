@@ -8,7 +8,9 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+build/*
+!build/build_utils.py
+!build/fram_cam_setup.nsi
 develop-eggs/
 dist/
 downloads/
