@@ -560,7 +560,8 @@ class ImagesModel(FramCamSqlListModel):
         # TODO: better way to delete from db?
         _image_id = self.getData(row_ix, 'image_id')
         _file_path = self.getData(row_ix, 'full_path')
-        os.remove(_file_path)
+        if os.path.exists(_file_path):
+            os.remove(_file_path)
         _table_ix = -1
         for _i in range(self._table_model.rowCount()):
             if self._table_model.record(_i).value('image_id') == _image_id:
