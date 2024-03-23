@@ -107,7 +107,7 @@ class DataSelector(QObject):
     def _on_project_changed(self, new_project_index):
         self.cur_project_name = self._projects_model.getData(new_project_index, 'project_name')
         self._logger.info(f"Selected project changed to {self._cur_project_name}")
-        _regex = f'"display_name":"{str(self._cur_catch_display) or 'NULL'}","project_name":"{str(self._cur_project_name) or 'NULL'}"'
+        _regex = f'"display_name":"{str(self._cur_catch_display) or "NULL"}","project_name":"{str(self._cur_project_name) or "NULL"}"'
         self._logger.info(f"Filtering bios menu: {_regex}")
         self._bios_proxy.filterRoleOnRegex('bio_filter_str', _regex)
 
