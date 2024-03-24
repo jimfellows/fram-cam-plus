@@ -387,7 +387,7 @@ Item {
                             id: rectUnderline
                             height: index === camera_manager.images_proxy.proxyIndex ? 3 : 1
                             width: imgThumbnail.width - 10
-                            color: index === camera_manager.images_proxy.proxyIndex ? appstyle.accentColor : appstyle.secondaryFontColor
+                            color: index === camera_manager.images_proxy.proxyIndex ? appstyle.primaryColor : appstyle.secondaryFontColor
                             anchors.topMargin: 10
                             anchors.left: imgThumbnail.left
                             //anchors.leftMargin: camera_manager.images_proxy.proxyIndex === index ? -10 : 0

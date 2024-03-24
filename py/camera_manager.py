@@ -191,9 +191,9 @@ class FileCopyWorker(QObject):
     """
     worker class to copy image files on threaded process
     """
-    copyStarted = Signal()
-    copyEnded = Signal()
-    imageCopied = Signal(int, arguments=['image_id'])
+    copyStarted = Signal(int, arguments=['no_of_files'])
+    fileCopied = Signal(str, str, bool, arguments=['path', 'new_path', 'success'])
+    copyEnded = Signal(int, int, arguments=['files_copied', 'files_failed'])
 
     def __init__(self):
         super().__init__()
@@ -201,7 +201,6 @@ class FileCopyWorker(QObject):
         self._files_to_copy = []
         self._destination_folder = None
         self._is_running = False
-
 
     @property
     def destination_folder(self):
@@ -225,7 +224,7 @@ class FileCopyWorker(QObject):
             return
 
         self._logger.info(f"Copying {len(self._files_to_copy)} to {self._destination_folder}")
-        self.copyStarted.emit()
+        self.copyStarted.emit(len(self._files_to_copy))
         self._is_running = True
         _successes = 0
         _fails = 0
@@ -236,12 +235,14 @@ class FileCopyWorker(QObject):
                 shutil.copyfile(f, _new_path)
                 self._logger.info(f"File copied: {f} --> {_new_path}")
                 _successes += 1
+                self.fileCopied.emit(f, _new_path, True)
             except Exception as e:
                 self._logger.info(f"Error while copying {f}: {e}")
                 _fails += 1
+                self.fileCopied.emit(f, '', False)
 
         self._is_running = False
-        self.copyEnded.emit()
+        self.copyEnded.emit(_successes, _fails)
         self._logger.info(f"File copy completed: successes = {_successes}, failures = {_fails}")
 
 
@@ -256,6 +257,10 @@ class CameraManager(QObject):
     barcodeScannerChanged = Signal(bool, arguments=['is_on'])
 
     cameraControlsChange = Signal()
+
+    copyStarted = Signal(int, arguments=['no_of_files'])
+    fileCopied = Signal(str, str, bool, arguments=['path', 'new_path', 'success'])
+    copyEnded = Signal(int, int, arguments=['files_copied', 'files_failed'])
 
     def __init__(self, db, app=None):
         super().__init__()
@@ -324,6 +329,11 @@ class CameraManager(QObject):
         self._file_copy_worker = FileCopyWorker()
         self._file_copy_worker.moveToThread(self._file_copy_thread)
         self._file_copy_thread.started.connect(self._file_copy_worker.run)
+
+        # connecting QML directly to the worker signals causes crash, so passing via signals here
+        self._file_copy_worker.copyStarted.connect(self.copyStarted.emit)
+        self._file_copy_worker.fileCopied.connect(self.fileCopied.emit)
+        self._file_copy_worker.copyEnded.connect(self.copyEnded.emit)
 
     @Slot()
     def copyCurrentImageToWh(self):

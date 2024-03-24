@@ -461,6 +461,29 @@ Window {
                         color: appstyle.secondaryFontColor
                         font.family: appstyle.fontFamily
                     }
+                    FramCamProgressBar {
+                        id: progress
+                        value: 0
+                        indeterminate: false
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.verticalCenter: parent.verticalCenter
+                        Connections {
+                            target: camera_manager
+                            function onCopyStarted(no_of_files) {
+                                progress.to = no_of_files
+                            }
+                            function onFileCopied(path, new_path, success) {
+                                console.info("Another file copied, our progress value = " + progress.value)
+                                for (var i = 0; i < 10; i++) {
+                                    progress.value = progress.value + 0.1
+                                }
+                            }
+                            function onCopyEnded(successes, fails) {
+                                progress.value = 0;
+                            }
+                        }
+
+                    }
                     Label {
                         id: lblBarcode
                         font.bold: true
