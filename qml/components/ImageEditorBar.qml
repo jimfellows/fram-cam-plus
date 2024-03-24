@@ -215,6 +215,9 @@ Rectangle {
                         text: 'Sync to\nWH'
                         Layout.preferredHeight: 75
                         Layout.preferredWidth: 90
+                        onClicked: {
+                            camera_manager.copyCurrentImageToWh()
+                        }
                     }
                 }
             }

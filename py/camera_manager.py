@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 import re
+import shutil
 
 # local imports
 from py.logger import Logger
@@ -19,6 +20,8 @@ from PySide6.QtCore import (
     Qt,
     QAbstractListModel,
     QModelIndex,
+    QThread,
+    # QJs
 )
 import pyzbar.pyzbar
 # import tensorflow as tf
@@ -184,6 +187,64 @@ class CVFrameWorker(VideoFrameWorker):
         _gaussian = cv2.GaussianBlur(_gray_img, (21, 21), 0, 0)
         return cv2.divide(_gray_img, _gaussian, scale=256.0)
 
+class FileCopyWorker(QObject):
+    """
+    worker class to copy image files on threaded process
+    """
+    copyStarted = Signal()
+    copyEnded = Signal()
+    imageCopied = Signal(int, arguments=['image_id'])
+
+    def __init__(self):
+        super().__init__()
+        self._logger = Logger.get_root()
+        self._files_to_copy = []
+        self._destination_folder = None
+        self._is_running = False
+
+
+    @property
+    def destination_folder(self):
+        return self._destination_folder
+
+    @destination_folder.setter
+    def destination_folder(self, folder_path):
+        self._destination_folder = folder_path
+
+    @property
+    def files_to_copy(self):
+        return self._files_to_copy
+
+    @files_to_copy.setter
+    def files_to_copy(self, file_paths):
+        self._files_to_copy = file_paths
+
+    def run(self):
+        if not self._destination_folder or not os.path.exists(self._destination_folder):
+            self._logger.info(f"Unable to find target folder to copy files to: {self._destination_folder}")
+            return
+
+        self._logger.info(f"Copying {len(self._files_to_copy)} to {self._destination_folder}")
+        self.copyStarted.emit()
+        self._is_running = True
+        _successes = 0
+        _fails = 0
+
+        for f in self._files_to_copy:
+            try:
+                _new_path = os.path.join(self._destination_folder, os.path.basename(f))
+                shutil.copyfile(f, _new_path)
+                self._logger.info(f"File copied: {f} --> {_new_path}")
+                _successes += 1
+            except Exception as e:
+                self._logger.info(f"Error while copying {f}: {e}")
+                _fails += 1
+
+        self._is_running = False
+        self.copyEnded.emit()
+        self._logger.info(f"File copy completed: successes = {_successes}, failures = {_fails}")
+
+
 class CameraManager(QObject):
 
     unusedSignal = Signal()
@@ -193,7 +254,6 @@ class CameraManager(QObject):
     barcodeDetected = Signal(str, arguments=['barcode'])
     videoFrameProcessed = Signal("QVariant", arguments=['new_frame'])
     barcodeScannerChanged = Signal(bool, arguments=['is_on'])
-
 
     cameraControlsChange = Signal()
 
@@ -259,6 +319,17 @@ class CameraManager(QObject):
         self._camera.focusModeChanged.connect(self.cameraControlsChange)
         self._camera.flashModeChanged.connect(self.cameraControlsChange)
 
+        # threading stuff to copy image files
+        self._file_copy_thread = QThread()
+        self._file_copy_worker = FileCopyWorker()
+        self._file_copy_worker.moveToThread(self._file_copy_thread)
+        self._file_copy_thread.started.connect(self._file_copy_worker.run)
+
+    @Slot()
+    def copyCurrentImageToWh(self):
+        self._file_copy_worker.destination_folder = self._app.settings.curWheelhouseDataDir
+        self._file_copy_worker.files_to_copy = [self._images_model.curImgFilePath]
+        self._file_copy_thread.start()
 
     @Property(bool, notify=cameraControlsChange)
     def isBarcodeScannerOn(self):

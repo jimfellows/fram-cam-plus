@@ -18,13 +18,13 @@ Item {
     FolderDialog {
         id: dlgFolders
         onAccepted: {
-            tfWheelhouseDir.text = selectedFolder
+            tfWheelhouseDir.text = selectedFolder.toString().replace('file:///', '')
         }
     }
     FileDialog {
         id: dlgFiles
         onAccepted: {
-            tfBackdeckDb.text = selectedFile
+            tfBackdeckDb.text = selectedFile.toString().replace('file:///', '')
         }
     }
 
@@ -107,6 +107,8 @@ Item {
                             Layout.preferredHeight: root.widgetHeight - 10  // not sure why text field comes out bigger than the rest
                             placeholderText: "Browse to PyCollector data folder over the network..."
                             Component.onCompleted: tfWheelhouseDir.text = settings.curWheelhouseDataDir
+                            onTextChanged: settings.curWheelhouseDataDir = text
+
                         }
                         FramCamButton {
                             text: 'Browse'

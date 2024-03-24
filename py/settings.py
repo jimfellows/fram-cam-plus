@@ -165,7 +165,7 @@ class Settings(QObject):
 
     @Property(str, notify=wheelhouseDataDirChanged)
     def curWheelhouseDataDir(self):
-        return self._cur_backdeck_db
+        return self._cur_wheelhouse_data_dir
 
     @curWheelhouseDataDir.setter
     def curWheelhouseDataDir(self, new_dir):

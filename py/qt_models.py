@@ -430,7 +430,7 @@ class ImagesModel(FramCamSqlListModel):
         return self.getData(self._current_index, 'image_id')
 
     @Property("QVariant", notify=currentImageChanged)
-    def curImgPath(self):
+    def curImgFilePath(self):
         return self.getData(self._current_index, 'full_path') or ''
 
     @Property("QVariant", notify=currentImageChanged)
