@@ -467,22 +467,29 @@ Window {
                         indeterminate: false
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
+
+                        property bool autoAnimation: false;
+
                         Connections {
                             target: camera_manager
                             function onCopyStarted(no_of_files) {
-                                progress.to = no_of_files
+                                return
                             }
                             function onFileCopied(path, new_path, success) {
-                                console.info("Another file copied, our progress value = " + progress.value)
-                                for (var i = 0; i < 10; i++) {
-                                    progress.value = progress.value + 0.1
-                                }
+                                return
                             }
                             function onCopyEnded(successes, fails) {
-                                progress.value = 0;
+                                return
                             }
                         }
-
+                        PropertyAnimation{
+                            id: animateProgress
+                            target: progress
+                            property: "value"
+                            to: 1
+                            duration:400
+                            //easing.type: Easing.InOutQuint
+                        }
                     }
                     Label {
                         id: lblBarcode

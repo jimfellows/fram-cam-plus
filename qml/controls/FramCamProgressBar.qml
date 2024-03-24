@@ -6,23 +6,27 @@ ProgressBar {
     value: 0.5
     padding: 2
 
+    property color runningColor: appstyle.primaryColor;
+    implicitHeight: 10
+    implicitWidth: 200
+
     background: Rectangle {
-        implicitWidth: 200
-        implicitHeight: 6
+        implicitWidth: control.width
+        implicitHeight: control.height
         color: appstyle.iconColor
         radius: 3
     }
 
     contentItem: Item {
-        implicitWidth: 200
-        implicitHeight: 4
+        implicitWidth: control.width
+        implicitHeight: control.height * 0.95
 
         // Progress indicator for determinate state.
         Rectangle {
             width: control.visualPosition * parent.width
             height: parent.height
             radius: 2
-            color: appstyle.primaryColor
+            color: control.runningColor
             visible: !control.indeterminate
         }
 

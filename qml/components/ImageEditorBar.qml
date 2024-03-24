@@ -36,7 +36,7 @@ Rectangle {
         Rectangle {  // area with image info + notes field
             id: rectEditArea
             Layout.preferredWidth: parent.width
-            Layout.preferredHeight: parent.height * 0.35 - 5
+            Layout.preferredHeight: parent.height * 0.40
             color: '#556a75'
             radius: 8
             Label {
@@ -153,6 +153,47 @@ Rectangle {
                             Layout.alignment: Qt.AlignLeft
                             color: appstyle.secondaryFontColor
                             fontSizeMode: Text.Fit
+                        }
+                    }
+                    RowLayout {
+                        Label {
+                            text: 'Is Synced?:'
+                            Layout.alignment: Qt.AlignRight
+                            Layout.preferredWidth: root.labelWidth
+                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            fontSizeMode: Text.Fit
+                            Layout.fillWidth: true
+                        }
+                        FramCamProgressBar {
+                            id: progressCopy
+                            value: 0
+                            indeterminate: false
+                            Layout.preferredHeight: 10
+                            Layout.preferredWidth: 100
+                            Layout.alignment: Qt.AlignRight
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.verticalCenter
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Connections {
+                                target: camera_manager
+                                function onCopyStarted(no_of_files) {
+                                    progressCopy.value = 0
+                                    progressCopy.runningColor = appstyle.primaryColor
+                                    animateProgress.running = true
+                                }
+                                function onFileCopied(path, new_path, success) {
+                                    if (!success) progressCopy.runningColor = appstyle.errorColor
+                                }
+                            }
+                            PropertyAnimation{
+                                id: animateProgress
+                                target: progressCopy
+                                property: "value"
+                                to: 1
+                                duration:400
+                                easing.type: Easing.InOutQuint
+                            }
                         }
                     }
                 }  // end column for image info
