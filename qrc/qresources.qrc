@@ -96,6 +96,7 @@
         <file alias="video_off.svg">../resources/svgs/video_off.svg</file>
     </qresource>
     <qresource prefix="/icons">
+        <file alias="nautilus_colored.ico">../resources/icons/nautilus_colored.ico</file>
         <file alias="nautilus_colored.png">../resources/icons/nautilus_colored.png</file>
     </qresource>
     <qresource prefix="/sounds">
