@@ -329,6 +329,8 @@ class CameraManager(QObject):
         self._file_copy_worker = None
 
 
+
+
     def _copy_images_to_wh(self, images):
         # threading stuff to copy image files
         self._file_copy_thread = QThread()
@@ -339,8 +341,10 @@ class CameraManager(QObject):
         # connecting QML directly to the worker signals causes crash, so passing via signals here
         self._file_copy_worker.copyStarted.connect(self.copyStarted.emit)
         self._file_copy_worker.fileCopied.connect(self.fileCopied.emit)
+        self._file_copy_worker.fileCopied.connect(self._images_model.setImageSyncPath)
         self._file_copy_worker.copyEnded.connect(self.copyEnded.emit)
         self._file_copy_worker.copyEnded.connect(self._file_copy_thread.quit)
+
 
         self._file_copy_worker.destination_folder = self._app.settings.curWheelhouseDataDir
         self._file_copy_worker.files_to_copy = images

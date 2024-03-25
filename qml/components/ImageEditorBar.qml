@@ -156,28 +156,38 @@ Rectangle {
                         }
                     }
                     RowLayout {
+                        Layout.fillWidth: true
                         Label {
                             text: 'Is Synced?:'
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
                             font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
                             fontSizeMode: Text.Fit
-                            Layout.fillWidth: true
+                            //Layout.fillWidth: true
+                        }
+                        FramCamCheckBox {
+                            id: cbIsSynced
+                            Layout.preferredWidth: 25
+                            Layout.preferredHeight: 25
+                            enabled: false
+                            checked: camera_manager.images_model.isImgBackedUp
+                            Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                         }
                         FramCamProgressBar {
                             id: progressCopy
                             value: 0
+                            visible: false
                             indeterminate: false
-                            Layout.preferredHeight: 10
-                            Layout.preferredWidth: 100
+                            Layout.preferredHeight: 15
+                            Layout.preferredWidth: 35
                             Layout.alignment: Qt.AlignRight
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.verticalCenter: parent.verticalCenter
                             Layout.fillWidth: true
-                            Layout.fillHeight: true
+                            Layout.leftMargin: 10
+                            Layout.rightMargin: 10
                             Connections {
                                 target: camera_manager
                                 function onCopyStarted(no_of_files) {
+                                    progressCopy.visible =  true
                                     progressCopy.value = 0
                                     progressCopy.runningColor = appstyle.primaryColor
                                     animateProgress.running = true
@@ -203,6 +213,7 @@ Rectangle {
                     spacing: 3
                     TextArea {
                         id: taNotes
+                        text: camera_manager.images_model.curImgNotes ? camera_manager.images_model.curImgNotes : ""
                         background: Rectangle {
                             color: appstyle.iconColor
                             anchors.fill: taNotes
@@ -214,6 +225,7 @@ Rectangle {
                         placeholderText: "Take notes using the keyboard below..."
                         focus: root.width > 0
                         color: appstyle.surfaceColor
+                        onTextChanged: camera_manager.images_model.curImgNotes = text
                     }
                 }  // end col layout for notes text area
             }  //rowlayout for image info

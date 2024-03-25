@@ -71,13 +71,25 @@ class FramCamSqlListModel(QAbstractListModel):
             return None
 
     def setData(self, index, value, role=Qt.DisplayRole):
+        """
+        re-implementation of virtual function to allow editable model
+        set role data to value at specific index in _data list
+        """
         if not index.isValid():
             return
         try:
             self._data[index.row()][self.roleNames()[role].decode('utf-8')] = value
-            self.dataChanged.emit(index, index)
+            self.dataChanged.emit(index, index)  # emits index twice (we're only editing a single item)
         except Exception as e:
             self._logger.error(f"Error in {self.__class__.__name__}.setData: {e}")
+
+    def setRoleData(self, row, role_name, value):
+        """
+        wrapper for set data to allow developer to just specify the row num, field/role name, and value to set
+        """
+        _role_int = self.getRoleByName(role_name)
+        _ix = QModelIndex(self.index(row, 0))  # assumes 2-d data structure, so col = 0, is this right?
+        self.setData(_ix, value, role=_role_int)
 
     def flags(self, index):
         return Qt.ItemIsEditable
@@ -285,7 +297,6 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
     proxyIndexChanged = Signal(int, arguments=['new_proxy_index'])
     indexSetSilently = Signal(int, arguments=['newIndex'])
 
-
     def __init__(self, source_model, parent=None, name=None):
         super().__init__(parent)
         self._logger = Logger.get_root()
@@ -397,6 +408,7 @@ class ImagesModel(FramCamSqlListModel):
 
     sendIndexToProxy = Signal(int, arguments=['new_index'])  # TODO: move me into framcamsqllistmodel
     currentImageChanged = Signal()
+    currentImageValChanged = Signal()
 
     def __init__(self, db):
         super().__init__(db)
@@ -465,29 +477,62 @@ class ImagesModel(FramCamSqlListModel):
     def curImgCaptureDt(self):
         return self.getData(self._current_index, 'captured_dt')  or ''
 
+    def _set_cur_value(self, role_name, value):
+        if not self.curImgId:
+            self._logger.warning(f"Unable to set {role_name} = {value}, curImgId not set.")
+            return
+
+        if self._current_index == -1:
+            self._logger.warning(f"Current Images index not set, unable to set {role_name} = {value}")
+            return
+
+        for _i in range(self._table_model.rowCount()):
+            if self._table_model.record(_i).value('image_id') == self.curImgId:
+                _r = self._table_model.record(_i)
+                _r.setValue(self._table_model.fieldIndex(role_name.upper()), value)
+                self._table_model.setRecord(_i, _r)
+                self._table_model.submitAll()
+
+        self.setRoleData(self._current_index, role_name.lower(), value)
+        self.currentImageValChanged.emit()  # TODO: emit kv pair?
+
+
     @Property("QVariant", notify=currentImageChanged)
     def curImgNotes(self):
         return self.getData(self._current_index, 'notes') or ''
 
     @curImgNotes.setter
     def curImgNotes(self, new_notes):
-        pass
-        # if new_notes != self.getData(self._current_index, 'notes'):
-        #     _image_id_field_pos = self._table_model.fieldIndex('IMAGE_ID')
-        #     self._table_proxy.setFilterRole(_image_id_field_pos)
-        #     self._table_proxy.setFilterFixedString(self.curImgId)
-        #
-        #     if self._table_proxy.rowCount() > 0:
-        #         _proxy_ix = self._table_proxy.index(0, _image_id_field_pos)
-        #         self._table_model.setData(_proxy_ix, new_notes)
-        #
-        #         _role = self.getRoleByName('notes')
-        #         self.setData(QModelIndex(self._current_index, _role), new_notes)
-        #
-        #
-        #     _table_ix =
-        #     self._table_model.setData()
-        #     self.setData(QModelIndex(self._current_index, ))
+        self._set_cur_value('notes', new_notes)
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgBackupPath(self):
+        return self.getData(self._current_index, 'backup_path') or ''
+
+    @curImgBackupPath.setter
+    def curImgBackupPath(self, new_path):
+        self._set_cur_value('backup_path', new_path)
+
+    @Property(bool, notify=currentImageChanged)
+    def isImgBackedUp(self):
+        return True if self.curImgBackupPath else False
+
+    def setImageSyncPath(self, local_path, sync_path, is_successful):
+        """
+        allows us to set value for images that arent the "current" selection
+        """
+        if is_successful:
+            _model_row = self.getRowIndexByValue('full_path', local_path)
+            _img_id = self.getData(_model_row, 'image_id')
+            for _i in range(self._table_model.rowCount()):
+                if self._table_model.record(_i).value('image_id') == _img_id:
+                    _r = self._table_model.record(_i)
+                    _r.setValue(self._table_model.fieldIndex('BACKUP_PATH'), sync_path)
+                    self._table_model.setRecord(_i, _r)
+                    self._table_model.submitAll()
+
+            self.setRoleData(_model_row, 'backup_path', sync_path)
+            self.currentImageChanged.emit()
 
     def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
         """
