@@ -457,7 +457,7 @@ Window {
                         anchors.left: parent.left
                         anchors.leftMargin: 10
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "Active Camera: " + camControls.active_camera_name
+                        text: "Active Camera: " + camControls.activeCameraName
                         color: appStyle.secondaryFontColor
                         font.family: appStyle.fontFamily
                     }

@@ -76,7 +76,7 @@ Item {
                     rightMargin: 15
                 }
                 onClicked: {
-                    camControls.capture_image_to_file()
+                    camControls.captureImage()
                     shutter.play()
                 }
             }
@@ -197,7 +197,7 @@ Item {
                             implicitWidth: 75
                             implicitHeight: 75
                             radius: 20
-                            onClicked: camControls.toggle_camera()
+                            onClicked: camControls.toggleCamera()
                             iconSource: 'qrc:/svgs/change_camera.svg'
                         }
                         FramCamButton {
