@@ -12,10 +12,10 @@ GroupBox {
     implicitWidth: 300
     implicitHeight: 150
 
-    property color fontColor: appstyle.secondaryFontColor
-    property string fontFamily: appstyle.fontFamily
+    property color fontColor: appStyle.secondaryFontColor
+    property string fontFamily: appStyle.fontFamily
     property int fontPixelSize: 16
-    property color borderColor: appstyle.iconColor
+    property color borderColor: appStyle.iconColor
     property real labelIndentation: 0.02  // percent into width that label is pushed
 
     label: Label {
@@ -32,7 +32,7 @@ GroupBox {
 
     background: Item {
         id: box
-        property string borderColor: appstyle.iconColor
+        property string borderColor: appStyle.iconColor
         property int borderWidth: 2
         onWidthChanged: canvas.requestPaint()
         onHeightChanged: canvas.requestPaint()

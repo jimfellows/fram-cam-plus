@@ -8,7 +8,7 @@ CheckBox {
     id: control
     text: qsTr("")
     checked: false
-    property color checkColor: appstyle.primaryColor
+    property color checkColor: appStyle.primaryColor
 
     indicator: Rectangle {
         width: control.width
@@ -16,8 +16,8 @@ CheckBox {
         x: control.leftPadding
         y: parent.height / 2 - height / 2
         radius: 3
-        border.color: control.down ? appstyle.surfaceColor : appstyle.iconColor
-        color: appstyle.elevatedSurface_L9
+        border.color: control.down ? appStyle.surfaceColor : appStyle.iconColor
+        color: appStyle.elevatedSurface_L9
 
         Image {
             source: "qrc:/svgs/check.svg"
@@ -44,7 +44,7 @@ CheckBox {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             radius: 2
-            color: control.down ? appstyle.surfaceColor : appstyle.primaryColor
+            color: control.down ? appStyle.surfaceColor : appStyle.primaryColor
             visible: control.checked
         }
         */

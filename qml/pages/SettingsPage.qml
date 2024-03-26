@@ -36,7 +36,7 @@ Item {
     }
     Rectangle {
         id: rectBg
-        color: appstyle.elevatedSurface_L5
+        color: appStyle.elevatedSurface_L5
         anchors.fill: parent
         anchors.topMargin: 10
         anchors.bottomMargin: 10
@@ -58,16 +58,16 @@ Item {
                         spacing: 15
                         Label {
                             text: "Vessel Subnet"
-                            color: appstyle.secondaryFontColor
+                            color: appStyle.secondaryFontColor
                             font.pixelSize: root.labelSize
-                            font.family: appstyle.fontFamily
+                            font.family: appStyle.fontFamily
                             Layout.preferredWidth: root.labelWidth
                         }
                         FramCamComboBox {
                             id: cbSubnet
                             Layout.preferredWidth: 200
                             Layout.preferredHeight: root.widgetHeight
-                            backgroundColor: appstyle.elevatedSurface_L5
+                            backgroundColor: appStyle.elevatedSurface_L5
                             model: ['192.254.243', '192.254.242', '127.0.0.1']
                             placeholderText: 'Select a vessel subnet...'
                             onCurrentIndexChanged: settings.curVesselSubnet = model[currentIndex]
@@ -76,7 +76,7 @@ Item {
                             Connections {
                                 target: settings
                                 function onBackdeckPinged(status) {
-                                    cbSubnet.borderColor = status ? appstyle.accentColor : appstyle.errorColor
+                                    cbSubnet.borderColor = status ? appStyle.accentColor : appStyle.errorColor
                                 }
                             }
                         }
@@ -97,8 +97,8 @@ Item {
                         Label {
                             text: "Wheelhouse Data Dir."
                             font.pixelSize: root.labelSize
-                            color: appstyle.secondaryFontColor
-                            font.family: appstyle.fontFamily
+                            color: appStyle.secondaryFontColor
+                            font.family: appStyle.fontFamily
                             Layout.preferredWidth: root.labelWidth
                         }
                         FramCamTextField {
@@ -134,8 +134,8 @@ Item {
                         Label {
                             text: "Backdeck DB File"
                             font.pixelSize: root.labelSize
-                            color: appstyle.secondaryFontColor
-                            font.family: appstyle.fontFamily
+                            color: appStyle.secondaryFontColor
+                            font.family: appStyle.fontFamily
                             Layout.preferredWidth: root.labelWidth
                         }
                         FramCamTextField {
@@ -181,9 +181,9 @@ Item {
                         spacing: 10
                         Label {
                             text: "Color Mode"
-                            color: appstyle.secondaryFontColor
+                            color: appStyle.secondaryFontColor
                             font.pixelSize: root.labelSize
-                            font.family: appstyle.fontFamily
+                            font.family: appStyle.fontFamily
                             Layout.preferredWidth: gbUi.labelWidth
                         }
                         FramCamComboBox {
@@ -191,7 +191,7 @@ Item {
                             Layout.preferredWidth: 300
                             Layout.preferredHeight: 75
                             model: ['Dark', 'Light', 'Grey']
-                            backgroundColor: appstyle.elevatedSurface_L5
+                            backgroundColor: appStyle.elevatedSurface_L5
                             placeholderText: 'Select UI color mode...'
                             onCurrentIndexChanged: {
                                 settings.curUiMode = model[currentIndex]

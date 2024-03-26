@@ -4,7 +4,7 @@ import Qt5Compat.GraphicalEffects
 Item {
     Rectangle {
         id: rectangle
-        color: appstyle.elevatedSurface_L5
+        color: appStyle.elevatedSurface_L5
         anchors.fill: parent
         anchors.rightMargin: 5
         anchors.leftMargin: 5
@@ -21,7 +21,7 @@ Item {
             layer {
                 enabled: true
                 effect: ColorOverlay {
-                    color: appstyle.iconColor
+                    color: appStyle.iconColor
                 }
             }
         }

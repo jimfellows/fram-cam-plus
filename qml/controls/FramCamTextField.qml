@@ -11,15 +11,15 @@ TextField {
 
     //custom props
     property int radius: 12
-    property color fontColor: appstyle.secondaryFontColor
+    property color fontColor: appStyle.secondaryFontColor
     property int fontSize: 16
-    property color backgroundColor: appstyle.elevatedSurface_L9
-    property color borderColor: appstyle.iconColor
-    property color focusedColor: appstyle.accentColor
+    property color backgroundColor: appStyle.elevatedSurface_L9
+    property color borderColor: appStyle.iconColor
+    property color focusedColor: appStyle.accentColor
 
     placeholderText: qsTr("This is placeholder text")
-    placeholderTextColor: displayText || activeFocus ? "transparent" : appstyle.disabledFontColor
-    font.family: appstyle.fontFamily
+    placeholderTextColor: displayText || activeFocus ? "transparent" : appStyle.disabledFontColor
+    font.family: appStyle.fontFamily
 
     color: root.fontColor
     font.pixelSize: fontSize

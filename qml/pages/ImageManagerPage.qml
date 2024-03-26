@@ -9,7 +9,7 @@ import 'qrc:/components'
 Item {
     Rectangle {
         id: rectParent
-        color: appstyle.elevatedSurface_L5
+        color: appStyle.elevatedSurface_L5
         anchors.fill: parent
         anchors.rightMargin: 5
         anchors.leftMargin: 5
@@ -27,7 +27,7 @@ Item {
         ListView {
             id: lvImages
             //Layout.preferredHeight: 200
-            model: camera_manager.images_proxy
+            model: imageManager.imagesProxy
             //color: black
             clip: true
 
@@ -41,8 +41,8 @@ Item {
                 // iterate backwards so deletions dont affect subsequent indexes
                 for (var i = lvImages.model.rowCount() - 1; i > -1; i--) {
                     if (lvImages.itemAtIndex(i).isChecked) {
-                        var sourceIndex = camera_manager.images_proxy.getSourceRowFromProxy(i)
-                        camera_manager.images_model.removeImage(sourceIndex)
+                        var sourceIndex = imageManager.imagesProxy.getSourceRowFromProxy(i)
+                        imageManager.imagesModel.removeImage(sourceIndex)
                     }
                 }
             }
@@ -65,7 +65,7 @@ Item {
                         anchors.fill: parent
                         anchors.topMargin: -2
                         anchors.bottomMargin: -2
-                        color: index % 2 ? appstyle.elevatedSurface_L6 : appstyle.elevatedSurface_L9
+                        color: index % 2 ? appStyle.elevatedSurface_L6 : appStyle.elevatedSurface_L9
                         border.color: "transparent"
                         RowLayout {
                             anchors.fill: parent
@@ -89,13 +89,24 @@ Item {
                                     source: "file:///" + model.full_path
                                     cache: true
                                 }
-                                Label {
-                                    text: model.file_name
-                                    font.family: appstyle.fontFamily
-                                    font.pixelSize: 10
-                                    font.bold: true
-                                    color: appstyle.secondaryFontColor
-                                    Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+                                ColumnLayout {
+                                    Layout.fillHeight: true
+                                    Layout.fillWidth: true
+                                    Label {
+                                        id: lblFileName
+                                        text: model.file_name
+                                        font.family: appStyle.fontFamily
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                        color: appStyle.secondaryFontColor
+                                        Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+                                    }
+                                    FramCamProgressBar {
+                                        id: progressCopy
+                                        value: 0
+                                        //Layout.fillWidth: true
+                                        Layout.preferredWidth: lblFileName.width
+                                    }
                                 }
                                 ColumnLayout {
                                     Layout.fillHeight: true
@@ -115,7 +126,7 @@ Item {
                                         layer {
                                             enabled: true
                                             effect: ColorOverlay {
-                                                color: appstyle.iconColor
+                                                color: appStyle.iconColor
                                             }
                                         }
                                     }
@@ -123,10 +134,10 @@ Item {
                                         text: "To WH?"
                                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                                         Layout.topMargin: -5
-                                        font.family: appstyle.fontFamily
+                                        font.family: appStyle.fontFamily
                                         font.pixelSize: 8
                                         font.bold: true
-                                        color: appstyle.secondaryFontColor
+                                        color: appStyle.secondaryFontColor
                                     }
 
                                 }
@@ -136,7 +147,7 @@ Item {
                                     Layout.preferredWidth: 50
                                     Layout.leftMargin: 10
                                     Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-                                    checkColor: appstyle.accentColor
+                                    checkColor: appStyle.accentColor
                                     enabled: false
                                 }
                             }
@@ -145,13 +156,13 @@ Item {
                                 id: btnDelete
                                 text: "Delete\nX"
                                 visible: false  // going to force user to select, then delete
-                                pressedColor: appstyle.errorColor
+                                pressedColor: appStyle.errorColor
                                 Layout.preferredHeight: delegate.height
                                 Layout.preferredWidth: 75
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 onClicked: {
-                                    var sourceIndex = camera_manager.images_proxy.getSourceRowFromProxy(index)
-                                    camera_manager.images_model.removeImage(sourceIndex)
+                                    var sourceIndex = imageManager.imagesProxy.getSourceRowFromProxy(index)
+                                    imageManager.imagesModel.removeImage(sourceIndex)
                                 }
                             }
                             FramCamButton {
@@ -162,7 +173,7 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 onClicked: {
                                     windowMain.navigateToPage('capture')
-                                    camera_manager.images_model.sendIndexToProxy(index)
+                                    imageManager.imagesModel.sendIndexToProxy(index)
                                 }
                             }
                             }
@@ -180,7 +191,7 @@ Item {
 
             }
             height: 100
-            color: appstyle.elevatedSurface_L5
+            color: appStyle.elevatedSurface_L5
             RowLayout {
                 spacing: 20
                 anchors {
@@ -205,7 +216,7 @@ Item {
                 FramCamButton {
                     id: btnDeleteSelection
                     text: "Delete\nSelected"
-                    pressedColor: appstyle.errorColor
+                    pressedColor: appStyle.errorColor
                     Layout.preferredHeight: 75
                     onClicked: lvImages.deleteSelected()
                 }

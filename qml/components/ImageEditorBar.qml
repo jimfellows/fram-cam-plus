@@ -1,14 +1,15 @@
 import QtQuick 2.0
 import QtQuick.Layouts 6.3
 import QtQuick.Controls 2.15
+import QtQuick.Controls.Material
 
 import 'qrc:/controls'
 import QtQuick.VirtualKeyboard 2.1
 
 Rectangle {
     id: root
-    color: appstyle.surfaceColor
-    border.color: appstyle.iconColor
+    color: appStyle.surfaceColor
+    border.color: appStyle.iconColor
     implicitHeight: 417
     implicitWidth: 480
     radius: 8
@@ -16,6 +17,8 @@ Rectangle {
 
     property string imageSource;
     property int labelWidth: 80;
+
+    Material.theme: Material.Dark
 
     // make sure notes are active so keyboard knows where to go
     onWidthChanged: if (width > 0) {
@@ -42,8 +45,8 @@ Rectangle {
             Label {
                 id: lblTitle
                 fontSizeMode: Text.Fit
-                text: camera_manager.images_model.curImgFileName
-                color: appstyle.primaryFontColor
+                text: imageManager.imagesModel.curImgFileName
+                color: appStyle.primaryFontColor
                 font.bold: true
                 anchors {
                     top: parent.top
@@ -71,8 +74,8 @@ Rectangle {
                     spacing: 5
                     RowLayout {
                         Layout.fillWidth: true
-                        Label { text: 'Haul #:'; Layout.alignment: Qt.AlignRight; Layout.preferredWidth: root.labelWidth; font.bold: true; font.underline: true; color: appstyle.secondaryFontColor }
-                        Label { text: camera_manager.images_model.curImgHaulNum; Layout.alignment: Qt.AlignLeft; color: appstyle.secondaryFontColor}
+                        Label { text: 'Haul #:'; Layout.alignment: Qt.AlignRight; Layout.preferredWidth: root.labelWidth; font.bold: true; font.underline: true; color: appStyle.secondaryFontColor }
+                        Label { text: imageManager.imagesModel.curImgHaulNum; Layout.alignment: Qt.AlignLeft; color: appStyle.secondaryFontColor}
                     }
                     RowLayout {
                         Layout.fillWidth: true
@@ -81,13 +84,13 @@ Rectangle {
                             text: 'File:'
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
-                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            font.bold: true; font.underline: true; color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
                         }
                         Label {
-                            text: camera_manager.images_model.curImgFileName
+                            text: imageManager.imagesModel.curImgFileName
                             Layout.alignment: Qt.AlignLeft
-                            color: appstyle.secondaryFontColor
+                            color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
                         }
                     }
@@ -97,13 +100,13 @@ Rectangle {
                             text: 'Catch:'
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
-                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            font.bold: true; font.underline: true; color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
                         }
                         Label {
-                            text: camera_manager.images_model.curImgSciName ? camera_manager.images_model.curImgCatch+' ('+camera_manager.images_model.curImgSciName+')' : camera_manager.images_model.curImgCatch
+                            text: imageManager.imagesModel.curImgSciName ? imageManager.imagesModel.curImgCatch+' ('+imageManager.imagesModel.curImgSciName+')' : imageManager.imagesModel.curImgCatch
                             Layout.alignment: Qt.AlignLeft
-                            color: appstyle.secondaryFontColor
+                            color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
                         }
                     }
@@ -114,12 +117,12 @@ Rectangle {
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
                             fontSizeMode: Text.Fit
-                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            font.bold: true; font.underline: true; color: appStyle.secondaryFontColor
                         }
                         Label {
-                            text: camera_manager.images_model.curImgProject
+                            text: imageManager.imagesModel.curImgProject
                             Layout.alignment: Qt.AlignLeft
-                            color: appstyle.secondaryFontColor
+                            color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
                         }
                     }
@@ -129,13 +132,13 @@ Rectangle {
                             text: 'Tag/Barcode:'
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
-                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            font.bold: true; font.underline: true; color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
                         }
                         Label {
-                            text: camera_manager.images_model.curImgBioLabel
+                            text: imageManager.imagesModel.curImgBioLabel
                             Layout.alignment: Qt.AlignLeft
-                            color: appstyle.secondaryFontColor
+                            color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
                         }
                     }
@@ -145,13 +148,13 @@ Rectangle {
                             text: 'Captured:'
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
-                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            font.bold: true; font.underline: true; color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
                         }
                         Label {
-                            text: camera_manager.images_model.curImgCaptureDt
+                            text: imageManager.imagesModel.curImgCaptureDt
                             Layout.alignment: Qt.AlignLeft
-                            color: appstyle.secondaryFontColor
+                            color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
                         }
                     }
@@ -161,7 +164,7 @@ Rectangle {
                             text: 'Is Synced?:'
                             Layout.alignment: Qt.AlignRight
                             Layout.preferredWidth: root.labelWidth
-                            font.bold: true; font.underline: true; color: appstyle.secondaryFontColor
+                            font.bold: true; font.underline: true; color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
                             //Layout.fillWidth: true
                         }
@@ -170,7 +173,7 @@ Rectangle {
                             Layout.preferredWidth: 25
                             Layout.preferredHeight: 25
                             enabled: false
-                            checked: camera_manager.images_model.isImgBackedUp
+                            checked: imageManager.imagesModel.isImgBackedUp
                             Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                         }
                         FramCamProgressBar {
@@ -185,15 +188,15 @@ Rectangle {
                             Layout.leftMargin: 10
                             Layout.rightMargin: 10
                             Connections {
-                                target: camera_manager
+                                target: imageManager
                                 function onCopyStarted(no_of_files) {
                                     progressCopy.visible =  true
                                     progressCopy.value = 0
-                                    progressCopy.runningColor = appstyle.primaryColor
+                                    progressCopy.runningColor = appStyle.primaryColor
                                     animateProgress.running = true
                                 }
                                 function onFileCopied(path, new_path, success) {
-                                    if (!success) progressCopy.runningColor = appstyle.errorColor
+                                    if (!success) progressCopy.runningColor = appStyle.errorColor
                                 }
                             }
                             PropertyAnimation{
@@ -213,9 +216,9 @@ Rectangle {
                     spacing: 3
                     TextArea {
                         id: taNotes
-                        text: camera_manager.images_model.curImgNotes ? camera_manager.images_model.curImgNotes : ""
+                        text: imageManager.imagesModel.curImgNotes ? imageManager.imagesModel.curImgNotes : ""
                         background: Rectangle {
-                            color: appstyle.iconColor
+                            color: appStyle.iconColor
                             anchors.fill: taNotes
                             radius: 8
                         }
@@ -224,8 +227,8 @@ Rectangle {
                         Layout.rightMargin: 10
                         placeholderText: "Take notes using the keyboard below..."
                         focus: root.width > 0
-                        color: appstyle.surfaceColor
-                        onTextChanged: camera_manager.images_model.curImgNotes = text
+                        color: appStyle.surfaceColor
+                        onTextChanged: imageManager.imagesModel.curImgNotes = text
                     }
                 }  // end col layout for notes text area
             }  //rowlayout for image info
@@ -240,6 +243,7 @@ Rectangle {
             RowLayout {
                 anchors.fill: parent
                 InputPanel  {
+
                     Layout.preferredWidth: parent.width * 0.85
                     id: keyboard
                     implicitWidth: rectKeyboardArea.width * 0.85
@@ -259,9 +263,9 @@ Rectangle {
                         text: 'Delete'
                         Layout.preferredHeight: 75
                         Layout.preferredWidth: 90
-                        pressedColor: appstyle.errorColor
+                        pressedColor: appStyle.errorColor
                         onClicked: {
-                            camera_manager.images_model.removeImage(camera_manager.images_model.currentIndex)
+                            imageManager.imagesModel.removeImage(imageManager.imagesModel.currentIndex)
                         }
                     }
                     FramCamButton {
@@ -269,7 +273,7 @@ Rectangle {
                         Layout.preferredHeight: 75
                         Layout.preferredWidth: 90
                         onClicked: {
-                            camera_manager.copyCurrentImageToWh()
+                            imageManager.copyCurImageToWheelhouse()
                         }
                     }
                 }

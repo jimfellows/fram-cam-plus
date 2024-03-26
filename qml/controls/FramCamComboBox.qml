@@ -17,10 +17,10 @@ ComboBox {
     Material.theme: Material.Dark
 
     //custom props
-    property color backgroundColor: appstyle.elevatedSurface_L5;
-    property color borderColor: appstyle.iconColor
-    property color fontColor: appstyle.secondaryFontColor
-    property color hoveredColor: appstyle.elevatedSurface_L5.darker(0.7)
+    property color backgroundColor: appStyle.elevatedSurface_L5;
+    property color borderColor: appStyle.iconColor
+    property color fontColor: appStyle.secondaryFontColor
+    property color hoveredColor: appStyle.elevatedSurface_L5.darker(0.7)
     property int fontSize: 18
     property real radius: 12;
     property string placeholderText: "";
@@ -54,16 +54,16 @@ ComboBox {
                 Layout.fillHeight: true
                 radius: root.radius
                 visible: root.currentIndex === index
-                color: appstyle.accentColor
+                color: appStyle.accentColor
             }
             Label {
                 id: popupLabel
                 //opacity: 0.9
                 text: model[root.textRole]
-                color: popupRow.hovered ? appstyle.primaryFontColor : root.fontColor
+                color: popupRow.hovered ? appStyle.primaryFontColor : root.fontColor
                 font.bold: true
                 font.pixelSize: root.fontSize
-                font.family: appstyle.fontFamily
+                font.family: appStyle.fontFamily
                 Layout.leftMargin: 10
                 Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
             }
@@ -78,7 +78,7 @@ ComboBox {
                 layer {
                     enabled: true
                     effect: ColorOverlay {
-                        color: appstyle.accentColor
+                        color: appStyle.accentColor
                     }
                 }
             }
@@ -139,7 +139,7 @@ ComboBox {
                 color: root.fontColor
                 font.bold: true
                 font.pixelSize: root.fontSize
-                font.family: appstyle.fontFamily
+                font.family: appStyle.fontFamily
                 Layout.fillWidth: true
                 verticalAlignment: Image.AlignVCenter
                 Layout.leftMargin: 10

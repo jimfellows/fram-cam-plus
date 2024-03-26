@@ -284,6 +284,7 @@ class CameraManager(QObject):
         self._capture_session.setImageCapture(self._image_capture)
         self._is_capturing = False
         self._is_camera_running = None
+
         self._images_model = ImagesModel(self._db)
         self._images_proxy = FramCamFilterProxyModel(self._images_model)
         # self._images_model.sendIndexToProxy.connect(lambda _i: self._images_proxy.setProxyIndexSilently(_i))
@@ -551,8 +552,6 @@ class CameraManager(QObject):
     @Property(QObject)
     def capture_session(self):
         return self._capture_session
-
-
 
     @Slot()
     def start_camera(self):
