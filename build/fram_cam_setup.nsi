@@ -25,7 +25,7 @@
 !define NOAA_BMP ".\..\resources\images\NOAA_logo.bmp"
 
 ; The name of the installer
-Name "${APPNAME} ${APPNAME}"
+Name "${APPNAME} ${VERSION}"
 
 ; The file to write out as installer
 OutFile ".\FramCam+_setup_${VERSION}.exe"
