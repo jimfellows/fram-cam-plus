@@ -32,8 +32,8 @@ class FramCamPlus(QObject):
 
         # create qml engine, make python classes available to qml context
         self.app = QGuiApplication(sys.argv)
-        self.app.setWindowIcon(QIcon('qrc:/svgs/nautilus.svg'))
-        # self.app.setWindowIcon(QIcon(r"C:\Users\jim-f\dev\fram-cam-plus\resources\icons\nautilus_colored.png"))
+        # self.app.setWindowIcon(QIcon('qrc:/svgs/nautilus.svg'))
+        self.app.setWindowIcon(QPixmap("../resources\\icons\\nautilus_colored.ico"))
         self.engine = QQmlApplicationEngine()
         self.context = self.engine.rootContext()
 
@@ -60,11 +60,11 @@ class FramCamPlus(QObject):
         # lastly, load up qml
         self.engine.load('qrc:/windows/MainWindow.qml')
 
-
         if not self.engine.rootObjects():
             sys.exit(-1)
 
         sys.exit(self.app.exec_())
+
 
 if __name__ == "__main__":
     FramCamPlus()
