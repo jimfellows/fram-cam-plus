@@ -173,7 +173,7 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 onClicked: {
                                     windowMain.navigateToPage('capture')
-                                    imageManager.imagesModel.sendIndexToProxy(index)
+                                    imageManager.imagesProxy.proxyIndex = index
                                 }
                             }
                             }

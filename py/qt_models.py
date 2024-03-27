@@ -405,8 +405,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
 
 
 class ImagesModel(FramCamSqlListModel):
-
-    sendIndexToProxy = Signal(int, arguments=['new_index'])  # TODO: move me into framcamsqllistmodel
+    sendIndexToProxy = Signal(int, arguments=['new_index'])  # TODO: move me into framcamsqllistmodel, rename to sendIndexToView???
     currentImageChanged = Signal()
     currentImageValChanged = Signal()
 
