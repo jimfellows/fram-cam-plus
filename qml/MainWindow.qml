@@ -467,7 +467,6 @@ Window {
                         font.family: appStyle.fontFamily
                         color: appStyle.accentColor
                         text: camControls.detectedBarcode ? "Barcode Detected: " + camControls.detectedBarcode : ''
-                        anchors.top: parent.top
                         anchors.right: parent.right
                         anchors.rightMargin: 10
                         anchors.verticalCenter: parent.verticalCenter
