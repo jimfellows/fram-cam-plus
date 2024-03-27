@@ -461,36 +461,6 @@ Window {
                         color: appStyle.secondaryFontColor
                         font.family: appStyle.fontFamily
                     }
-                    FramCamProgressBar {
-                        id: progress
-                        value: 0
-                        indeterminate: false
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        property bool autoAnimation: false;
-
-                        Connections {
-                            target: imageManager
-                            function onCopyStarted(no_of_files) {
-                                return
-                            }
-                            function onFileCopied(path, new_path, success) {
-                                return
-                            }
-                            function onCopyEnded(successes, fails) {
-                                return
-                            }
-                        }
-                        PropertyAnimation{
-                            id: animateProgress
-                            target: progress
-                            property: "value"
-                            to: 1
-                            duration:400
-                            //easing.type: Easing.InOutQuint
-                        }
-                    }
                     Label {
                         id: lblBarcode
                         font.bold: true

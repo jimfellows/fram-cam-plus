@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Layouts 6.3
 import QtQuick.Controls 2.15
-import QtQuick.Controls.Material
+//import QtQuick.Controls.Material
 
 import 'qrc:/controls'
 import QtQuick.VirtualKeyboard 2.1
@@ -18,7 +18,7 @@ Rectangle {
     property string imageSource;
     property int labelWidth: 80;
 
-    Material.theme: Material.Dark
+    //Material.theme: Material.Dark
 
     // make sure notes are active so keyboard knows where to go
     onWidthChanged: if (width > 0) {
@@ -178,13 +178,13 @@ Rectangle {
                         }
                         FramCamProgressBar {
                             id: progressCopy
-                            value: 0
-                            visible: false
+                            value: imageManager.imagesModel.isImgBackedUp ? to : 0
+                            visible: imageManager.imagesModel.isImgBackedUp
                             indeterminate: false
                             Layout.preferredHeight: 15
-                            Layout.preferredWidth: 35
+                            Layout.preferredWidth: 200
                             Layout.alignment: Qt.AlignRight
-                            Layout.fillWidth: true
+                            Layout.fillWidth: false
                             Layout.leftMargin: 10
                             Layout.rightMargin: 10
                             Connections {
@@ -197,6 +197,9 @@ Rectangle {
                                 }
                                 function onFileCopied(path, new_path, success) {
                                     if (!success) progressCopy.runningColor = appStyle.errorColor
+                                }
+                                function onCurrentImageChanged() {
+                                    console.info("IMAGE CHANGED, is it backed up? " + imageManager.imagesModel.isImgBackedUp)
                                 }
                             }
                             PropertyAnimation{
