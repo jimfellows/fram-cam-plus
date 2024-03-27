@@ -21,7 +21,7 @@
 ; General Info
 ;-------------------------------
 !define APPNAME "FramCam+"
-!define ICON_PATH ".\..\resources\icons\noaa_installer_stars.ico"
+!define ICON_PATH ".\..\resources\icons\noaa_installer_yellow.ico"
 !define NOAA_BMP ".\..\resources\images\NOAA_logo.bmp"
 
 ; The name of the installer
@@ -29,7 +29,7 @@ Name "${APPNAME} ${VERSION}"
 
 ; The file to write out as installer
 OutFile ".\FramCam+_setup_${VERSION}.exe"
-Icon ".\..\resources\icons\noaa_installer_stars.ico"
+Icon ".\..\resources\icons\noaa_installer_yellow.ico"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel user
@@ -45,7 +45,7 @@ InstallDir $PROFILE\desktop\FramCam+
 ;--------------------------------
   !define MUI_ABORTWARNING
   !define MUI_HEADERIMAGE              ".\..\resources\images\NOAA_logo.bmp"
-  !define MUI_ICON                     ".\..\resources\icons\noaa_installer_stars.ico"
+  !define MUI_ICON                     ".\..\resources\icons\noaa_installer_yellow.ico"
   !define MUI_HEADERIMAGE_BITMAP       ".\..\resources\images\NOAA_logo.bmp"
   !define MUI_WELCOMEFINISHPAGE_BITMAP ".\..\resources\images\NOAA_logo.bmp"
   !define MUI_HEADERIMAGE_BITMAP_NOSTRETCH
@@ -137,6 +137,6 @@ Function CreateStartShortcut
     ${If} $CheckStartShortcut_State <> 0
         Delete $SMPROGRAMS\FramCam+\*.*
         createDirectory "$SMPROGRAMS\FramCam+"
-        createShortCut "$SMPROGRAMS\FramCam+\FramCam+.lnk" "$INSTDIR\FramCam+.exe" "" "$INSTDIR\lib\icons\noaa_installer_stars"
+        createShortCut "$SMPROGRAMS\FramCam+\FramCam+.lnk" "$INSTDIR\FramCam+.exe" "" "$INSTDIR\lib\icons\black_nautilus.ico"
     ${EndIf}
 FunctionEnd
