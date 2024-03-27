@@ -103,6 +103,7 @@ Item {
                         }
                         FramCamTextField {
                             id: tfWheelhouseDir
+                            fontSize: 12
                             Layout.preferredWidth: 400
                             Layout.preferredHeight: root.widgetHeight - 10  // not sure why text field comes out bigger than the rest
                             placeholderText: "Browse to PyCollector data folder over the network..."
@@ -123,7 +124,7 @@ Item {
                             onClicked: console.info("DOES THIS FOLDER EXIST????")
                         }
                         FramCamButton {
-                            text: 'Map\nWheelhouse'
+                            text: 'Map\nW:'
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
                             onClicked: console.info("NEED TO IMPLEMENT FUNC THAT MAPS TO WH MACHINE")
@@ -140,6 +141,7 @@ Item {
                         }
                         FramCamTextField {
                             id: tfBackdeckDb
+                            fontSize: 12
                             Layout.preferredWidth: 400
                             Layout.preferredHeight: root.widgetHeight - 10  // not sure why text field comes out bigger than the rest
                             placeholderText: "Browse to trawl_backdeck.db over the network..."
@@ -158,7 +160,7 @@ Item {
                             onClicked: console.info("DOES THIS FILE EXIST????")
                         }
                         FramCamButton {
-                            text: 'Map\nBackdeck'
+                            text: 'Map\nV:'
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
                             onClicked: console.info("NEED TO IMPLEMENT FUNC THAT MAPS TO BD MACHINE")
