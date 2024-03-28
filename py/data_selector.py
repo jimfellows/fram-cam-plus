@@ -154,6 +154,29 @@ class DataSelector(QObject):
     def bios_proxy(self):
         return self._bios_proxy
 
+    def set_combo_box_haul(self, haul_num):
+        _haul_model_ix = self._hauls_model.getRowIndexByValue('haul_number', haul_num)
+        self._hauls_model.setIndexSilently(_haul_model_ix)
+        self._on_haul_changed(_haul_model_ix)
+
+    def set_combo_box_catch(self, display_name):
+        _catch_model_ix = self._catches_model.getRowIndexByValue('display_name', display_name)
+        self._catches_model.setIndexSilently(_catch_model_ix)
+        self._on_catch_changed(_catch_model_ix)
+
+    def set_combo_box_proj(self, proj, display):
+        _projects_model_ix = self._projects_model.getItemIndex({'project_name': proj, 'display_name': display})
+        _proxy_ix = self._projects_proxy.getProxyRowFromSource(_projects_model_ix)
+        self._projects_model.setIndexSilently(_projects_model_ix)
+        self._on_project_changed(_projects_model_ix)
+
+    def set_combo_box_bio(self, bio):
+        _bios_model_ix = self._bios_model.getRowIndexByValue('bio_label', bio)
+        _proxy_ix = self._bios_proxy.getProxyRowFromSource(_bios_model_ix)
+        self._bios_model.setIndexSilently(_bios_model_ix)
+        self._on_bio_changed(_bios_model_ix)
+
+
     @Property(str, notify=curHaulChanged)
     def cur_haul_num(self):
         return self._cur_haul_num

@@ -269,6 +269,29 @@ class CamControls(QObject):
         self._cur_focus_mode = None
         self.curFocusMode = self._app.state.get_state_value('Focus Mode')
         self._detected_barcode = None
+        self.barcodeDetected.connect(self._select_barcode_info)
+
+    def _select_barcode_info(self, barcode: str):
+        _sql = '''
+            select
+                        haul_number
+                        ,display_name
+                        ,project_name
+                        ,bio_label
+            from        bio_options_vw
+            where       bio_label = :bio_label
+        '''
+        results = self._app.sqlite.execute_query(_sql, params={':bio_label': barcode})
+        _d = None
+        for r in results:
+            _d = self._app.sqlite.record_to_dict(r)
+
+        if _d:
+            self._app.data_selector.set_combo_box_haul(_d['HAUL_NUMBER'])
+            self._app.data_selector.set_combo_box_catch(_d['DISPLAY_NAME'])
+            self._app.data_selector.set_combo_box_proj(_d['PROJECT_NAME'], _d['DISPLAY_NAME'])
+            self._app.data_selector.set_combo_box_bio(_d['BIO_LABEL'])
+
 
     @Property(QObject)
     def camera(self) -> QCamera:

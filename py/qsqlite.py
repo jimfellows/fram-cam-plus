@@ -41,10 +41,14 @@ class QSqlite(QObject):
             self._logger.error(msg)
             raise Exception(msg)
 
-    def execute_query(self, sql):
+    def execute_query(self, sql: str, params=None):
         results = []
         self._query = QSqlQuery(self._db)
         self._query.prepare(sql)
+
+        for k, v in params.items():
+            self._query.bindValue(k, v)
+
         success = self._query.exec()
         if success:
             while self._query.next():
@@ -53,6 +57,12 @@ class QSqlite(QObject):
             self._logger.error(f"Error executing SQL {sql}; {self._db.lastError()}")
 
         return results
+
+    @staticmethod
+    def record_to_dict(r):
+        _keys = [r.fieldName(k) for k in range(r.count())]
+        _vals = [r.value(k) for k in _keys]
+        return dict(zip(_keys, _vals))
 
     def get_vessel_from_id(self):
         pass
