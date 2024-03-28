@@ -149,17 +149,33 @@ class CVFrameWorker(VideoFrameWorker):
         """
         return array
 
+    def _apply_threshold(self, array: np.ndarray) -> np.array:
+        """
+        https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_thresholding/py_thresholding.html
+        :param array: numpy ndimensional array (an image)
+        :return:
+        """
+        ret, thresh1 = cv2.threshold(cv2.cvtColor(array, cv2.COLOR_BGR2GRAY), 127, 255, cv2.THRESH_BINARY)
+        return thresh1
+
+    def _apply_otsus_binarization(self, array: np.ndarray) -> np.ndarray:
+        ret, thresh = cv2.threshold(cv2.cvtColor(array, cv2.COLOR_BGR2GRAY), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+        return thresh
+
     def _scan_barcode(self, array):
         """
         use zbar algorithm to identify barcode in cv array.
-        If found,
+        If found, emit it to UI.  For now using a very basic thresholding is being used to help things out.
+        Use binary threshold result for detection, but still return original image with polys drawn.
         :param array: array in format for cv
         :return: same array but with bounding poly drawn
         """
         _redraw_every_n = 1  # adjust higher if you want to not process each...
+
         try:
             if self._barcode_frames_scanned % _redraw_every_n == 0:
-                r = pyzbar.pyzbar.decode(array)
+                _binary = self._apply_threshold(array)
+                r = pyzbar.pyzbar.decode(_binary, symbols=[128])  #symbols = ['128'] for now just code 128, are vials this version too?
                 if r:
                     # https://docs.opencv.org/3.4/dc/da5/tutorial_py_drawing_functions.html
                     self._barcode_polys = np.array([[p.x, p.y] for p in r[0][3]], np.int32)
@@ -173,7 +189,7 @@ class CVFrameWorker(VideoFrameWorker):
                 np.array(array),
                     self._barcode_polys,
                     True,
-                    (118,230,0),  # accent green
+                    (118, 230, 0),  # accent green
                     # (205, 90, 106),  # red
                 50  # nice and thick line that kind of looks like a barcode scanner
             )
@@ -220,7 +236,8 @@ class CamControls(QObject):
 
         # things we need from multimedia for camera/capture
         self._devices = QMediaDevices()  # list our available devices here
-        self._camera = QCamera(QMediaDevices.defaultVideoInput())  # start with default
+        _state_cam = self._app.state.get_state_value('Current Camera')
+        self._camera = self._get_camera_by_name(_state_cam)
         self._image_capture = QImageCapture()
         self._capture_session = QMediaCaptureSession()
         self._capture_session.setCamera(self._camera)
@@ -241,11 +258,16 @@ class CamControls(QObject):
         self._cv_frame_worker.barcodeDetected.connect(lambda bc: self._set_detected_barcode(bc))
 
         # custom control variables, store them in state table and load on start
-        self._is_barcode_scanner_on = self._app.state.get_state_value('Barcode Scanner On') == 'True'
-        self._is_taxon_scanner_on = self._app.state.get_state_value('Taxon Scanner On') == 'True'
-        self._is_torch_on = self._app.state.get_state_value('Torch On') == 'True'
-        self._cur_flash_mode = self._app.state.get_state_value('Flash Mode')
-        self._cur_focus_mode = self._app.state.get_state_value('Focus Mode')
+        self._is_barcode_scanner_on = None
+        self.isBarcodeScannerOn = self._app.state.get_state_value('Barcode Scanner On') == 'True'
+        self._is_taxon_scanner_on = None
+        self.isTaxonScannerOn = self._app.state.get_state_value('Taxon Scanner On') == 'True'
+        self._is_torch_on = None
+        self.isTorchOn = self._app.state.get_state_value('Torch On') == 'True'
+        self._cur_flash_mode = None
+        self.curFlashMode = self._app.state.get_state_value('Flash Mode')
+        self._cur_focus_mode = None
+        self.curFocusMode = self._app.state.get_state_value('Focus Mode')
         self._detected_barcode = None
 
     @Property(QObject)
@@ -254,8 +276,15 @@ class CamControls(QObject):
 
     @camera.setter
     def camera(self, new_camera: QCamera):
-        if self._camera.cameraDevice().description() != new_camera.cameraDevice().description():
+        if self._camera != new_camera:
             self._camera = new_camera
+
+            if not isinstance(self._camera, QCamera):
+                self._app.state.set_state_value('Current Camera', None)
+                self._logger.warning(f"Current camera is not of type QCamera: {self._camera}")
+                return
+
+            self._app.state.set_state_value('Current Camera', new_camera.cameraDevice().description())
             self._capture_session.setCamera(self._camera)
             self._camera.start()
             self.activeCameraChanged.emit()
@@ -294,6 +323,13 @@ class CamControls(QObject):
             '''
         )
 
+    def _get_camera_by_name(self, device_name: str):
+        try:
+            return QCamera([d for d in self._devices.videoInputs() if d.description() == device_name][0])
+        except IndexError:
+            self._logger.warning(f"Unable to find camera device called: {device_name}, returning default.")
+            return QCamera(QMediaDevices.defaultVideoInput())
+
     @Slot()
     def toggleCamera(self):
         """
@@ -316,7 +352,7 @@ class CamControls(QObject):
             self.camera = QCamera(self._devices.videoInputs()[cur_index+1])
 
         except ValueError as e:
-            self._logger.error(f"Error occurred while trying to get toggle camera device: {e}")
+            self._logger.error(f"Error occurred while trying to toggle camera device: {e}")
             return
 
         except IndexError:
@@ -402,6 +438,7 @@ class CamControls(QObject):
     def isBarcodeScannerOn(self, new_status: bool):
         if self._is_barcode_scanner_on != new_status:
             self._is_barcode_scanner_on = new_status
+            self._cv_frame_worker.enable_barcode_scanner(new_status)
             self._app.state.set_state_value('Barcode Scanner On', str(new_status))
             self.controlsChanged.emit()
 
@@ -424,7 +461,7 @@ class CamControls(QObject):
     def isTorchOn(self, new_status):
         if self._is_torch_on != new_status:
             self._is_torch_on = new_status
-            self._app.state.set_state_value('Torch On')
+            self._app.state.set_state_value('Torch On', str(new_status))
             self.controlsChanged.emit()
 
     @Property(int, notify=controlsChanged)
@@ -448,8 +485,6 @@ class CamControls(QObject):
             self._cur_flash_mode = new_mode
             self._camera.setFocusMode(new_mode)
             self.controlsChanged.emit()
-
-
 
     def _get_image_name(self, ext='jpg'):
         """
