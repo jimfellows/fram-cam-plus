@@ -13,9 +13,7 @@ Item {
 
     property alias lvThumbnails: lvThumbnails
     Component.onCompleted: {
-        console.info("-----------------------------------------------------------------------")
-        camera_manager.targetSink = videoOutput.videoSink
-        console.info("-----------------------------------------------------------------------")
+        camControls.targetSink = videoOutput.videoSink  // make output sink the destination for our processed frames
     }
     SoundEffect {
         id: clack
@@ -31,14 +29,14 @@ Item {
 
     }
     Connections {
-            target: camera_manager
+            target: camControls
             function onBarcodeDetected(barcode) {
                 shotgun.play()
             }
         }
     Rectangle {
         id: rectBg
-        color: appstyle.elevatedSurface_L5
+        color: appStyle.elevatedSurface_L5
         border.color: "#00000000"
         anchors.fill: parent
         anchors.rightMargin: 5
@@ -48,7 +46,7 @@ Item {
 
         Rectangle {
             id: rectImgArea
-            color: appstyle.elevatedSurface_L5
+            color: appStyle.elevatedSurface_L5
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: rectDataSelection.bottom
@@ -61,13 +59,13 @@ Item {
             FramCamButton {
                 id: btnCapture
                 iconSource: 'qrc:/svgs/box_target.svg'
-                iconColor: appstyle.elevatedSurface_L2
-                backgroundColor: appstyle.secondaryFontColor
-                borderColor: appstyle.iconColor
-                disabledBackgroundColor: appstyle.elevatedSurface_L9
+                iconColor: appStyle.elevatedSurface_L2
+                backgroundColor: appStyle.secondaryFontColor
+                borderColor: appStyle.iconColor
+                disabledBackgroundColor: appStyle.elevatedSurface_L9
                 borderWidth: 5
                 radius: 20
-                enabled: camera_manager.camera.active && lvThumbnails.currentIndex === -1
+                enabled: camControls.camera.active && lvThumbnails.currentIndex === -1
 
                 anchors {
                     right: parent.right
@@ -78,15 +76,15 @@ Item {
                     rightMargin: 15
                 }
                 onClicked: {
-                    camera_manager.capture_image_to_file()
+                    camControls.captureImage()
                     shutter.play()
                 }
             }
             Rectangle {
                 id: rectImgPreview
                 //visible: false
-                color: appstyle.elevatedSurface_L7
-                border.color: appstyle.iconColor
+                color: appStyle.elevatedSurface_L7
+                border.color: appStyle.iconColor
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -107,7 +105,7 @@ Item {
                     layer {
                         enabled: true
                         effect: ColorOverlay {
-                            color: appstyle.iconColor
+                            color: appStyle.iconColor
                         }
                     }
                 }
@@ -122,8 +120,8 @@ Item {
                     y: 325
                     height: 100
                     radius: 8
-                    color: appstyle.elevatedSurface_L5
-                    border.color: appstyle.iconColor
+                    color: appStyle.elevatedSurface_L5
+                    border.color: appStyle.iconColor
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
@@ -172,7 +170,7 @@ Item {
 
                         ColorOverlay {
                             source: imgMoveControls
-                            color: appstyle.iconColor
+                            color: appStyle.iconColor
                             anchors.top: imgMoveControls.top
                             anchors.bottom: imgMoveControls.bottom
                             antialiasing: true
@@ -199,7 +197,7 @@ Item {
                             implicitWidth: 75
                             implicitHeight: 75
                             radius: 20
-                            onClicked: camera_manager.toggle_camera()
+                            onClicked: camControls.toggleCamera()
                             iconSource: 'qrc:/svgs/change_camera.svg'
                         }
                         FramCamButton {
@@ -209,12 +207,12 @@ Item {
                             radius: 20
                             iconSource: checked ? 'qrc:/svgs/video_on.svg' : 'qrc:/svgs/video_off.svg'
                             checkable: true
-                            checked: camera_manager.camera.active
+                            checked: camControls.camera.active
                             onClicked: {
                                 if(checked) {
-                                    camera_manager.unfreeze_frame()
+                                    camControls.unfreezeFrame()
                                 } else {
-                                    camera_manager.freeze_frame()
+                                    camControls.freezeFrame()
                                 }
                             }
                         }
@@ -225,7 +223,7 @@ Item {
                             radius: 20
                             iconSource: checked ? 'qrc:/svgs/flash_on.svg' : 'qrc:/svgs/flash_off.svg'
                             checkable: true
-                            visible: camera_manager.isFlashSupported
+                            visible: camControls.isFlashSupported
                         }
                         FramCamButton {
                             id: btnTorch
@@ -234,7 +232,7 @@ Item {
                             radius: 20
                             iconSource: checked ? 'qrc:/svgs/torch_on.svg' : 'qrc:/svgs/torch_off.svg'
                             checkable: true
-                            visible: camera_manager.isTorchSupported
+                            visible: camControls.isTorchSupported
                         }
                         FramCamButton {
                             id: btnAutofocus
@@ -243,7 +241,7 @@ Item {
                             radius: 20
                             iconSource: 'qrc:/svgs/autofocus.svg'
                             checkable: true
-                            visible: camera_manager.isFocusModeSupported
+                            visible: camControls.isFocusModeSupported
                         }
                         FramCamButton {
                             id: btnBarcodeScan
@@ -252,9 +250,9 @@ Item {
                             radius: 20
                             iconSource: 'qrc:/svgs/barcode.svg'
                             checkable: true
-                            checked: camera_manager.isBarcodeScannerOn
+                            checked: camControls.isBarcodeScannerOn
                             onClicked: {
-                                camera_manager.isBarcodeScannerOn = checked
+                                camControls.isBarcodeScannerOn = checked
                             }
                         }
                         FramCamButton {
@@ -282,6 +280,8 @@ Item {
                     id: animationEditBar
                     // disable listview to prevent additional cliking while menu pops out, then enable again
                     PropertyAction { property: "enabled"; target: lvThumbnails; value: false }
+                    // if, before animating, editBar width > 0, set to invisible
+                    PropertyAnimation { property: "visible"; target: editBar.keyboard; to: if(editBar.width !== 0) return false; else return true}
                     PropertyAnimation{
                         target: editBar
                         property: "width"
@@ -289,12 +289,14 @@ Item {
                         duration: 300
                         easing.type: Easing.InOutQuint
                     }
+                    //if, after animating, editBar.width > 0, set to visible
+                    PropertyAnimation { property: "visible"; target: editBar.keyboard; to: if(editBar.width !== 0) return true; else return false}
                     PropertyAction { property: "enabled"; target: lvThumbnails; value: true }
                 }
                 Connections {
-                    target: camera_manager.images_proxy
+                    target: imageManager.imagesProxy
                     function onProxyIndexChanged(new_proxy_index) {
-                        var modelIx = camera_manager.images_proxy.sourceIndex
+                        var modelIx = imageManager.imagesProxy.sourceIndex
                         if (new_proxy_index > -1 && editBar.width > 0) {
                             // if we still select an image and edit bar is already out, dont re-animate
                             return;
@@ -307,7 +309,7 @@ Item {
             Rectangle {
                 id: rectThumbnails
                 y: 0
-                color: appstyle.surfaceColor
+                color: appStyle.surfaceColor
                 anchors.left: rectImgPreview.right
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -326,15 +328,15 @@ Item {
                     anchors.topMargin: 20
                     orientation: ListView.Vertical
                     spacing: 10
-                    model: camera_manager.images_proxy
+                    model: imageManager.imagesProxy
                     currentIndex: -1
                     onCurrentIndexChanged: {
                         model.proxyIndex = currentIndex
                     }
                     Connections {
-                        target: camera_manager.images_model
+                        target: imageManager.imagesModel
                         function onSendIndexToProxy(new_index) {
-                            var proxyRow = camera_manager.images_proxy.getProxyRowFromSource(new_index)
+                            var proxyRow = imageManager.imagesProxy.getProxyRowFromSource(new_index)
                             lvThumbnails.currentIndex = proxyRow
                         }
                     }
@@ -342,7 +344,7 @@ Item {
                         Image {
                             id: imgThumbnail
                             source: "file:///" + model.full_path
-                            width: camera_manager.images_proxy.proxyIndex === index ? lvThumbnails.width : lvThumbnails.width - 30
+                            width: imageManager.imagesProxy.proxyIndex === index ? lvThumbnails.width : lvThumbnails.width - 30
                             fillMode: Image.PreserveAspectFit
                             layer.effect: DropShadow {
                                 verticalOffset: 0
@@ -355,7 +357,7 @@ Item {
                                 onClicked: {
                                     console.info("Image clicked at index " + index)
                                     // clicking an already active image clears selection
-                                    if (index === camera_manager.images_proxy.proxyIndex) {
+                                    if (index === imageManager.imagesProxy.proxyIndex) {
                                         console.info("CLICK: Clicked image already selected, deselecting...")
                                         lvThumbnails.currentIndex = -1
                                     } else {
@@ -371,7 +373,7 @@ Item {
                                 hue: 0.0
                                 saturation: 0
                                 lightness: 0
-                                visible: index === camera_manager.images_proxy.proxyIndex
+                                visible: index === imageManager.imagesProxy.proxyIndex
                             }
                         }
                         Label {
@@ -380,17 +382,17 @@ Item {
                             font.pixelSize: 8
                             font.bold: true
                             font.family: 'roboto'
-                            color: appstyle.secondaryFontColor
+                            color: appStyle.secondaryFontColor
                             anchors.left: rectUnderline.left
                         }
                         Rectangle {
                             id: rectUnderline
-                            height: index === camera_manager.images_proxy.proxyIndex ? 3 : 1
+                            height: index === imageManager.imagesProxy.proxyIndex ? 3 : 1
                             width: imgThumbnail.width - 10
-                            color: index === camera_manager.images_proxy.proxyIndex ? appstyle.primaryColor : appstyle.secondaryFontColor
+                            color: index === imageManager.imagesProxy.proxyIndex ? appStyle.primaryColor : appStyle.secondaryFontColor
                             anchors.topMargin: 10
                             anchors.left: imgThumbnail.left
-                            //anchors.leftMargin: camera_manager.images_proxy.proxyIndex === index ? -10 : 0
+                            //anchors.leftMargin: imageManager.imagesProxy.proxyIndex === index ? -10 : 0
 
                         }
                     }

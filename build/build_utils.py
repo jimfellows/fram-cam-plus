@@ -2,6 +2,9 @@
 import os
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))  # gross, how can i do this better
+
 import re
 import fileinput
 from py.config import QRC_DIR
@@ -10,7 +13,6 @@ from pathlib import Path
 
 # to date, when pyside is installed this exe should be in venv/Scripts
 RCC_EXE = Path(os.path.join(os.path.dirname(sys.executable), 'pyside6-rcc.exe'))
-
 
 def compile_qresources():
     _in = os.path.join(QRC_DIR, 'qresources.qrc')

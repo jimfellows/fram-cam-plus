@@ -11,17 +11,17 @@ Button {
  implicitHeight: 40
 
  //custom props
- property color backgroundColor: appstyle.elevatedSurface_L9
- property color fontColor: appstyle.primaryFontColor
- property color disabledFontColor: appstyle.disabledFontColor
- property color disabledBackgroundColor: appstyle.disabledFontColor.darker(1.2)
- property color disabledBorderColor: appstyle.disabledFontColor.darker(1.2)
+ property color backgroundColor: appStyle.elevatedSurface_L9
+ property color fontColor: appStyle.primaryFontColor
+ property color disabledFontColor: appStyle.disabledFontColor
+ property color disabledBackgroundColor: appStyle.disabledFontColor.darker(1.2)
+ property color disabledBorderColor: appStyle.disabledFontColor.darker(1.2)
  property color hoverColor: '#55aaff';
- property color pressedColor: appstyle.primaryColor
- property color pressedFontColor: appstyle.primaryFontColor
- property color borderColor: appstyle.iconColor
+ property color pressedColor: appStyle.primaryColor
+ property color pressedFontColor: appStyle.primaryFontColor
+ property color borderColor: appStyle.iconColor
  property int borderWidth: 1
- property color iconColor: appstyle.iconColor
+ property color iconColor: appStyle.iconColor
  property int fontSize: 16
  property int radius: 5
  property string iconSource
@@ -56,7 +56,7 @@ Button {
         text: root.text
         color: root.enabled ? root.fontColor : root.disabledFontColor
         font.pixelSize: root.fontSize
-        font.family: appstyle.fontFamily
+        font.family: appStyle.fontFamily
         font.weight: Font.Thin
         elide: Text.ElideRight
         anchors {

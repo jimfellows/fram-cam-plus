@@ -1,3 +1,9 @@
+
+[project]
+name = "fram-cam-plus"
+version = "1"
+description = "PySide6 + Qt Camera Tablet App"
+
 [tool.poetry]
 name = "fram-cam-plus"
 version = "2024.0+1"
@@ -7,13 +13,16 @@ readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = ">=3.10,<3.13"
 pyside6 = "6.6.2"
 opencv-python = "4.9.0.80"
 numpy = "1.26.4"
 pyzbar = "^0.1.9"
 araviq6 = "^2.1.1"
 cx-freeze = "^6.15.16"
+
+[tool.poetry.scripts]
+build = "build.build_fram_cam:run"
 
 
 [build-system]
@@ -30,11 +39,11 @@ executables = [
 
 [tool.cxfreeze.build_exe]
 excludes = []
-packages=["PySide6", "pyzbar", "cv2", 'araviq6', 'sqlite3',"shiboken6", "encodings"]
+ packages=["PySide6", "pyzbar", "cv2", 'araviq6', 'sqlite3',"shiboken6", "encodings"]
 include_files = [
   ['py', 'lib/py'],  # puts local py imports into lib
   ['qrc', 'lib/qrc'],
-  ['data/trawl_backdeck.db', 'lib/data/trawl_backdeck.db'],   # data also into lib
+  ['data/fram_cam.db', 'lib/data/fram_cam.db'],   # data also into lib
   ['venv/lib/shiboken6', 'lib/shiboken6'],  # WARNING: this is currently hardcoded.  CX freeze isntt hooking all shiboken DLLs
   ['C:/Users/jim-f/dev/fram-cam-plus/venv/Lib/site-packages/pyzbar/libiconv.dll', 'lib/libiconv.dll'],  # did adding opencv resolve the need for this?
   ['resources/icons', 'lib/icons']

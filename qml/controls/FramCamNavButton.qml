@@ -8,7 +8,7 @@ Button {
     Material.theme: Material.Dark
 
     id: btnLeftMenu
-    font.family: appstyle.fontFamily
+    font.family: appStyle.fontFamily
     font.italic: true
     text: qsTr("Left Menu Button Text")
     implicitWidth: 250
@@ -49,7 +49,7 @@ Button {
             anchors.left: parent.left
             width: 4
             visible: btnLeftMenu.isActive
-            color: appstyle.primaryColor
+            color: appStyle.primaryColor
         }
         Rectangle {
             id: rectHighlightBarRight
@@ -58,7 +58,7 @@ Button {
             anchors.right: parent.right
             width: 6
             visible: btnLeftMenu.isActive
-            color: appstyle.elevatedSurface_L5
+            color: appStyle.elevatedSurface_L5
         }
     }
     contentItem: Item{
@@ -79,7 +79,7 @@ Button {
         ColorOverlay {
             anchors.fill: imgMenuIcon
             source: imgMenuIcon
-            color: appstyle.iconColor
+            color: appStyle.iconColor
             anchors.verticalCenter: parent.verticalCenter
             antialiasing: true
             width: iconWidth
@@ -94,7 +94,7 @@ Button {
 
             anchors.left: imgMenuIcon.right
             anchors.leftMargin: 40
-            color: appstyle.secondaryFontColor
+            color: appStyle.secondaryFontColor
         }
     }
 }

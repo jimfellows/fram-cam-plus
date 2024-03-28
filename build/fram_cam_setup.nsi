@@ -21,15 +21,15 @@
 ; General Info
 ;-------------------------------
 !define APPNAME "FramCam+"
-!define ICON_PATH ".\..\..\resources\icons\trawl2.ico"
-!define NOAA_BMP "..\..\resources\images\NOAA_logo.bmp"
+!define ICON_PATH ".\..\resources\icons\noaa_installer_yellow.ico"
+!define NOAA_BMP ".\..\resources\images\NOAA_logo.bmp"
 
 ; The name of the installer
 Name "${APPNAME} ${VERSION}"
 
 ; The file to write out as installer
-OutFile "..\dist\fram_cam_plus_setup_{VERSION}.exe"
-Icon ".\..\..\resources\icons\trawl2.ico"
+OutFile ".\FramCam+_setup_${VERSION}.exe"
+Icon ".\..\resources\icons\noaa_installer_yellow.ico"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel user
@@ -37,17 +37,17 @@ RequestExecutionLevel user
 ; Build Unicode installer
 Unicode True
 
-; Suggested install dir, backdeck app expects wheelhouse to be in C:
-InstallDir C:\trawl_backdeck
+; Suggested install dir, profile gives us current user dir
+InstallDir $PROFILE\desktop\FramCam+
 
 ;--------------------------------
 ;Interface Settings
 ;--------------------------------
   !define MUI_ABORTWARNING
-  !define MUI_HEADERIMAGE              ".\..\..\resources\images\NOAA_logo.bmp"
-  !define MUI_ICON                     ".\..\..\resources\ico\trawl2.ico"
-  !define MUI_HEADERIMAGE_BITMAP       ".\..\..\resources\images\NOAA_logo.bmp"
-  !define MUI_WELCOMEFINISHPAGE_BITMAP ".\..\..\resources\images\NOAA_logo.bmp"
+  !define MUI_HEADERIMAGE              ".\..\resources\images\NOAA_logo.bmp"
+  !define MUI_ICON                     ".\..\resources\icons\noaa_installer_yellow.ico"
+  !define MUI_HEADERIMAGE_BITMAP       ".\..\resources\images\NOAA_logo.bmp"
+  !define MUI_WELCOMEFINISHPAGE_BITMAP ".\..\resources\images\NOAA_logo.bmp"
   !define MUI_HEADERIMAGE_BITMAP_NOSTRETCH
   !define MUI_WELCOMEFINISHPAGE_BITMAP_NOSTRETCH
 
@@ -56,7 +56,7 @@ InstallDir C:\trawl_backdeck
 ;--------------------------------
   !insertmacro MUI_PAGE_WELCOME
   Page custom PAGE_OPTIONS_CREATE PAGE_OPTIONS_LEAVE  ; custom options page
-  !insertmacro MUI_PAGE_LICENSE ".\..\..\LICENSE.txt"
+  !insertmacro MUI_PAGE_LICENSE ".\..\LICENSE"
   !insertmacro MUI_PAGE_DIRECTORY
   !insertmacro MUI_PAGE_INSTFILES
 
@@ -78,16 +78,13 @@ InstallDir C:\trawl_backdeck
 ; Sections
 ;-------------------------------
 ; The stuff to install
-Section "Trawl Backdeck"
+Section "FramCam+"
 
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
 
-  ; Get all contents under backdeck
-  File /r ..\build\exe.win64-3.6\trawl_backdeck\*
-
-  ; attempt to check if file exists?
-  ;IfFileExists $INSTDIR CreateBackdeckArchive
+  ; Get all contents under fc
+  File /r .\exe.win64-3.6\FramCam+\*
 
   ; if selected, create desktop and start shortcut
   Call CreateDesktopShortcut
@@ -96,7 +93,7 @@ Section "Trawl Backdeck"
 SectionEnd
 
 Function LaunchApp
-  Exec "$instdir\trawl_backdeck.exe"
+  Exec "$instdir\FramCam+.exe"
 FunctionEnd
 
 ; vars to save button state on screen leave
@@ -119,16 +116,6 @@ Function PAGE_OPTIONS_CREATE
     Pop $2
     ${NSD_Check} $2  ; default to checked
 
-    ; zip and copy existing version to archive in same installdir
-    ; ${NSD_CreateCheckBox} 0 60u 100% 10u "Archive existing Trawl Backdeck (WIP)"
-    ; Pop $3
-    ;${NSD_Check} $3  ; default to checked
-
-    ; checkbox to specify replace or wiping out of database
-    ; ${NSD_CreateCheckBox} 0 80u 100% 10u "Overwrite Trawl Backdeck's trawl_backdeck.db (WIP)"
-    ; Pop $4
-    ;${NSD_Check} $4  ; default to checked
-
     nsDialogs::Show
 FunctionEnd
 
@@ -142,14 +129,14 @@ FunctionEnd
 
 Function CreateDesktopShortcut
     ${If} $CheckDesktopShortcut_State <> 0
-        CreateShortcut "$DESKTOP\Trawl_Backdeck_${VERSION}.lnk" "$INSTDIR\trawl_backdeck.exe"
+        CreateShortcut "$DESKTOP\FramCam+_${VERSION}.lnk" "$INSTDIR\FramCam+.exe"
     ${EndIf}
 FunctionEnd
 
 Function CreateStartShortcut
     ${If} $CheckStartShortcut_State <> 0
-        Delete $SMPROGRAMS\TrawlBackdeck\*.*
-        createDirectory "$SMPROGRAMS\TrawlBackdeck"
-        createShortCut "$SMPROGRAMS\TrawlBackdeck\Trawl_Backdeck_${VERSION}.lnk" "$INSTDIR\trawl_backdeck.exe" "" "$INSTDIR\resources\ico\trawl2.ico"
+        Delete $SMPROGRAMS\FramCam+\*.*
+        createDirectory "$SMPROGRAMS\FramCam+"
+        createShortCut "$SMPROGRAMS\FramCam+\FramCam+.lnk" "$INSTDIR\FramCam+.exe" "" "$INSTDIR\lib\icons\black_nautilus.ico"
     ${EndIf}
 FunctionEnd

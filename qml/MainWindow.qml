@@ -117,7 +117,7 @@ Window {
     Rectangle {
         id: rectBg
         //color: "#0085ca"
-        color: appstyle.surfaceColor
+        color: appStyle.surfaceColor
         border.color: "#003087"
         border.width: 1
         anchors.fill: parent
@@ -130,8 +130,8 @@ Window {
         Rectangle {
             id: rectAppContainer
             //color: "#00ffffff"
-            //color: appstyle.surfaceColor
-            color: appstyle.elevatedSurface_L5
+            //color: appStyle.surfaceColor
+            color: appStyle.elevatedSurface_L5
             border.width: 5
             anchors.fill: parent
             anchors.rightMargin: 1
@@ -156,8 +156,8 @@ Window {
                     height: 60
                     anchors.left: parent.left
                     anchors.top: parent.top
-                    colorMouseOver: appstyle.primaryColor
-                    colorDefault: appstyle.surfaceColor
+                    colorMouseOver: appStyle.primaryColor
+                    colorDefault: appStyle.surfaceColor
                     anchors.topMargin: 0
                     anchors.leftMargin: 0
                     onClicked: animationLeftMenu.running = true
@@ -165,7 +165,7 @@ Window {
 
                 Rectangle {
                     id: rectTitle
-                    color: appstyle.surfaceColor
+                    color: appStyle.surfaceColor
                     anchors.left: btnToggleNavBar.right
                     anchors.right: parent.right
                     anchors.top: parent.top
@@ -221,8 +221,8 @@ Window {
 
                     Label {
                         id: lblTitle
-                        text: qsTr("FRAMCam") + "<font color=\"" + appstyle.accentColor + "\">+</font>"
-                        color: appstyle.primaryFontColor
+                        text: qsTr("FRAMCam") + "<font color=\"" + appStyle.accentColor + "\">+</font>"
+                        color: appStyle.primaryFontColor
                         anchors.left: imgAppLogo.right
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
@@ -230,7 +230,7 @@ Window {
                         font.bold: true
                         font.italic: true
                         font.pointSize: 12
-                        font.family: appstyle.fontFamily
+                        font.family: appStyle.fontFamily
                         anchors.bottomMargin: 8
                         anchors.topMargin: 11
                         //anchors.leftMargin: 1
@@ -275,8 +275,8 @@ Window {
                             iconSource: "qrc:/svgs/close.svg"
                             iconColor: "white"
                             colorDefault: "#00000000"
-                            colorMouseOver: appstyle.errorColor
-                            colorPressed: appstyle.errorColor.darker(0.75)
+                            colorMouseOver: appStyle.errorColor
+                            colorPressed: appStyle.errorColor.darker(0.75)
                             onClicked: windowMain.close()
                         }
                     }
@@ -286,7 +286,7 @@ Window {
                     id: rectTitleDescr
                     y: 32
                     height: 25
-                    color: appstyle.elevatedSurface_L1
+                    color: appStyle.elevatedSurface_L1
                     anchors.left: btnToggleNavBar.right
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
@@ -297,8 +297,8 @@ Window {
                     Label {
                         id: lblDescr
                         y: 5
-                        color: appstyle.secondaryFontColor
-                        font.family: appstyle.fontFamily
+                        color: appStyle.secondaryFontColor
+                        font.family: appStyle.fontFamily
                         text: qsTr("Intelligent image capture for NOAA West Coast Groundfish Bottom Trawl Survey")
                         anchors.left: parent.left
                         font.italic: true
@@ -325,7 +325,7 @@ Window {
                 Rectangle {
                     id: rectLeftNavBar
                     width: 70
-                    color: appstyle.surfaceColor
+                    color: appStyle.surfaceColor
                     anchors.left: parent.left
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
@@ -391,7 +391,7 @@ Window {
                         FramCamNavButton {
                             id: btnUploadPage
                             width: rectLeftNavBar.width
-                            text: 'Species Select'
+                            text: 'Cloud Upload'
                             height: 75
                             colorDefault: "transparent"
                             font.bold: true
@@ -442,7 +442,7 @@ Window {
 
                 Rectangle {
                     id: rectBottomBar
-                    color: appstyle.elevatedSurface_L1
+                    color: appStyle.elevatedSurface_L1
                     anchors.left: rectLeftNavBar.right
                     anchors.right: parent.right
                     anchors.top: rectScreens.bottom
@@ -457,47 +457,16 @@ Window {
                         anchors.left: parent.left
                         anchors.leftMargin: 10
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "Active Camera: " + camera_manager.active_camera_name
-                        color: appstyle.secondaryFontColor
-                        font.family: appstyle.fontFamily
-                    }
-                    FramCamProgressBar {
-                        id: progress
-                        value: 0
-                        indeterminate: false
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        property bool autoAnimation: false;
-
-                        Connections {
-                            target: camera_manager
-                            function onCopyStarted(no_of_files) {
-                                return
-                            }
-                            function onFileCopied(path, new_path, success) {
-                                return
-                            }
-                            function onCopyEnded(successes, fails) {
-                                return
-                            }
-                        }
-                        PropertyAnimation{
-                            id: animateProgress
-                            target: progress
-                            property: "value"
-                            to: 1
-                            duration:400
-                            //easing.type: Easing.InOutQuint
-                        }
+                        text: "Active Camera: " + camControls.activeCameraName
+                        color: appStyle.secondaryFontColor
+                        font.family: appStyle.fontFamily
                     }
                     Label {
                         id: lblBarcode
                         font.bold: true
-                        font.family: appstyle.fontFamily
-                        color: appstyle.accentColor
-                        text: camera_manager.lastBarcodeDetected ? "Barcode Detected: " + camera_manager.lastBarcodeDetected : ''
-                        anchors.top: parent.top
+                        font.family: appStyle.fontFamily
+                        color: appStyle.accentColor
+                        text: camControls.detectedBarcode ? "Barcode Detected: " + camControls.detectedBarcode : ''
                         anchors.right: parent.right
                         anchors.rightMargin: 10
                         anchors.verticalCenter: parent.verticalCenter

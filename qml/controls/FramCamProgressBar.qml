@@ -1,19 +1,22 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Material
 
 ProgressBar {
     id: control
     value: 0.5
     padding: 2
 
-    property color runningColor: appstyle.primaryColor;
+    Material.theme: Material.Dark
+
+    property color runningColor: appStyle.primaryColor;
     implicitHeight: 10
     implicitWidth: 200
 
     background: Rectangle {
         implicitWidth: control.width
         implicitHeight: control.height
-        color: appstyle.iconColor
+        color: appStyle.iconColor
         radius: 3
     }
 

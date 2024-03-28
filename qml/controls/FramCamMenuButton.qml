@@ -44,7 +44,7 @@ Button {
             layer {
                 enabled: true
                 effect: ColorOverlay {
-                    color: appstyle.iconColor
+                    color: appStyle.iconColor
                 }
             }
         }
