@@ -164,9 +164,10 @@ cython_debug/
 
 # data stuff
 logs/
-data/trawl_backdeck.db
+data/fram_cam.db
 data/images/*
 *.db
+!data/fram_cam_test_copy.db
 
 qrc/qresources.py
 resources/models

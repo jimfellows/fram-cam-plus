@@ -61,6 +61,9 @@ poetry add <YOUR PACKAGE NAME>
 ```
 To persist these dependency changes for others to use, the poetry.lock file changes should be committed.
 
+Note that a sqlite file called fram_cam.db is required for the app to run.  Please rename the data/fram_cam_test_copy.db to data/fram_cam.db
+for testing and development purposes.
+
 ## Running the App
 The application runs by initializing py.app.FramCamPlus().  At the root directory, developers should call: 
 ```commandline
