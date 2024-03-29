@@ -39,6 +39,7 @@ class PingWorker(QObject):
     def ping_test(self):
         param = '-n' if platform.system().lower() == 'windows' else '-c'
         command = ['ping', param, '1', self._ip_address]
+        self._logger.debug(f"Pinging subnet: {command}")
 
         result = subprocess.run(command, stdout=subprocess.PIPE)
         output = result.stdout.decode('utf8')
@@ -65,12 +66,12 @@ class Settings(QObject):
         self._logger = Logger.get_root()
 
         # for now the user doesnt set these, but are based on the subnet setting
+        self._cur_vessel_subnet = None
         self._cur_backdeck_ip = None
         self._cur_backdeck_db = None
         self._cur_wheelhouse_ip = None
 
         # vars that the user can set from the UI, lets try to pull them from FRAM_CAM_STATE on startup
-        self._cur_vessel_subnet = self._app.state.get_state_value('Current Vessel Subnet')
         self._cur_ui_mode = self._app.state.get_state_value('Current UI Mode')
         self._cur_backdeck_db = self._app.state.get_state_value('Current Backdeck DB')
         self._cur_wheelhouse_data_dir = self._app.state.get_state_value('Current Wheelhouse Data Dir')
@@ -88,20 +89,24 @@ class Settings(QObject):
         self._backdeck_ping_worker.pingStatus.connect(self._backdeck_pinged)
         # TODO: started signal isnt calling update_ping_status in a timely fashion, why???
         self._backdeck_ping_thread.started.connect(self._backdeck_ping_worker.run)
-        self._backdeck_ping_thread.started.connect(self._update_ping_status)
+        self._backdeck_ping_worker.pingStarted.connect(self._update_ping_status)
+        # self._backdeck_ping_thread.started.connect(self._update_ping_status)
         self._backdeck_ping_thread.finished.connect(self._update_ping_status)
 
         # wheelhousee ping worker/thread setup
         self._wheelhouse_ping_worker = PingWorker()
         self._wheelhouse_ping_thread = QThread()
-        self._wheelhouse_ping_thread.started.connect(self._update_ping_status)
+        self._wheelhouse_ping_worker.pingStarted.connect(self._update_ping_status)
         self._wheelhouse_ping_thread.finished.connect(self._update_ping_status)
 
+        self.curVesselSubnet = self._app.state.get_state_value('Current Vessel Subnet')
 
     def _update_ping_status(self):
+        self._logger.debug(f"Updating ping status")
         _status = self._wheelhouse_ping_thread.isRunning() or self._backdeck_ping_thread.isRunning()
         if self._is_ping_running != _status:
             self._is_ping_running = _status
+            self._logger.debug(f"Ping status set to {_status}")
             self.pingStatusChanged.emit()
 
     @Property(bool, notify=pingStatusChanged)
