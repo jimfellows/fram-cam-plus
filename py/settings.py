@@ -55,22 +55,25 @@ class Settings(QObject):
     pingStatusChanged = Signal()
     backdeckDbChanged = Signal(str, arguments=['new_path'])
     wheelhouseDataDirChanged = Signal(str, arguments=['new_dir'])
+    wheelhouseDataDirVerified = Signal(bool, arguments=['isValid'])
+    backdeckDbVerified = Signal(bool, arguments=['isValid'])
 
     def __init__(self, db, app=None, parent=None):
         super().__init__(parent)
         self._db = db
         self._app = app
+        self._logger = Logger.get_root()
+
+        # for now the user doesnt set these, but are based on the subnet setting
+        self._cur_backdeck_ip = None
+        self._cur_backdeck_db = None
+        self._cur_wheelhouse_ip = None
 
         # vars that the user can set from the UI, lets try to pull them from FRAM_CAM_STATE on startup
         self._cur_vessel_subnet = self._app.state.get_state_value('Current Vessel Subnet')
         self._cur_ui_mode = self._app.state.get_state_value('Current UI Mode')
         self._cur_backdeck_db = self._app.state.get_state_value('Current Backdeck DB')
         self._cur_wheelhouse_data_dir = self._app.state.get_state_value('Current Wheelhouse Data Dir')
-
-        # for now the user doesnt set these, but are based on the subnet setting
-        self._cur_backdeck_ip = None
-        self._cur_backdeck_db = None
-        self._cur_wheelhouse_ip = None
 
         # if backdeck/wheelhouse ping thread is running, set to true
         self._is_ping_running = False
@@ -173,4 +176,18 @@ class Settings(QObject):
             self._cur_wheelhouse_data_dir = new_dir
             self._app.state.set_state_value('Current Wheelhouse Data Dir', new_dir)
             self.wheelhouseDataDirChanged.emit(new_dir)
+
+    @Slot()
+    def verifyWheelhouseDataDir(self):
+        self._logger.debug(f"Verifying wheelhouse data dir: {self._cur_wheelhouse_data_dir}")
+        if self._cur_wheelhouse_data_dir:
+            status = os.path.isdir(self._cur_wheelhouse_data_dir)
+            self.wheelhouseDataDirVerified.emit(status)
+
+    @Slot()
+    def verifyBackdeckDb(self):
+        self._logger.debug(f"Verifying backdeck database data dir: {self._cur_backdeck_db}")
+        if self._cur_backdeck_db:
+            status = os.path.isfile(self._cur_backdeck_db)
+            self.backdeckDbVerified.emit(status)
 

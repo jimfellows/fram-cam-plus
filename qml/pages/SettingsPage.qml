@@ -12,7 +12,7 @@ Item {
     // sizing props
     property int labelWidth: 140
     property int widgetHeight: 75
-    property int buttonWidth: 95
+    property int buttonWidth: 80
     property int labelSize: 14    
     
     FolderDialog {
@@ -42,7 +42,7 @@ Item {
         anchors.bottomMargin: 10
         anchors.leftMargin: 10
         anchors.rightMargin: 10
-        
+
         ColumnLayout {
             id: columnLayout
             anchors.fill: parent
@@ -107,9 +107,17 @@ Item {
                             Layout.preferredWidth: 400
                             Layout.preferredHeight: root.widgetHeight - 10  // not sure why text field comes out bigger than the rest
                             placeholderText: "Browse to PyCollector data folder over the network..."
-                            Component.onCompleted: tfWheelhouseDir.text = settings.curWheelhouseDataDir
+                            Component.onCompleted: {
+                                tfWheelhouseDir.text = settings.curWheelhouseDataDir
+                                settings.verifyWheelhouseDataDir()
+                            }
                             onTextChanged: settings.curWheelhouseDataDir = text
-
+                            Connections {
+                                target: settings
+                                function onWheelhouseDataDirVerified(status) {
+                                    tfWheelhouseDir.borderColor = status ? appStyle.accentColor : appStyle.errorColor
+                                }
+                            }
                         }
                         FramCamButton {
                             text: 'Browse'
@@ -121,10 +129,10 @@ Item {
                             text: 'Verify'
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
-                            onClicked: console.info("DOES THIS FOLDER EXIST????")
+                            onClicked: settings.verifyWheelhouseDataDir()
                         }
                         FramCamButton {
-                            text: 'Map\nW:'
+                            text: 'Map W:'
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
                             onClicked: console.info("NEED TO IMPLEMENT FUNC THAT MAPS TO WH MACHINE")
@@ -145,7 +153,18 @@ Item {
                             Layout.preferredWidth: 400
                             Layout.preferredHeight: root.widgetHeight - 10  // not sure why text field comes out bigger than the rest
                             placeholderText: "Browse to trawl_backdeck.db over the network..."
-                            Component.onCompleted: tfBackdeckDb.text = settings.curBackdeckDb
+                            Component.onCompleted: {
+                                console.info("COMPLETED DB, heres our path: " + settings.curBackdeckDb)
+                                tfBackdeckDb.text = settings.curBackdeckDb
+                                settings.verifyBackdeckDb()
+                            }
+                            onTextChanged: settings.curBackdeckDb = text
+                            Connections {
+                                target: settings
+                                function onBackdeckDbVerified(status) {
+                                    tfBackdeckDb.borderColor = status ? appStyle.accentColor : appStyle.errorColor
+                                }
+                            }
                         }
                         FramCamButton {
                             text: 'Browse'
@@ -157,10 +176,11 @@ Item {
                             text: 'Verify'
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
-                            onClicked: console.info("DOES THIS FILE EXIST????")
+                            onClicked: settings.verifyBackdeckDb()
+
                         }
                         FramCamButton {
-                            text: 'Map\nV:'
+                            text: 'Map V:'
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
                             onClicked: console.info("NEED TO IMPLEMENT FUNC THAT MAPS TO BD MACHINE")

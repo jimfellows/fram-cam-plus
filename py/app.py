@@ -32,7 +32,7 @@ class FramCamPlus(QObject):
         # create qml engine, make python classes available to qml context
         self.app = QGuiApplication(sys.argv)
         # self.app.setWindowIcon(QPixmap('qrc:/icons/black_nautilus.ico'))  # cant seem to make this work
-        self.app.setWindowIcon(QPixmap(r"resources\icons\black_nautilus.ico"))
+        self.app.setWindowIcon(QPixmap(r"resources\icons\blue_nautilus.ico"))
         self.engine = QQmlApplicationEngine()
         self.context = self.engine.rootContext()
 
