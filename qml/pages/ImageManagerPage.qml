@@ -36,7 +36,16 @@ Item {
                     lvImages.itemAtIndex(i).isChecked = doCheck
                 }
             }
-
+            function syncSelected() {
+                var pathsToSync = []
+                for (var i = 0; i < lvImages.model.rowCount(); i++) {
+                    if (lvImages.itemAtIndex(i).isChecked) {
+                        var sourceIndex = imageManager.imagesProxy.getSourceRowFromProxy(i)
+                        pathsToSync.push(imageManager.imagesModel.getData(sourceIndex, 'full_path'))
+                    }
+                }
+                imageManager.copyImagesToWheelhouse(pathsToSync);
+            }
             function deleteSelected() {
                 // iterate backwards so deletions dont affect subsequent indexes
                 for (var i = lvImages.model.rowCount() - 1; i > -1; i--) {
@@ -84,8 +93,8 @@ Item {
                                     fillMode: Image.PreserveAspectFit
                                     Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                     Layout.preferredWidth: 100
-                                    sourceSize.height: 45
-                                    sourceSize.width: 45
+                                    sourceSize.height: 47
+                                    sourceSize.width: 47
                                     source: "file:///" + model.full_path
                                     cache: true
                                 }
@@ -96,16 +105,40 @@ Item {
                                         id: lblFileName
                                         text: model.file_name
                                         font.family: appStyle.fontFamily
-                                        font.pixelSize: 10
+                                        font.pixelSize: 12
                                         font.bold: true
                                         color: appStyle.secondaryFontColor
                                         Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                     }
                                     FramCamProgressBar {
                                         id: progressCopy
-                                        value: 0
-                                        //Layout.fillWidth: true
+                                        value: model.backup_path ? 1 : 0
+                                        runningColor: appStyle.accentColor
+
                                         Layout.preferredWidth: lblFileName.width
+                                        Layout.preferredHeight: 10
+                                        Connections {
+                                            target: imageManager
+                                            function onFileCopied(path, new_path, success) {
+                                                if (path === model.full_path) {
+                                                    progressCopy.visible = true
+                                                    progressCopy.value = 0
+                                                    progressCopy.runningColor = success ? appStyle.accentColor : appStyle.errorColor
+                                                    animateProgress.running = true
+                                                }
+                                            }
+                                            function onCurrentImageChanged() {
+                                                console.info("IMAGE CHANGED, is it backed up? " + imageManager.imagesModel.isImgBackedUp)
+                                            }
+                                        }
+                                        PropertyAnimation{
+                                            id: animateProgress
+                                            target: progressCopy
+                                            property: "value"
+                                            to: 1
+                                            duration: 600
+                                            easing.type: Easing.InOutQuint
+                                        }
                                     }
                                 }
                                 ColumnLayout {
@@ -114,6 +147,7 @@ Item {
                                     Layout.leftMargin: 50
                                     Image {
                                         id: imgSyncArrow
+                                        visible: false
                                         fillMode: Image.PreserveAspectFit
                                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                                         Layout.bottomMargin: -10
@@ -132,6 +166,7 @@ Item {
                                     }
                                     Label {
                                         text: "To WH?"
+                                        visible: false
                                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                                         Layout.topMargin: -5
                                         font.family: appStyle.fontFamily
@@ -143,6 +178,7 @@ Item {
                                 }
                                 FramCamCheckBox {
                                     id: cbSynced
+                                    visible: false
                                     Layout.preferredHeight: 50
                                     Layout.preferredWidth: 50
                                     Layout.leftMargin: 10
@@ -167,9 +203,10 @@ Item {
                             }
                             FramCamButton {
                                 id: btnEdit
-                                text: "Edit\n>>"
-                                Layout.preferredHeight: delegate.height
-                                Layout.preferredWidth: 75
+                                text: "Edit >>"
+                                Layout.preferredHeight: delegate.height - 10
+                                Layout.preferredWidth: 100
+                                Layout.rightMargin: 20
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 onClicked: {
                                     windowMain.navigateToPage('capture')
@@ -180,6 +217,20 @@ Item {
                         }
                     }
                 }
+            }
+            add: Transition {
+                PropertyAction { property: "transformOrigin"; value: Item.Left}
+                NumberAnimation { property: "opacity"; from: 0; to: 1.0; duration: 200 }
+                NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 200 }
+            }
+            displaced: Transition {
+                PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
+                NumberAnimation { properties: "x,y"; duration: 200 }
+            }
+            remove: Transition {
+                PropertyAction { property: "transformOrigin"; value: Item.Right}
+                NumberAnimation { property: "opacity"; from: 1.0; to: 0; duration: 200 }
+                NumberAnimation { property: "scale"; from: 1.0; to: 0; duration: 200 }
             }
         }  // listview
         Rectangle {
@@ -208,6 +259,12 @@ Item {
                     onClicked: lvImages.updateAllChecks(true)
                 }
                 FramCamButton {
+                    id: btnSyncSelection
+                    text: "Sync\nSelected"
+                    Layout.preferredHeight: 75
+                    onClicked: lvImages.syncSelected()
+                }
+                FramCamButton {
                     id: btnClearSelection
                     text: "Clear\nSelection"
                     Layout.preferredHeight: 75
@@ -219,11 +276,6 @@ Item {
                     pressedColor: appStyle.errorColor
                     Layout.preferredHeight: 75
                     onClicked: lvImages.deleteSelected()
-                }
-                FramCamButton {
-                    id: btnSyncSelection
-                    text: "Sync\nSelected"
-                    Layout.preferredHeight: 75
                 }
             }
         }

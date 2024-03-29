@@ -22,7 +22,6 @@ from PySide6.QtCore import (
     QAbstractListModel,
     QModelIndex,
     QThread,
-    # QJs
 )
 import pyzbar.pyzbar
 # import tensorflow as tf
@@ -140,6 +139,10 @@ class ImageManager(QObject):
         wrap our threaded method, but only send off our currently selected image
         """
         self._copy_images_to_wheelhouse([self._images_model.curImgFilePath])
+
+    @Slot("QVariantList")
+    def copyImagesToWheelhouse(self, images: list[any]):
+        self._copy_images_to_wheelhouse(images)
 
     def _copy_images_to_wheelhouse(self, images: list[any]):
         """
