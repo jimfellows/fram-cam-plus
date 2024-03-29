@@ -373,7 +373,7 @@ Item {
                                 hue: 0.0
                                 saturation: 0
                                 lightness: 0
-                                visible: index === imageManager.imagesProxy.proxyIndex
+                                visible: index !== imageManager.imagesProxy.proxyIndex
                             }
                         }
                         Label {
