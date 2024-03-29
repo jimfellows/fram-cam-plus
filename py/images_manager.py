@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import json
 
 # local imports
 from py.logger import Logger
@@ -25,6 +26,8 @@ from PySide6.QtCore import (
 )
 import pyzbar.pyzbar
 # import tensorflow as tf
+from PIL import Image
+import piexif
 
 
 class CopyFilesWorker(QObject):
@@ -41,6 +44,22 @@ class CopyFilesWorker(QObject):
         self._files_to_copy = []
         self._destination_folder = None
         self._is_running = False
+
+    @staticmethod
+    def tag_jpg_w_json_exif(img_path, tag_dict):
+        """
+        convert python dict to json, then insert into an image's UserComments exif tag
+        :param img_path: str, full path to image
+        :param tag_dict: dict
+        """
+        try:
+            img = Image.open(img_path)
+            exif_dict = piexif.load(img.info["exif"])
+            exif_dict['Exif'] = {piexif.ExifIFD.UserComment: json.dumps(tag_dict).encode('utf-8')}
+            exif_bytes = piexif.dump(exif_dict)
+            img.save(img_path, "jpeg", exif=exif_bytes)
+        except Exception as e:
+            pass
 
     @property
     def destination_folder(self) -> str:
@@ -132,6 +151,10 @@ class ImageManager(QObject):
         # # threading stuff to copy image files
         self._file_copy_thread = None
         self._file_copy_worker = None
+
+    def get_exif_dict(self, file_path):
+        _ix = self._images_model.getRowIndexByValue('full_path', file_path)
+        return self._images_model.getItem(_ix)
 
     @Slot()
     def copyCurImageToWheelhouse(self):
