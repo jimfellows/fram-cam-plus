@@ -42,36 +42,73 @@ Rectangle {
             Layout.preferredHeight: parent.height * 0.40
             color: '#556a75'
             radius: 8
+
             Label {
                 id: lblTitle
                 fontSizeMode: Text.Fit
                 text: imageManager.imagesModel.curImgFileName
                 color: appStyle.primaryFontColor
                 font.bold: true
+
                 anchors {
                     top: parent.top
                     left: parent.left
                     topMargin: 10
+                    //horizontalCenter: parent.horizontalCenter
                     leftMargin: 8
                 }
-
+            }
+            FramCamProgressBar {
+                id: progressCopy
+                value: imageManager.imagesModel.isImgBackedUp ? to : 0
+                runningColor: appStyle.accentColor
+                indeterminate: false
+                height: 8
+                anchors.left: lblTitle.left
+                anchors.right: lblTitle.right
+                anchors.top: lblTitle.bottom
+                anchors.topMargin: 3
+                anchors.bottomMargin: 10
+                Connections {
+                    target: imageManager
+                    function onCopyStarted(no_of_files) {
+                        progressCopy.visible =  true
+                        progressCopy.value = 0
+                        progressCopy.runningColor = appStyle.accentColor
+                        animateProgress.running = true
+                    }
+                    function onFileCopied(path, new_path, success) {
+                        if (!success) progressCopy.runningColor = appStyle.errorColor
+                    }
+                    function onCurrentImageChanged() {
+                        console.info("IMAGE CHANGED, is it backed up? " + imageManager.imagesModel.isImgBackedUp)
+                    }
+                }
+                PropertyAnimation{
+                    id: animateProgress
+                    target: progressCopy
+                    property: "value"
+                    to: 1
+                    duration: 1000
+                    easing.type: Easing.InOutQuint
+                }
             }
             RowLayout {  // inside our edit rectangle, we have a row containing our labels + text area for notes
                 anchors {
-                    top: lblTitle.bottom
+                    top: progressCopy.bottom
+                    topMargin: 10
                     bottom: parent.bottom
                     left: parent.left
                     right: parent.right
                     bottomMargin: 10
                     leftMargin: 10
-                    topMargin: 10
                 }
                 ColumnLayout {  // column for image info
                     id: colImageInfo
                     Layout.preferredWidth: parent.width * 0.5
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    spacing: 5
+                    spacing: 3
                     RowLayout {
                         Layout.fillWidth: true
                         Label { text: 'Haul #:'; Layout.alignment: Qt.AlignRight; Layout.preferredWidth: root.labelWidth; font.bold: true; font.underline: true; color: appStyle.secondaryFontColor }
@@ -160,6 +197,7 @@ Rectangle {
                     }
                     RowLayout {
                         Layout.fillWidth: true
+                        visible: false
                         Label {
                             text: 'Is Synced?:'
                             Layout.alignment: Qt.AlignRight
@@ -175,41 +213,6 @@ Rectangle {
                             enabled: false
                             checked: imageManager.imagesModel.isImgBackedUp
                             Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-                        }
-                        FramCamProgressBar {
-                            id: progressCopy
-                            value: imageManager.imagesModel.isImgBackedUp ? to : 0
-                            visible: imageManager.imagesModel.isImgBackedUp
-                            indeterminate: false
-                            Layout.preferredHeight: 15
-                            Layout.preferredWidth: 200
-                            Layout.alignment: Qt.AlignRight
-                            Layout.fillWidth: false
-                            Layout.leftMargin: 10
-                            Layout.rightMargin: 10
-                            Connections {
-                                target: imageManager
-                                function onCopyStarted(no_of_files) {
-                                    progressCopy.visible =  true
-                                    progressCopy.value = 0
-                                    progressCopy.runningColor = appStyle.primaryColor
-                                    animateProgress.running = true
-                                }
-                                function onFileCopied(path, new_path, success) {
-                                    if (!success) progressCopy.runningColor = appStyle.errorColor
-                                }
-                                function onCurrentImageChanged() {
-                                    console.info("IMAGE CHANGED, is it backed up? " + imageManager.imagesModel.isImgBackedUp)
-                                }
-                            }
-                            PropertyAnimation{
-                                id: animateProgress
-                                target: progressCopy
-                                property: "value"
-                                to: 1
-                                duration:400
-                                easing.type: Easing.InOutQuint
-                            }
                         }
                     }
                 }  // end column for image info
