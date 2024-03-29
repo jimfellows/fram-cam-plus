@@ -20,6 +20,8 @@ numpy = "1.26.4"
 pyzbar = "^0.1.9"
 araviq6 = "^2.1.1"
 cx-freeze = "^6.15.16"
+piexif = "^1.1.3"
+pillow = "^10.2.0"
 
 [tool.poetry.scripts]
 build = "build.build_fram_cam:run"
