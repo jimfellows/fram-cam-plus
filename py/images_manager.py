@@ -23,6 +23,7 @@ from PySide6.QtCore import (
     QAbstractListModel,
     QModelIndex,
     QThread,
+    QRegularExpression
 )
 import pyzbar.pyzbar
 # import tensorflow as tf
@@ -211,6 +212,7 @@ class ImageManager(QObject):
         else:
             search_str = f'"haul_number":"{_haul}","display_name":"{_catch}","project_name":"{_proj}","bio_label":"{_bio}"'
 
+        search_str = QRegularExpression.wildcardToRegularExpression(search_str)  # convert our "*" chars to regex
         self._logger.info(f"Filtering images based on filter string: {search_str}")
         self._images_proxy.filterRoleOnRegex('image_filter_str', search_str)
 
@@ -228,6 +230,7 @@ class ImageManager(QObject):
         each image taken is appended, and filtering based on user data selection is handled by proxy
         """
         self._images_model.clearBindParams()
+        # TODO: do i need to handle null vals?
         self._images_model.setBindParam(':fram_cam_haul_id', self._app.data_selector.cur_haul_id)
         self._images_model.setBindParam(':fram_cam_catch_id', self._app.data_selector.cur_catch_id)
         self._images_model.setBindParam(':project_name', self._app.data_selector.cur_project_name)
