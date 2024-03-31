@@ -44,6 +44,7 @@ class CopyFilesWorker(QObject):
         self._logger = Logger.get_root()
         self._files_to_copy = []
         self._destination_folder = None
+        self._images_subdir = None
         self._is_running = False
 
     @staticmethod
@@ -72,6 +73,7 @@ class CopyFilesWorker(QObject):
     @destination_folder.setter
     def destination_folder(self, folder_path: str):
         self._destination_folder = folder_path
+        self._images_subdir = os.path.join(self._destination_folder, 'images')
 
     @property
     def files_to_copy(self) -> list[str]:
@@ -93,7 +95,8 @@ class CopyFilesWorker(QObject):
             self._logger.info(f"Unable to find target folder to copy files to: {self._destination_folder}")
             return
 
-        self._logger.info(f"Copying {len(self._files_to_copy)} to {self._destination_folder}")
+        os.makedirs(self._images_subdir, exist_ok=True)
+        self._logger.info(f"Copying {len(self._files_to_copy)} to {self._images_subdir}")
         self.copyStarted.emit(len(self._files_to_copy))
         self._is_running = True
         _successes = 0
@@ -101,7 +104,7 @@ class CopyFilesWorker(QObject):
 
         for f in self._files_to_copy:
             try:
-                _new_path = os.path.join(self._destination_folder, os.path.basename(f))
+                _new_path = os.path.join(self._images_subdir, os.path.basename(f))
                 shutil.copyfile(f, _new_path)
                 self._logger.info(f"File copied: {f} --> {_new_path}")
                 _successes += 1
