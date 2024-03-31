@@ -509,20 +509,20 @@ class CamControls(QObject):
             self._camera.setFocusMode(new_mode)
             self.controlsChanged.emit()
 
-    def _get_image_name(self, ext='jpg'):
+    def _get_image_name(self, ext='jpg') -> str:
         """
-        build image file name with current settings
-        TODO: what if catch/project/bio isnt selected? need these to be null
+        build image file name, format is {HAUL#}{VESSEL_CODE}_{CATCH DISPLAY NAME}_{PROJECT}_{BIOLABEL}.{ext}
+        If null items will be ommitted
         :param ext: str, extension specified, default to jpg
         :return: str, name of image file
         """
         haul_number = self._app.data_selector.cur_haul_num
         vessel_code = Utils.get_vessel_code_from_haul(haul_number)
         vessel_haul = vessel_code + haul_number[-3:]
-        catch_display = Utils.scrub_str_for_file_name(self._app.data_selector.cur_catch_display) if self._app.data_selector.cur_catch_display else ''
-        project = Utils.scrub_str_for_file_name(self._app.data_selector.cur_project_name) if self._app.data_selector.cur_project_name else ''
-        bio_label = self._app.data_selector.cur_bio_label if self._app.data_selector.cur_bio_label else ''
-        return f"{vessel_haul}_{catch_display}_{project}_{bio_label}.{ext}"
+        catch_display = '_' + Utils.scrub_str_for_file_name(self._app.data_selector.cur_catch_display) if self._app.data_selector.cur_catch_display else ''
+        project = '_' + Utils.scrub_str_for_file_name(self._app.data_selector.cur_project_name) if self._app.data_selector.cur_project_name else ''
+        bio_label = '_' + self._app.data_selector.cur_bio_label if self._app.data_selector.cur_bio_label else ''
+        return f"{vessel_haul}{catch_display}{project}{bio_label}.{ext}"
 
     def _increment_file_path(self, full_path, i=1):
         """
