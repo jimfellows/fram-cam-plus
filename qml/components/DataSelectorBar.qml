@@ -45,6 +45,9 @@ Rectangle {
                 function onIndexSetSilently(new_index) {
                     comboHauls.currentIndex = new_index
                 }
+                function onSelectIndexInUI(index) {
+                    comboHauls.currentIndex = index
+                }
             }
         }
 
@@ -70,6 +73,9 @@ Rectangle {
                 target: dataSelector.catches_model
                 function onIndexSetSilently(new_index) {
                     comboCatch.currentIndex = model.getProxyRowFromSource(new_index)
+                }
+                function onSelectIndexInUI(index) {
+                    comboCatch.currentIndex = index
                 }
             }
         }
@@ -97,6 +103,12 @@ Rectangle {
                     comboProject.currentIndex = dataSelector.projects_proxy.getProxyRowFromSource(new_index)
                 }
             }
+            Connections {
+                target: dataSelector.projects_proxy
+                function onSelectProxyIndexInUI(index) {
+                    comboProject.currentIndex = index
+                }
+            }
         }
         FramCamComboBox {
             id: comboBiolabel
@@ -122,6 +134,12 @@ Rectangle {
                     comboBiolabel.currentIndex = model.getProxyRowFromSource(new_index)
                 }
             }
+            Connections {
+                target: dataSelector.bios_proxy
+                function onSelectProxyIndexInUI(index) {
+                    comboBiolabel.currentIndex = index
+                }
+            }
         }
         FramCamButton {
             id: btnClear
@@ -131,6 +149,7 @@ Rectangle {
             iconSource: 'qrc:/svgs/sweep.svg'
             onClicked: {
                 comboHauls.currentIndex = -1
+                camControls.clearBarcode()
             }
         }
         FramCamButton {

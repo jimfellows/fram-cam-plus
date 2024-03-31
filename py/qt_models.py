@@ -31,6 +31,7 @@ class FramCamSqlListModel(QAbstractListModel):
 
     currentIndexChanged = Signal(int, arguments=['newIndex'])
     indexSetSilently = Signal(int, arguments=['newIndex'])
+    selectIndexInUI = Signal(int, arguments=['index'])
     #selectRow = Signal(int, argument=['rowToSelect'])
 
     def __init__(self, db, parent=None):

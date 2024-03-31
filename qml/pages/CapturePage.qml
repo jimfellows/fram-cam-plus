@@ -31,7 +31,7 @@ Item {
     Connections {
             target: camControls
             function onBarcodeDetected(barcode) {
-                shotgun.play()
+                if (barcode) shotgun.play()
             }
         }
     Rectangle {
