@@ -141,7 +141,7 @@ Rectangle {
                             fontSizeMode: Text.Fit
                         }
                         Label {
-                            text: imageManager.imagesModel.curImgSciName ? imageManager.imagesModel.curImgCatch+' ('+imageManager.imagesModel.curImgSciName+')' : imageManager.imagesModel.curImgCatch
+                            text: imageManager.imagesModel.curImgCatch
                             Layout.alignment: Qt.AlignLeft
                             color: appStyle.secondaryFontColor
                             fontSizeMode: Text.Fit
