@@ -10,6 +10,7 @@ ProgressBar {
     Material.theme: Material.Dark
 
     property color runningColor: appStyle.primaryColor;
+
     implicitHeight: 10
     implicitWidth: 200
 
@@ -22,7 +23,7 @@ ProgressBar {
 
     contentItem: Item {
         implicitWidth: control.width
-        implicitHeight: control.height * 0.95
+        implicitHeight: control.height * 0.97
 
         // Progress indicator for determinate state.
         Rectangle {
