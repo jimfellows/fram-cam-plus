@@ -31,6 +31,7 @@ class FramCamSqlListModel(QAbstractListModel):
 
     currentIndexChanged = Signal(int, arguments=['newIndex'])
     indexSetSilently = Signal(int, arguments=['newIndex'])
+    selectIndexInUI = Signal(int, arguments=['index'])
     #selectRow = Signal(int, argument=['rowToSelect'])
 
     def __init__(self, db, parent=None):
@@ -295,6 +296,7 @@ class BiosModel(FramCamSqlListModel):
 class FramCamFilterProxyModel(QSortFilterProxyModel):
 
     proxyIndexChanged = Signal(int, arguments=['new_proxy_index'])
+    selectProxyIndexInUI = Signal(int, arguments=['proxy_index'])  # use me to simulate a click of proxy model item
     indexSetSilently = Signal(int, arguments=['newIndex'])
 
     def __init__(self, source_model, parent=None, name=None):

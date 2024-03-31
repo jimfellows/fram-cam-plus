@@ -31,7 +31,7 @@ Item {
     Connections {
             target: camControls
             function onBarcodeDetected(barcode) {
-                shotgun.play()
+                if (barcode) shotgun.play()
             }
         }
     Rectangle {
@@ -334,8 +334,16 @@ Item {
                         model.proxyIndex = currentIndex
                     }
                     Connections {
+                        target: imageManager.imagesProxy
+                        function onSelectProxyIndexInUI(proxy_index) {
+                            console.info("onSelectProxyIndexInUI received: " + proxy_index)
+                            lvThumbnails.currentIndex = proxy_index
+                        }
+                    }
+                    Connections {
                         target: imageManager.imagesModel
                         function onSendIndexToProxy(new_index) {
+                            console.info("onSendIndexToProxy index received: " + new_index)
                             var proxyRow = imageManager.imagesProxy.getProxyRowFromSource(new_index)
                             lvThumbnails.currentIndex = proxyRow
                         }

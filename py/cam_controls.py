@@ -268,8 +268,12 @@ class CamControls(QObject):
         self.curFlashMode = self._app.state.get_state_value('Flash Mode')
         self._cur_focus_mode = None
         self.curFocusMode = self._app.state.get_state_value('Focus Mode')
-        self._detected_barcode = None
+        self._detected_barcode = self._app.state.get_state_value('Last Barcode Detected')
         self.barcodeDetected.connect(self._select_barcode_info)
+
+    @Slot()
+    def clearBarcode(self):
+        self._set_detected_barcode(None)
 
     def _select_barcode_info(self, barcode: str):
         _sql = '''
@@ -395,9 +399,10 @@ class CamControls(QObject):
         :param new_barcode: str, unformatted barcode str read from image
         :return: str, formatted with dashes if necessary
         """
-        bc = self.transform_barcode_tag(new_barcode)
+        bc = self.transform_barcode_tag(new_barcode) if new_barcode else new_barcode
         if self._detected_barcode != bc:
             self._detected_barcode = bc
+            self._app.state.set_state_value('Last Barcode Detected', new_barcode)
             self.barcodeDetected.emit(bc)
 
     @Property("QVariant", notify=barcodeDetected)
