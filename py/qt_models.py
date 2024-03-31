@@ -414,10 +414,10 @@ class ImagesModel(FramCamSqlListModel):
         self.sql = '''
             select      *
             from        IMAGES_VW
-            where       coalesce(:fram_cam_haul_id, fram_cam_haul_id) = fram_cam_haul_id
-                        and coalesce(:fram_cam_catch_id, fram_cam_catch_id) = fram_cam_catch_id
-                        and coalesce(:project_name, project_name) = project_name
-                        and coalesce(:bio_label, bio_label) = bio_label
+            where       coalesce(:fram_cam_haul_id, fram_cam_haul_id, 1) = coalesce(fram_cam_haul_id, 1)
+                        and coalesce(:fram_cam_catch_id, fram_cam_catch_id, 1) = coalesce(fram_cam_catch_id, 1)
+                        and coalesce(:project_name, project_name, '1') = coalesce(project_name, '1')
+                        and coalesce(:bio_label, bio_label, '1') = coalesce(bio_label, '1')
                         and coalesce(:image_id, image_id) = image_id
             order by    image_id desc
         '''
