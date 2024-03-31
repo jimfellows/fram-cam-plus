@@ -14,6 +14,7 @@ from py.images_manager import ImageManager
 from py.qsqlite import QSqlite
 from py.style import Style
 from py.settings import Settings
+from py.cloud_uploader import CloudUploader
 from qrc import qresources  # need this to import compiled qrc resources
 
 # 3rd party imports
@@ -48,6 +49,7 @@ class FramCamPlus(QObject):
         self.camera_manager = CameraManager(self.sqlite.db, self)
         self.cam_controls = CamControls(self.sqlite.db, self)
         self.image_manager = ImageManager(self.sqlite.db, self)
+        self.cloud_uploader = CloudUploader(self.sqlite.db, self)
 
         self.context.setContextProperty('state', self.state)
         self.context.setContextProperty('settings', self.settings)
@@ -55,6 +57,7 @@ class FramCamPlus(QObject):
         self.context.setContextProperty('dataSelector', self.data_selector)
         self.context.setContextProperty('camControls', self.cam_controls)
         self.context.setContextProperty('imageManager', self.image_manager)
+        self.context.setContextProperty('cloudUploader', self.cloud_uploader)
 
         # lastly, load up qml
         self.engine.load('qrc:/windows/MainWindow.qml')
