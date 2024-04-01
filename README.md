@@ -83,13 +83,17 @@ See the link below, to date (March 2024), the latest release of cx_Freeze isn't 
 
 https://stackoverflow.com/questions/77861331/cant-create-a-a-exe-file-using-cxfreeze-keyerror-import-star
 
-Also, shiboken6 DLL files aren't fully copying to the bundled cx_Freeze app, so the entirety
-of lib/shiboken6 needs to be copied (TODO: fix this?)
+For  now I'm using 3.11 to avoid rolling a custom cxFreeze. Also, shiboken6 DLL files aren't fully copying to the bundled cx_Freeze app, so the entirety
+of lib/shiboken6 needs to be copied (TODO: fix this?).  To adjust build params, see the file build/build_fram_cam.py.
 
-cx_Freeze params are set in the pyproject.toml file, to build, call the following from the root dir:
+There's likely a better way to interface with poetry package manager, but, for the time being, to build, activate 
+your venv and run the following from the project root:
 
 ```commandline
-cxfreeze build
+python build/build_fram_cam.py build
 ```
+The cx freeze results are scooped up by a call to NSIS' makensis command.  To use, make sure NSIS is installed, with
+the makensis command available (update your Windows path).  The end result should be an NSIS isntaller exe in your
+build folder.
 
 [NSIS](https://nsis.sourceforge.io/Download)
