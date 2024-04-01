@@ -10,9 +10,9 @@ import QtQuick.VirtualKeyboard 2.1
 
 Rectangle {
     id: root
-    color: appStyle.surfaceColor
+    color: appStyle.elevatedSurface_L9
     border.color: appStyle.primaryColor
-    border.width: 7
+    border.width: 5
 
     implicitHeight: 417
     implicitWidth: 480
@@ -24,10 +24,12 @@ Rectangle {
     Image {
         source: root.imageSource ? "file:///" + root.imageSource : null
         anchors.fill: parent
-        anchors.leftMargin: 4
-        anchors.rightMargin: 4
-        anchors.topMargin: 4
-        anchors.bottomMargin: 4
+        anchors.leftMargin: 5
+        anchors.rightMargin: 5
+        anchors.topMargin: 5
+        anchors.bottomMargin: 5
+        fillMode: Image.PreserveAspectFit
+        cache: true
     }
     Label {
         id: lblTitle
@@ -183,6 +185,25 @@ Rectangle {
                     font.bold: true;
                 }
             }
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Label {
+                    id: lblCaptured
+                    text: "Captured @:"
+                    font.bold: true;
+                    font.underline: true;
+                    color: appStyle.primaryFontColor;
+                    Layout.preferredWidth: colImageInfo.labelWidth
+                }
+                Label {
+                    id: lblCapturedValue
+                    text: imageManager.imagesModel.curImgCaptureDt
+                    color: appStyle.primaryFontColor;
+                    Layout.alignment: Qt.AlignLeft;
+                    font.bold: true;
+                }
+            }
             TextArea {
                 id: taNotes
                 text: imageManager.imagesModel.curImgNotes ? imageManager.imagesModel.curImgNotes : ""
@@ -195,7 +216,7 @@ Rectangle {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 
-                placeholderText: "Take notes using the keyboard below..."
+                placeholderText: "Take notes record notes here.\nTouch here to activate keyboard..."
                 color: appStyle.surfaceColor
                 onTextChanged: imageManager.imagesModel.curImgNotes = text
             }
@@ -210,13 +231,17 @@ Rectangle {
         anchors.bottomMargin: 5
         opacity: 0.6
         visible: taNotes.focus
-        Connections{
+        Connections {
             target: Qt.inputMethod
             //https://stackoverflow.com/questions/69814505/how-to-capture-hide-key-event-in-qt-virtualkeyboard
             function onVisibleChanged() { keyboard.visible = Qt.inputMethod.visible }
         }
     }
-
+    HandwritingInputPanel {
+        inputPanel: keyboard
+        active: true
+        available: true
+    }
     Rectangle {
         id: rectButtons
         width: 260
@@ -232,12 +257,14 @@ Rectangle {
         radius: 8
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 5
-            anchors.rightMargin: 5
+            anchors.leftMargin: 9
+            anchors.rightMargin: 9
+            anchors.horizontalCenter: parent.horizontalCenter
             FramCamButton {
                 text: 'Save'
                 Layout.preferredHeight: 75
                 Layout.preferredWidth: 70
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 onClicked: {
                     capturePage.lvThumbnails.currentIndex = -1
                 }
@@ -246,6 +273,7 @@ Rectangle {
                 text: 'Delete'
                 Layout.preferredHeight: 75
                 Layout.preferredWidth: 70
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 pressedColor: appStyle.errorColor
                 onClicked: {
                     imageManager.imagesModel.removeImage(imageManager.imagesModel.currentIndex)
@@ -255,6 +283,7 @@ Rectangle {
                 text: 'Sync'
                 Layout.preferredHeight: 75
                 Layout.preferredWidth: 70
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 onClicked: {
                     imageManager.copyCurImageToWheelhouse()
                 }

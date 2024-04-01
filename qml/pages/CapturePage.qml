@@ -2,7 +2,7 @@ import QtQuick.Controls 6.3
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtMultimedia 6.3
-
+import QtQuick.Layouts 6.3
 import 'qrc:/controls'
 import 'qrc:/components'
 
@@ -85,6 +85,7 @@ Item {
                 //visible: false
                 color: appStyle.elevatedSurface_L7
                 border.color: appStyle.iconColor
+                border.width: 5
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -112,6 +113,10 @@ Item {
                 VideoOutput {
                     id: videoOutput
                     anchors.fill: parent
+                    anchors.leftMargin: 5
+                    anchors.rightMargin: 5
+                    anchors.topMargin: 5
+                    anchors.bottomMargin: 5
                     fillMode: VideoOutput.PreserveAspectCrop
                 }
 
@@ -351,11 +356,16 @@ Item {
                         }
                     }
                     delegate: Column {
+                        anchors.left: lvThumbnails.left
+                        anchors.right: lvThumbnails.right
                         Image {
                             id: imgThumbnail
                             source: "file:///" + model.full_path
-                            width: imageManager.imagesProxy.proxyIndex === index ? lvThumbnails.width : lvThumbnails.width - 30
+                            width: lvThumbnails.width - 30
+                            anchors.right: parent.right
+                            //width: imageManager.imagesProxy.proxyIndex === index ? lvThumbnails.width : lvThumbnails.width - 30
                             fillMode: Image.PreserveAspectFit
+                            //Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                             layer.effect: DropShadow {
                                 verticalOffset: 0
                                 horizontalOffset: 0
