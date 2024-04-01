@@ -170,7 +170,8 @@ Item {
 
                         ColorOverlay {
                             source: imgMoveControls
-                            color: appStyle.iconColor
+                            color: appStyle.primaryFontColor
+                            opacity: 0.75
                             anchors.top: imgMoveControls.top
                             anchors.bottom: imgMoveControls.bottom
                             antialiasing: true
@@ -267,14 +268,11 @@ Item {
                     }
                 }
             }
-            ImageEditorBar {
+            ImageEditorArea {
                 id: editBar
                 anchors.top: parent.top
-                //anchors.topMargin: 10
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 10
                 anchors.right: rectThumbnails.left
-                anchors.rightMargin: -10
                 width: 0
                 SequentialAnimation {
                     id: animationEditBar
@@ -296,7 +294,11 @@ Item {
                 Connections {
                     target: imageManager.imagesProxy
                     function onProxyIndexChanged(new_proxy_index) {
+                        console.info("OUR IMAGES PROXY INDEX CHANGED TO " + new_proxy_index)
                         var modelIx = imageManager.imagesProxy.sourceIndex
+
+                        if (modelIx > -1) editBar.imageSource = imageManager.imagesModel.getData(modelIx, 'full_path')
+
                         if (new_proxy_index > -1 && editBar.width > 0) {
                             // if we still select an image and edit bar is already out, dont re-animate
                             return;

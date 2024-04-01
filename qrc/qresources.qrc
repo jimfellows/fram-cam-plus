@@ -24,6 +24,7 @@
     <qresource prefix="/components">
         <file alias="DataSelectorBar.qml">../qml/components/DataSelectorBar.qml</file>
         <file alias="ImageEditorBar.qml">../qml/components/ImageEditorBar.qml</file>
+        <file alias="ImageEditorArea.qml">../qml/components/ImageEditorArea.qml</file>
     </qresource>
     <qresource prefix="/svgs">
         <file alias="aperture.svg">../resources/svgs/aperture_1.svg</file>
