@@ -22,6 +22,7 @@ Window {
     //props
     property bool isWindowMaximized: false;
     property int windowMargin: 10;
+    property string activePage;
     property alias stackView: stackView
 
     //removing default title bar
@@ -72,6 +73,7 @@ Window {
 
     function navigateToPage(pageName) {
         console.info("Navigating to " + pageName)
+        windowMain.activePage = pageName;
         if (pageName.toLowerCase() === 'capture' && !btnCapturePage.isActive) {
             btnCapturePage.isActive = true;
             btnSpeciesPage.isActive = false;
@@ -437,6 +439,7 @@ Window {
                         anchors.fill: parent
                         initialItem: Qt.resolvedUrl('qrc:/pages/CapturePage.qml')
                         Component.onCompleted: push(Qt.resolvedUrl('qrc:/pages/CapturePage.qml'))
+                        onCurrentItemChanged: console.info("CURRENT ITEM CHANGED TO " + currentItem)
                     }
                 }
 

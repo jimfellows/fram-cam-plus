@@ -15,6 +15,15 @@ Item {
     Component.onCompleted: {
         camControls.targetSink = videoOutput.videoSink  // make output sink the destination for our processed frames
     }
+    Connections {
+        target: windowMain
+        function onActivePageChanged() {
+            // reset lv index so that when we re-enter and select, it registers as a change
+            if (windowMain.activePage.toLowerCase() !== 'capture') {
+                lvThumbnails.currentIndex = -1
+            }
+        }
+    }
     SoundEffect {
         id: clack
         source: "qrc:/sounds/clack.wav"
