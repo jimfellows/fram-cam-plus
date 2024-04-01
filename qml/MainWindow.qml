@@ -458,21 +458,42 @@ Window {
                     Label {
                         id: lblActiveCamera
                         anchors.left: parent.left
-                        anchors.leftMargin: 10
+                        anchors.leftMargin: 5
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "Active Camera: " + camControls.activeCameraName
+                        text: "Camera: " + camControls.activeCameraName
                         color: appStyle.secondaryFontColor
                         font.family: appStyle.fontFamily
+                        font.pixelSize: 12
+                    }
+                    Label {
+                        id: lblWarning
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: ''
+                        color: appStyle.errorColor
+                        font.family: appStyle.fontFamily
+                        font.pixelSize: 12
+                        font.bold: true
+                        Connections {
+                            target: imageManager
+                            function onBadDestinationPath(path) {
+                                lblWarning.text = "Bad Sync Path: " + path
+                            }
+                            function onCopyStarted(no_of_files) {
+                                lblWarning.text = ''
+                            }
+                        }
                     }
                     Label {
                         id: lblBarcode
                         font.bold: true
                         font.family: appStyle.fontFamily
                         color: appStyle.accentColor
-                        text: camControls.detectedBarcode ? "Barcode Detected: " + camControls.detectedBarcode : ''
+                        text: camControls.detectedBarcode ? "Barcode Detected:" + camControls.detectedBarcode : ''
                         anchors.right: parent.right
-                        anchors.rightMargin: 10
+                        anchors.rightMargin: 5
                         anchors.verticalCenter: parent.verticalCenter
+                        font.pixelSize: 12
                     }
                 }
             }

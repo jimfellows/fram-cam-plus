@@ -38,6 +38,7 @@ class CopyFilesWorker(QObject):
     copyStarted = Signal(int, arguments=['no_of_files'])  # tell progress bar how many files we are copying
     fileCopied = Signal(str, str, bool, arguments=['path', 'new_path', 'success'])  # for each file, emit once done
     copyEnded = Signal(int, int, arguments=['files_copied', 'files_failed'])  # emit when complete, to kill thread
+    badDestinationPath = Signal(str, arguments=['path'])
 
     def __init__(self):
         super().__init__()
@@ -91,16 +92,19 @@ class CopyFilesWorker(QObject):
         main call of thread, must set files_to_copy and destination_folder props first
         emit start, copy, and end signals
         """
+        _successes = 0
+        _fails = 0
         if not self._destination_folder or not os.path.exists(self._destination_folder):
             self._logger.info(f"Unable to find target folder to copy files to: {self._destination_folder}")
+            self.copyEnded.emit(_successes, _fails)
+            self._logger.info(f"File copy completed: successes = {_successes}, failures = {_fails}")
+            self.badDestinationPath.emit(self._destination_folder or '')
             return
 
         os.makedirs(self._images_subdir, exist_ok=True)
         self._logger.info(f"Copying {len(self._files_to_copy)} to {self._images_subdir}")
         self.copyStarted.emit(len(self._files_to_copy))
         self._is_running = True
-        _successes = 0
-        _fails = 0
 
         for f in self._files_to_copy:
             try:
@@ -128,6 +132,7 @@ class ImageManager(QObject):
     copyStarted = Signal(int, arguments=['no_of_files'])
     fileCopied = Signal(str, str, bool, arguments=['path', 'new_path', 'success'])
     copyEnded = Signal(int, int, arguments=['files_copied', 'files_failed'])
+    badDestinationPath = Signal(str, arguments=['path'])
 
     def __init__(self, db, app=None, parent=None):
         super().__init__(parent)
@@ -189,6 +194,7 @@ class ImageManager(QObject):
         self._copy_files_worker.fileCopied.connect(self._images_model.setImageSyncPath)
         self._copy_files_worker.copyEnded.connect(self.copyEnded.emit)
         self._copy_files_worker.copyEnded.connect(self._copy_files_thread.quit)
+        self._copy_files_worker.badDestinationPath.connect(self.badDestinationPath)
 
         # set props we need to run, then run
         self._copy_files_worker.destination_folder = self._app.settings.curWheelhouseDataDir
