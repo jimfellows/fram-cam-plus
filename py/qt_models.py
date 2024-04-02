@@ -21,6 +21,7 @@ from PySide6.QtCore import (
 from py.utils import Utils
 from py.logger import Logger
 import os
+import re
 from datetime import datetime
 
 class FramCamSqlListModel(QAbstractListModel):
@@ -449,6 +450,14 @@ class ImagesModel(FramCamSqlListModel):
     @Property("QVariant", notify=currentImageChanged)
     def curImgFileName(self):
         return self.getData(self._current_index, 'file_name') or ''
+
+    @Property("QVariant", notify=currentImageChanged)
+    def curImgNo(self):
+        _fname = self.getData(self._current_index, 'file_name') or ''
+        try:
+            return re.search('img\d+', _fname).group()
+        except AttributeError:
+            return None
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgHaulNum(self):
