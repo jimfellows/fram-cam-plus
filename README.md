@@ -6,6 +6,8 @@ This application is developed for usage on Panasonic Toughpads running Windows 1
 used by NOAA software used for at-sea data collection on the Northwest Fisheries Science Center's West Coast Groundfish
 Bottom Trawl Survey.
 
+![Panasonic Tablet](resources/images/how_to_pics/panasonic_example.jpg?raw=true)
+
 The front end of this application is written using Qt's QML framework, and generally attempts to follow Qt's Model/View architecture.
 
 * [Qt for Python](https://wiki.qt.io/Qt_for_Python)
