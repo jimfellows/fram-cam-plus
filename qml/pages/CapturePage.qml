@@ -329,8 +329,6 @@ Item {
                         console.info("OUR IMAGES PROXY INDEX CHANGED TO " + new_proxy_index)
                         var modelIx = imageManager.imagesProxy.sourceIndex
 
-                        if (modelIx > -1) editBar.imageSource = imageManager.imagesModel.getData(modelIx, 'full_path')
-
                         if (new_proxy_index > -1 && editBar.width > 0) {
                             // if we still select an image and edit bar is already out, dont re-animate
                             return;
