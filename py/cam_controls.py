@@ -223,10 +223,13 @@ class CamControls(QObject):
     camera to processor, and capture of still frames.
     """
 
-    activeCameraChanged = Signal()  # tell ui that camera device has changed
+    cameraChanged = Signal()  # tell ui that camera device has changed
+    cameraStatusChanged = Signal(bool, arguments=['status'])
     barcodeDetected = Signal(str, arguments=['barcode'])  # notify if we have detected a new barcode
     videoFrameProcessed = Signal("QVariant", arguments=['new_frame'])  # send frame from processor to final sink
     controlsChanged = Signal()  # for now just using generic signal anytime control (e.g. flash, focus etc) changes
+    flipCamera = Signal()
+
 
     def __init__(self, db, app=None, parent=None):
         super().__init__(parent)
@@ -238,6 +241,7 @@ class CamControls(QObject):
         self._devices = QMediaDevices()  # list our available devices here
         _state_cam = self._app.state.get_state_value('Current Camera')
         self._camera = self._get_camera_by_name(_state_cam)
+        self._is_camera_running = False
         self._image_capture = QImageCapture()
         self._capture_session = QMediaCaptureSession()
         self._capture_session.setCamera(self._camera)
@@ -253,9 +257,12 @@ class CamControls(QObject):
         self._frame_processor.setWorker(self._cv_frame_worker)  # connect processor and worker
         self._capture_session.videoSink().videoFrameChanged.connect(self._frame_processor.processVideoFrame)  # pass frame from session to processor
         self._frame_processor.videoFrameProcessed.connect(self._display_frame)  # pass frame back to target sink
-        self._cv_frame_worker.feedFrozen.connect(self._camera.stop)
-        self._cv_frame_worker.feedUnfrozen.connect(self._camera.start)
+
+        # for some reason when I call self._camera.start / stop directly, this doesnt work
+        self._cv_frame_worker.feedFrozen.connect(self.stopCamera)
+        self._cv_frame_worker.feedUnfrozen.connect(self.startCamera)
         self._cv_frame_worker.barcodeDetected.connect(lambda bc: self._set_detected_barcode(bc))
+        self._camera.activeChanged.connect(self._set_camera_status)
 
         # custom control variables, store them in state table and load on start
         self._is_barcode_scanner_on = None
@@ -270,6 +277,21 @@ class CamControls(QObject):
         self.curFocusMode = self._app.state.get_state_value('Focus Mode')
         self._detected_barcode = self._app.state.get_state_value('Last Barcode Detected')
         self.barcodeDetected.connect(self._select_barcode_info)
+
+    def startCamera(self):
+        self._camera.start()
+
+    def stopCamera(self):
+        self._camera.stop()
+
+    @Property(bool, notify=cameraStatusChanged)
+    def isCameraRunning(self):
+        return self._is_camera_running
+
+    def _set_camera_status(self, status):
+        if self._is_camera_running != status:
+            self._is_camera_running = status
+            self.cameraStatusChanged.emit(status)
 
     @Slot()
     def clearBarcode(self):
@@ -304,6 +326,8 @@ class CamControls(QObject):
     @camera.setter
     def camera(self, new_camera: QCamera):
         if self._camera != new_camera:
+
+            _do_restart = self._camera.isActive()
             self._camera = new_camera
 
             if not isinstance(self._camera, QCamera):
@@ -313,16 +337,20 @@ class CamControls(QObject):
 
             self._app.state.set_state_value('Current Camera', new_camera.cameraDevice().description())
             self._capture_session.setCamera(self._camera)
-            self._camera.start()
-            self.activeCameraChanged.emit()
+
+            if _do_restart:
+                self._camera.start()
+                self.flipCamera.emit()
+
+            self.cameraChanged.emit()
             self._view_camera_features()
 
     @Property(QObject, constant=True)
     def imageCapture(self):
         return self._image_capture
 
-    @Property(str, notify=activeCameraChanged)
-    def activeCameraName(self) -> str:
+    @Property(str, notify=cameraChanged)
+    def curCameraName(self) -> str:
         return self._camera.cameraDevice().description()
 
     def _view_camera_features(self):
@@ -375,8 +403,10 @@ class CamControls(QObject):
             return
 
         try:
+
             cur_index = [d.description() for d in self._devices.videoInputs()].index(self._camera.cameraDevice().description())
             self.camera = QCamera(self._devices.videoInputs()[cur_index+1])
+            print(f"TOggled camera position = {self.camera.cameraDevice().position()}")
 
         except ValueError as e:
             self._logger.error(f"Error occurred while trying to toggle camera device: {e}")
@@ -446,15 +476,15 @@ class CamControls(QObject):
         """
         self._cv_frame_worker.request_unfreeze()
 
-    @Property("QVariant", notify=activeCameraChanged)
+    @Property("QVariant", notify=cameraChanged)
     def isFlashSupported(self):
         return self._camera.isFlashModeSupported(QCamera.FlashOn)
 
-    @Property("QVariant", notify=activeCameraChanged)
+    @Property("QVariant", notify=cameraChanged)
     def isTorchSupported(self):
         return self._camera.isTorchModeSupported(QCamera.TorchOn)
 
-    @Property("QVariant", notify=activeCameraChanged)
+    @Property("QVariant", notify=cameraChanged)
     def isFocusModeSupported(self):
         return self._camera.isFocusModeSupported(QCamera.FocusModeAuto) and self._camera.isFocusModeSupported(QCamera.FocusModeManual)
 

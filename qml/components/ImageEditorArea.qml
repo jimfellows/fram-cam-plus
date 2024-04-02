@@ -22,6 +22,7 @@ Rectangle {
     property string imageSource;
 
     Image {
+        id: img
         source: root.imageSource ? "file:///" + root.imageSource : null
         anchors.fill: parent
         anchors.leftMargin: 5
@@ -35,10 +36,10 @@ Rectangle {
         id: lblTitle
 
         anchors {
-            top: parent.top
-            left: parent.left
-            topMargin: 20
-            leftMargin: 20
+            top: img.top
+            left: img.left
+            topMargin: 10
+            leftMargin: 10
         }
 
         text: imageManager.imagesModel.curImgFileName
@@ -87,7 +88,7 @@ Rectangle {
         radius: 8
         opacity: 0.8
         color: appStyle.surfaceColor
-        height: 200
+        height: parent.height * 0.4
         width: 250
 
         anchors {

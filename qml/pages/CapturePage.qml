@@ -74,7 +74,7 @@ Item {
                 disabledBackgroundColor: appStyle.elevatedSurface_L9
                 borderWidth: 5
                 radius: 20
-                enabled: camControls.camera.active && lvThumbnails.currentIndex === -1
+                enabled: camControls.isCameraRunning && lvThumbnails.currentIndex === -1
 
                 anchors {
                     right: parent.right
@@ -99,9 +99,27 @@ Item {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
+                //anchors.centerIn: parent
                 anchors.rightMargin: 175  // make room for thumbnails here
                 radius: 8
                 clip: true
+
+                property bool flipped: false;
+
+                Connections {
+                    target: camControls
+                    function onFlipCamera() {
+                        rectImgPreview.flipped = !rectImgPreview.flipped
+                    }
+                }
+                transform: Rotation {
+                    axis.x: 1; axis.y: 0; axis.z: 0
+                    angle: rectImgPreview.flipped ? 360 : 0
+                    origin.x: rectImgPreview.width / 2; origin.y: rectImgPreview.height / 2
+                    Behavior on angle {
+                        NumberAnimation { duration: 800 }
+                    }
+                }
 
                 Image {
                     id: image
@@ -222,7 +240,7 @@ Item {
                             radius: 20
                             iconSource: checked ? 'qrc:/svgs/video_on.svg' : 'qrc:/svgs/video_off.svg'
                             checkable: true
-                            checked: camControls.camera.active
+                            checked: camControls.isCameraRunning
                             onClicked: {
                                 if(checked) {
                                     camControls.unfreezeFrame()
