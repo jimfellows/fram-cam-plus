@@ -19,11 +19,11 @@ Rectangle {
     radius: 8
     clip: true
 
-    property string imageSource;
+    property string imageSource: imageManager.imagesModel.curImgFilePath ? "file:///" + imageManager.imagesModel.curImgFilePath : null;
 
     Image {
         id: img
-        source: root.imageSource ? "file:///" + root.imageSource : null
+        source: root.imageSource
         anchors.fill: parent
         anchors.leftMargin: 5
         anchors.rightMargin: 5
@@ -32,69 +32,43 @@ Rectangle {
         fillMode: Image.PreserveAspectFit
         cache: true
     }
-    Label {
-        id: lblTitle
-
+    Rectangle {
+        id: rectImgName
+        radius: 8
+        opacity: 0.7
+        color: appStyle.surfaceColor
+        height: 30
         anchors {
-            top: img.top
-            left: img.left
+            top: parent.top
+            left: parent.left
+            right: parent.right
             topMargin: 10
             leftMargin: 10
+            rightMargin: 10
         }
-
-        text: imageManager.imagesModel.curImgFileName
-        color: appStyle.primaryFontColor
-        opacity: 0.6
-        font.bold: true
-
-    }
-    FramCamProgressBar {
-        id: progressCopy
-        value: imageManager.imagesModel.isImgBackedUp ? to : 0
-        runningColor: appStyle.accentColor
-        indeterminate: false
-        height: 8
-        anchors.left: lblTitle.left
-        anchors.right: lblTitle.right
-        anchors.top: lblTitle.bottom
-        anchors.topMargin: 3
-        anchors.bottomMargin: 10
-        Connections {
-            target: imageManager
-            function onCopyStarted(no_of_files) {
-                progressCopy.visible =  true
-                progressCopy.value = 0
-                progressCopy.runningColor = appStyle.accentColor
-                animateProgress.running = true
-            }
-            function onFileCopied(path, new_path, success) {
-                if (!success) progressCopy.runningColor = appStyle.errorColor
-            }
-            function onCurrentImageChanged() {
-                console.info("IMAGE CHANGED, is it backed up? " + imageManager.imagesModel.isImgBackedUp)
-            }
-        }
-        PropertyAnimation{
-            id: animateProgress
-            target: progressCopy
-            property: "value"
-            to: 1
-            duration: 1000
-            easing.type: Easing.InOutQuint
+        Label {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            text: imageManager.imagesModel.curImgFileName
+            color: appStyle.primaryFontColor
+            font.bold: true
+            font.underline: true
         }
     }
+
     Rectangle {
         id: rectImageInfo
         radius: 8
-        opacity: 0.8
+        opacity: 0.7
         color: appStyle.surfaceColor
         height: parent.height * 0.4
         width: 250
 
         anchors {
-            top: progressCopy.bottom
-            left: progressCopy.left
+            top: rectImgName.bottom
+            left: rectImgName.left
             topMargin: 5
+            //leftMargin: 15
         }
 
         ColumnLayout {
@@ -221,6 +195,38 @@ Rectangle {
                 color: appStyle.surfaceColor
                 onTextChanged: imageManager.imagesModel.curImgNotes = text
             }
+            FramCamProgressBar {
+                id: progressCopy
+                value: imageManager.imagesModel.isImgBackedUp ? to : 0
+                runningColor: appStyle.accentColor
+                indeterminate: false
+                height: 8
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Connections {
+                    target: imageManager
+                    function onCopyStarted(no_of_files) {
+                        progressCopy.visible =  true
+                        progressCopy.value = 0
+                        progressCopy.runningColor = appStyle.accentColor
+                        animateProgress.running = true
+                    }
+                    function onFileCopied(path, new_path, success) {
+                        if (!success) progressCopy.runningColor = appStyle.errorColor
+                    }
+                    function onCurrentImageChanged() {
+                        console.info("IMAGE CHANGED, is it backed up? " + imageManager.imagesModel.isImgBackedUp)
+                    }
+                }
+                PropertyAnimation{
+                    id: animateProgress
+                    target: progressCopy
+                    property: "value"
+                    to: 1
+                    duration: 1000
+                    easing.type: Easing.InOutQuint
+                }
+            }
         }  // col layout for image info ends here
     }  // rectangle containing image info ends here
 
@@ -246,15 +252,15 @@ Rectangle {
     Rectangle {
         id: rectButtons
         width: 260
-        height: 100
+        height: 90
         anchors {
-            right: parent.right
-            top: parent.top
-            topMargin: 20
-            rightMargin: 10
+            right: rectImgName.right
+            top: rectImgName.bottom
+            topMargin: 5
+            //rightMargin: 15
         }
         color: appStyle.surfaceColor
-        opacity: 0.6
+        opacity: 0.7
         radius: 8
         RowLayout {
             anchors.fill: parent
