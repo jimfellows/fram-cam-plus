@@ -114,8 +114,8 @@ Item {
                                         id: progressCopy
                                         value: model.backup_path ? 1 : 0
                                         runningColor: appStyle.accentColor
-
-                                        Layout.preferredWidth: lblFileName.width
+                                        Layout.fillWidth:true
+                                        //Layout.preferredWidth: lblFileName.width
                                         Layout.preferredHeight: 10
                                         Connections {
                                             target: imageManager
