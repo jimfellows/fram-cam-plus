@@ -94,11 +94,11 @@ Item {
                                 Layout.preferredWidth: 200
                                 Layout.preferredHeight: 75
                                 titleLabelText: "Logging Level"
-                                model: ['DEBUG', 'INFO', 'WARNING', 'SILENT']
+                                model: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
                                 backgroundColor: appStyle.elevatedSurface_L5
                                 placeholderText: 'Select log level...'
                                 onCurrentIndexChanged: {
-                                    settings.curUiMode = model[currentIndex]
+                                    settings.curLogLevel = model[currentIndex]
                                 }
                             }
                             FramCamButton {

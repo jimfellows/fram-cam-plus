@@ -52,6 +52,7 @@ class Settings(QObject):
 
     vesselSubnetChanged = Signal(str, arguments=['new_subnet'])
     uiModeChanged = Signal(str, arguments=['new_mode'])
+    logLevelChanged = Signal(int, arguments=['new_log_level'])
     backdeckPinged = Signal(bool, arguments=['pingResult'])
     pingStatusChanged = Signal()
     backdeckDbChanged = Signal(str, arguments=['new_path'])
@@ -64,6 +65,7 @@ class Settings(QObject):
         self._db = db
         self._app = app
         self._logger = Logger.get_root()
+        self._log_level = None
 
         # for now the user doesnt set these, but are based on the subnet setting
         self._cur_vessel_subnet = None
@@ -75,6 +77,9 @@ class Settings(QObject):
         self._cur_ui_mode = self._app.state.get_state_value('Current UI Mode')
         self._cur_backdeck_db = self._app.state.get_state_value('Current Backdeck DB')
         self._cur_wheelhouse_data_dir = self._app.state.get_state_value('Current Wheelhouse Data Dir')
+        self._cur_log_level = self._app.state.get_state_value('Current Log Level')
+        if self._cur_log_level:
+            self._logger.setLevel(self._cur_log_level)
 
         # if backdeck/wheelhouse ping thread is running, set to true
         self._is_ping_running = False
@@ -100,6 +105,7 @@ class Settings(QObject):
         self._wheelhouse_ping_thread.finished.connect(self._update_ping_status)
 
         self.curVesselSubnet = self._app.state.get_state_value('Current Vessel Subnet')
+
 
     def _update_ping_status(self):
         self._logger.debug(f"Updating ping status")
@@ -159,6 +165,16 @@ class Settings(QObject):
             self._app.state.set_state_value('Current UI Mode', new_mode)
             self.uiModeChanged.emit(new_mode)
 
+    @Property(str, notify=logLevelChanged)
+    def curLogLevel(self):
+        return self._cur_log_level
+
+    @curLogLevel.setter
+    def curLogLevel(self, new_level):
+        if new_level != self._cur_log_level:
+            self._cur_log_level = new_level
+            self.logLevelChanged.emit(new_level)
+            self._logger.setLevel(new_level)
 
     @Property(str, notify=backdeckDbChanged)
     def curBackdeckDb(self):
