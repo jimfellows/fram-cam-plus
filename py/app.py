@@ -26,9 +26,12 @@ class FramCamPlus(QObject):
 
     def __init__(self):
         super().__init__()
-        os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
+        os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"  # necessary?
 
         self._logger = Logger().configure()
+        self._logger.info('-------------------------------------------------------------------------------------------')
+        self._logger.info(f'~~><((*>  ~~><((*>  ~~><((*> | FramCam+ starting up | ~~><((*>  ~~><((*>  ~~><((*>')
+        self._logger.info('-------------------------------------------------------------------------------------------')
 
         # create qml engine, make python classes available to qml context
         self.app = QGuiApplication(sys.argv)

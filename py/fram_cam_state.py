@@ -79,7 +79,7 @@ class FramCamState(QObject):
             result = self._model.insertRecord(-1, rec)
 
         self._model.submitAll()
-        self._logger.info(f"State param set: {parameter}={value}, success={result}")
+        self._logger.debug(f"State param set: {parameter}={value}, success={result}")
         return result
 
     @Property(str)
