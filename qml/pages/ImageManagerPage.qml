@@ -109,6 +109,7 @@ Item {
                                         font.bold: true
                                         color: appStyle.secondaryFontColor
                                         Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+                                        Layout.fillWidth: true
                                     }
                                     FramCamProgressBar {
                                         id: progressCopy
