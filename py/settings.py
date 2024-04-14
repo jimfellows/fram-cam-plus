@@ -173,6 +173,7 @@ class Settings(QObject):
     def curLogLevel(self, new_level):
         if new_level != self._cur_log_level:
             self._cur_log_level = new_level
+            self._app.state.set_state_value('Current Log Level', new_level)
             self.logLevelChanged.emit(new_level)
             self._logger.setLevel(new_level)
 

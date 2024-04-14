@@ -90,6 +90,7 @@ Item {
                         } // subnet row
                         RowLayout {
                             FramCamComboBox {
+                                id: cbLogLevels
                                 Layout.alignment: Qt.AlignLeft
                                 Layout.preferredWidth: 200
                                 Layout.preferredHeight: 75
@@ -97,6 +98,7 @@ Item {
                                 model: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
                                 backgroundColor: appStyle.elevatedSurface_L5
                                 placeholderText: 'Select log level...'
+                                Component.onCompleted: cbLogLevels.currentIndex = cbLogLevels.model.indexOf(settings.curLogLevel)
                                 onCurrentIndexChanged: {
                                     settings.curLogLevel = model[currentIndex]
                                 }
@@ -108,6 +110,7 @@ Item {
                             }
                         }
                         FramCamComboBox {
+                            id: cbUiMode
                             Layout.alignment: Qt.AlignLeft
                             Layout.preferredWidth: 200
                             Layout.preferredHeight: 75
@@ -115,6 +118,7 @@ Item {
                             model: ['Dark', 'Light', 'Grey']
                             backgroundColor: appStyle.elevatedSurface_L5
                             placeholderText: 'Select UI mode...'
+                            Component.onCompleted: cbUiMode.currentIndex = cbUiMode.model.indexOf(settings.curUiMode)
                             onCurrentIndexChanged: {
                                 settings.curUiMode = model[currentIndex]
                             }
