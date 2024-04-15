@@ -381,8 +381,6 @@ Item {
                         }
                     }
                     delegate: Column {
-                        anchors.left: lvThumbnails.left
-                        anchors.right: lvThumbnails.right
                         Image {
                             id: imgThumbnail
                             source: "file:///" + model.full_path
