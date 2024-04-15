@@ -8,7 +8,6 @@ from py.logger import Logger
 from py.config import LOCAL_DB_PATH, QML_DIR
 from py.fram_cam_state import FramCamState
 from py.data_selector import DataSelector
-from py.camera_manager import CameraManager
 from py.cam_controls import CamControls
 from py.images_manager import ImageManager
 from py.qsqlite import QSqlite
@@ -49,7 +48,6 @@ class FramCamPlus(QObject):
         self.settings = Settings(self.sqlite.db, app=self)
         self.style = Style(app=self)
         self.data_selector = DataSelector(self.sqlite.db, app=self)
-        self.camera_manager = CameraManager(self.sqlite.db, self)
         self.cam_controls = CamControls(self.sqlite.db, self)
         self.image_manager = ImageManager(self.sqlite.db, self)
         self.cloud_uploader = CloudUploader(self.sqlite.db, self)
