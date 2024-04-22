@@ -95,7 +95,7 @@ class CopyFilesWorker(QObject):
         _successes = 0
         _fails = 0
         if not self._destination_folder or not os.path.exists(self._destination_folder):
-            self._logger.info(f"Unable to find target folder to copy files to: {self._destination_folder}")
+            self._logger.error(f"Unable to find target folder to copy files to: {self._destination_folder}")
             self.copyEnded.emit(_successes, _fails)
             self._logger.info(f"File copy completed: successes = {_successes}, failures = {_fails}")
             self.badDestinationPath.emit(self._destination_folder or '')
@@ -114,7 +114,7 @@ class CopyFilesWorker(QObject):
                 _successes += 1
                 self.fileCopied.emit(f, _new_path, True)
             except Exception as e:
-                self._logger.info(f"Error while copying {f}: {e}")
+                self._logger.error(f"Error while copying {f}: {e}")
                 _fails += 1
                 self.fileCopied.emit(f, '', False)
 
@@ -222,7 +222,7 @@ class ImageManager(QObject):
             search_str = f'"haul_number":"{_haul}","display_name":"{_catch}","project_name":"{_proj}","bio_label":"{_bio}"'
 
         search_str = QRegularExpression.wildcardToRegularExpression(search_str)  # convert our "*" chars to regex
-        self._logger.info(f"Filtering images based on filter string: {search_str}")
+        self._logger.debug(f"Filtering images based on filter string: {search_str}")
         self._images_proxy.filterRoleOnRegex('image_filter_str', search_str)
 
     @Property(QObject, constant=True)
@@ -244,7 +244,7 @@ class ImageManager(QObject):
         self._images_model.setBindParam(':fram_cam_catch_id', self._app.data_selector.cur_catch_id)
         self._images_model.setBindParam(':project_name', self._app.data_selector.cur_project_name)
         self._images_model.setBindParam(':bio_label', self._app.data_selector.cur_bio_label)
-        self._logger.info(f"Loading images model for params {self._images_model._bind_params}")
+        self._logger.debug(f"Loading images model for params {self._images_model._bind_params}")
         self._images_model.loadModel()
 
     def _on_image_captured(self, image_path: str):

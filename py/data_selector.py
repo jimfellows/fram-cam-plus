@@ -56,27 +56,27 @@ class DataSelector(QObject):
         if self._cur_haul_num:
             _haul_model_ix = self._hauls_model.getRowIndexByValue('haul_number', self._cur_haul_num)
             _haul_id = self._hauls_model.getData(_haul_model_ix, 'fram_cam_haul_id')
-            self._logger.info(f"Setting initial HaulsModel row to {_haul_model_ix}, haul={self._cur_haul_num}")
+            self._logger.debug(f"Setting initial HaulsModel row to {_haul_model_ix}, haul={self._cur_haul_num}")
             self._hauls_model.setIndexSilently(_haul_model_ix)
             self._on_haul_changed(_haul_model_ix)
 
         if self._cur_catch_display:
             _catch_model_ix = self._catches_model.getRowIndexByValue('display_name', self._cur_catch_display)
-            self._logger.info(f"Setting initial CatchesModel row to {_catch_model_ix},  catch display = {self._cur_catch_display}")
+            self._logger.debug(f"Setting initial CatchesModel row to {_catch_model_ix},  catch display = {self._cur_catch_display}")
             self._catches_model.setIndexSilently(_catch_model_ix)
             self._on_catch_changed(_catch_model_ix)
 
         if self._cur_project_name and self._cur_catch_display:
             _projects_model_ix = self._projects_model.getItemIndex({'project_name': self._cur_project_name, 'display_name': self._cur_catch_display})
             _proxy_ix = self._projects_proxy.getProxyRowFromSource(_projects_model_ix)
-            self._logger.info(f"Setting initial ProjectsModel row to {_projects_model_ix}, proxy {_proxy_ix}, project {self._cur_project_name}")
+            self._logger.debug(f"Setting initial ProjectsModel row to {_projects_model_ix}, proxy {_proxy_ix}, project {self._cur_project_name}")
             self._projects_model.setIndexSilently(_projects_model_ix)
             self._on_project_changed(_projects_model_ix)
 
         if self._app.state.cur_bio_label:
             _bios_model_ix = self._bios_model.getRowIndexByValue('bio_label', self._cur_bio_label)
             _proxy_ix = self._bios_proxy.getProxyRowFromSource(_bios_model_ix)
-            self._logger.info(f"Setting initial BiosModel row to {_bios_model_ix}, proxy {_proxy_ix} bio_label {self._cur_bio_label}")
+            self._logger.debug(f"Setting initial BiosModel row to {_bios_model_ix}, proxy {_proxy_ix} bio_label {self._cur_bio_label}")
             self._bios_model.setIndexSilently(_bios_model_ix)
             self._on_bio_changed(_bios_model_ix)
 
@@ -108,7 +108,7 @@ class DataSelector(QObject):
         self.cur_project_name = self._projects_model.getData(new_project_index, 'project_name')
         self._logger.info(f"Selected project changed to {self._cur_project_name}")
         _regex = f'"display_name":"{str(self._cur_catch_display) or "NULL"}","project_name":"{str(self._cur_project_name) or "NULL"}"'
-        self._logger.info(f"Filtering bios menu: {_regex}")
+        self._logger.debug(f"Filtering bios menu: {_regex}")
         self._bios_proxy.filterRoleOnRegex('bio_filter_str', _regex)
 
     def _on_bio_changed(self, new_bio_index):
@@ -199,7 +199,7 @@ class DataSelector(QObject):
 
     @cur_catch_display.setter
     def cur_catch_display(self, new_catch_display):
-        self._logger.error(f"Setting catch display to {new_catch_display}")
+        self._logger.debug(f"Setting catch display to {new_catch_display}")
         if self._cur_catch_display != new_catch_display:
             self._cur_catch_display = new_catch_display
             self._app.state.set_state_value('Current Catch Display', new_catch_display)

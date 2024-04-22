@@ -123,13 +123,13 @@ class FramCamSqlListModel(QAbstractListModel):
         if self._current_index != new_index:
             self._current_index = new_index
             self.currentIndexChanged.emit(new_index)
-            self._logger.info(f"{self.__class__.__name__} current index set from {self._current_index} --> {new_index}")
+            self._logger.debug(f"{self.__class__.__name__} current index set from {self._current_index} --> {new_index}")
 
     def clearModel(self):
         self.beginResetModel()
         self._data = []
         self.endResetModel()
-        self._logger.info(f"{self.__class__.__name__} data cleared from model.")
+        self._logger.debug(f"{self.__class__.__name__} data cleared from model.")
 
     def setBindParam(self, key, val):
         try:
@@ -152,7 +152,7 @@ class FramCamSqlListModel(QAbstractListModel):
         self.clearModel()
         if bind_params:
             for k, v in bind_params.items():
-                self._logger.info(f"Binding param {k}={v}")
+                self._logger.debug(f"Binding param {k}={v}")
                 self._query.bindValue(k, v)
         self._query.exec()
         self._query_model.setQuery(self._query)
@@ -160,7 +160,7 @@ class FramCamSqlListModel(QAbstractListModel):
         for _i in range(self._query_model.rowCount()):
             self._data.append(Utils.qrec_to_dict(self._query_model.record(_i)))
         self.endInsertRows()
-        self._logger.info(f"Loaded {self._query_model.rowCount()} items to {self.__class__.__name__} model.")
+        self._logger.debug(f"Loaded {self._query_model.rowCount()} items to {self.__class__.__name__} model.")
 
     def appendRow(self, data_item, index=None):
         """
@@ -242,7 +242,7 @@ class FramCamSqlListModel(QAbstractListModel):
         """
         self._current_index = new_index
         self.indexSetSilently.emit(new_index)
-        self._logger.info(f"Index of {self.__class__.__name__} set to {new_index} silently.")
+        self._logger.debug(f"Index of {self.__class__.__name__} set to {new_index} silently.")
 
 
 class HaulsModel(FramCamSqlListModel):
@@ -316,7 +316,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
 
     @proxyIndex.setter
     def proxyIndex(self, new_index):
-        self._logger.info(f"Setting {self._name} proxy index: {self._proxy_index} --> {new_index}")
+        self._logger.debug(f"Setting {self._name} proxy index: {self._proxy_index} --> {new_index}")
         if self._proxy_index != new_index:
             self._proxy_index = new_index
             self.proxyIndexChanged.emit(new_index)
@@ -330,14 +330,14 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
     def getSourceRowFromProxy(self, proxy_row: int):
         _proxy_index = self.index(proxy_row, 0, QModelIndex())
         _source_index = self.mapToSource(_proxy_index)
-        self._logger.info(f"Converted {self._name} proxy row {proxy_row} to source row {_source_index.row()}")
+        self._logger.debug(f"Converted {self._name} proxy row {proxy_row} to source row {_source_index.row()}")
         return _source_index.row()
 
     @Slot(int, result=int)
     def getProxyRowFromSource(self, source_row: int):
         _source_index = self.sourceModel().index(source_row, 0, QModelIndex())
         _proxy_index = self.mapFromSource(_source_index)
-        self._logger.info(f"Converted {self._name} source model row {source_row} to proxy row {_proxy_index.row()}")
+        self._logger.debug(f"Converted {self._name} source model row {source_row} to proxy row {_proxy_index.row()}")
         return _proxy_index.row()
 
     @Slot(int)
@@ -356,7 +356,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
             self._logger.error(f"Source model of {self._name} does not have currentIndex property!")
 
     def filterRoleOnStr(self, role_name: str, value: str):
-        self._logger.info(f"Filtering {self._name} ({self.rowCount} rows), role {role_name}={value}")
+        self._logger.debug(f"Filtering {self._name} ({self.rowCount} rows), role {role_name}={value}")
         try:
             _role_num = self.sourceModel().getRoleByName(role_name)
         except AttributeError:
@@ -367,7 +367,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterFixedString(value)
-        self._logger.info(f"{self._name} rows after fixed str filter: {self.rowCount()}")
+        self._logger.debug(f"{self._name} rows after fixed str filter: {self.rowCount()}")
 
     def filterRoleOnRegex(self, role_name: str, regex_pattern: str):
         """
@@ -375,7 +375,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         :param role_name: name of field/role we'd like to filter on
         :param regex_pattern: regular expression pattern that QT likes
         """
-        self._logger.info(f"Filtering {self._name} ({self.rowCount()} rows), role {role_name}, regex: {regex_pattern}")
+        self._logger.debug(f"Filtering {self._name} ({self.rowCount()} rows), role {role_name}, regex: {regex_pattern}")
         try:
             _role_num = self.sourceModel().getRoleByName(role_name)
         except AttributeError:
@@ -386,7 +386,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterRegularExpression(regex_pattern)
-        self._logger.info(f"{self._name} rows after regex filter: {self.rowCount()}")
+        self._logger.debug(f"{self._name} rows after regex filter: {self.rowCount()}")
 
     def filterRoleWildcard(self, role_name: str, pattern: str):
         """
@@ -394,7 +394,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         :param role_name: name of field/role we'd like to filter on
         :param regex_pattern: regular expression pattern that QT likes
         """
-        self._logger.info(f"Filtering {self._name} ({self.rowCount()} rows), role {role_name}, wildcard*: {pattern}")
+        self._logger.debug(f"Filtering {self._name} ({self.rowCount()} rows), role {role_name}, wildcard*: {pattern}")
         try:
             _role_num = self.sourceModel().getRoleByName(role_name)
         except AttributeError:
@@ -404,7 +404,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         self.setFilterRole(_role_num)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterWildcard(pattern)
-        self._logger.info(f"{self._name} rows after wildcard filter: {self.rowCount()}")
+        self._logger.debug(f"{self._name} rows after wildcard filter: {self.rowCount()}")
 
 
 class ImagesModel(FramCamSqlListModel):
@@ -583,14 +583,14 @@ class ImagesModel(FramCamSqlListModel):
         :return:
         TODO: check if image_id row already exists, if so rip out and replace
         """
-        self._logger.info(f"Loading image_id {image_id} to list model")
+        self._logger.debug(f"Loading image_id {image_id} to list model")
         self._query.bindValue(':image_id', image_id)
         self._query.exec()
         self._query_model.setQuery(self._query)
         for i in range(self._query_model.rowCount()):
             self.appendRow(Utils.qrec_to_dict(self._query_model.record(i)), index=index)
 
-        self._logger.info(f"image_id {image_id} loaded to list model at index {self._current_index}")
+        self._logger.debug(f"image_id {image_id} loaded to list model at index {self._current_index}")
         self.sendIndexToProxy.emit(index)  # selects new row in proxy / listview
 
     def append_new_image(self, image_path, haul_id=None, catch_id=None, bio_id=None):
@@ -606,7 +606,7 @@ class ImagesModel(FramCamSqlListModel):
             self._logger.error(f"Unable to add file to list model: newly image not found at {image_path}")
             return
 
-        self._logger.info(f"Inserting record to IMAGES for: {image_path}")
+        self._logger.debug(f"Inserting record to IMAGES for: {image_path}")
         _img_id = self.insert_to_db(image_path, haul_id, catch_id, bio_id)
         self.load_image_from_view(_img_id)
 

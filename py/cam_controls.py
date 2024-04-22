@@ -80,7 +80,7 @@ class CVFrameWorker(VideoFrameWorker):
         2. tell processArray method that, once finished, emit signal to freeze processing
         3. this signal can then be picked up / connected to elsewhere to stop the camera
         """
-        self._logger.debug(f"Frame processing freeze requested")
+        self._logger.info(f"Frame processing freeze requested")
         self.enable_pencil_sketch(True)
         self._freeze_requested = True
 
@@ -406,7 +406,6 @@ class CamControls(QObject):
 
             cur_index = [d.description() for d in self._devices.videoInputs()].index(self._camera.cameraDevice().description())
             self.camera = QCamera(self._devices.videoInputs()[cur_index+1])
-            print(f"TOggled camera position = {self.camera.cameraDevice().position()}")
 
         except ValueError as e:
             self._logger.error(f"Error occurred while trying to toggle camera device: {e}")

@@ -128,9 +128,11 @@ Item {
                                                     animateProgress.running = true
                                                 }
                                             }
+                                            /*
                                             function onCurrentImageChanged() {
                                                 console.info("IMAGE CHANGED, is it backed up? " + imageManager.imagesModel.isImgBackedUp)
                                             }
+                                            */
                                         }
                                         PropertyAnimation{
                                             id: animateProgress
@@ -175,17 +177,6 @@ Item {
                                         font.bold: true
                                         color: appStyle.secondaryFontColor
                                     }
-
-                                }
-                                FramCamCheckBox {
-                                    id: cbSynced
-                                    visible: false
-                                    Layout.preferredHeight: 50
-                                    Layout.preferredWidth: 50
-                                    Layout.leftMargin: 10
-                                    Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-                                    checkColor: appStyle.accentColor
-                                    enabled: false
                                 }
                             }
                             RowLayout {

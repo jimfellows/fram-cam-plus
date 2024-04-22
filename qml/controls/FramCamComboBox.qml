@@ -26,6 +26,7 @@ ComboBox {
     property string placeholderText: "";
     property bool italicDisplay: false;
     property int maxPopupHeight: 10000;
+    property string titleLabelText;
 
     /*
     delegate here represents each item in the popup aka the drop down,
@@ -129,6 +130,20 @@ ComboBox {
     contentItem: Item {
         id: ciButton
         anchors.fill: parent
+        // optional label to show above combobox
+        Label {
+            visible: root.titleLabelText
+            text: root.titleLabelText
+            anchors.bottom: parent.top
+            font.family: appStyle.fontFamily
+            font.underline: true
+            anchors.left: parent.left
+            anchors.leftMargin: root.radius / 2
+            color: root.fontColor
+            font.italic: true
+            font.pixelSize: 14
+            anchors.bottomMargin: -2  // make things nice and tight
+        }
         RowLayout {
             anchors.fill: parent
             spacing: 10

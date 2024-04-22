@@ -50,61 +50,88 @@ Item {
             FramCamGroupBox {
                 id: gbNetwork
                 Layout.preferredWidth: parent.width
-                Layout.preferredHeight: parent.height * 0.65
-                title: 'Network'
+                Layout.preferredHeight: parent.height * 0.6
+                title: 'App'
 
                 ColumnLayout {
+                    spacing: 15
                     RowLayout {
-                        spacing: 15
-                        Label {
-                            text: "Vessel Subnet"
-                            color: appStyle.secondaryFontColor
-                            font.pixelSize: root.labelSize
-                            font.family: appStyle.fontFamily
-                            Layout.preferredWidth: root.labelWidth
-                        }
-                        FramCamComboBox {
-                            id: cbSubnet
-                            Layout.preferredWidth: 200
-                            Layout.preferredHeight: root.widgetHeight
-                            backgroundColor: appStyle.elevatedSurface_L5
-                            model: ['192.254.243', '192.254.242', '127.0.0.1']
-                            placeholderText: 'Select a vessel subnet...'
-                            onCurrentIndexChanged: settings.curVesselSubnet = model[currentIndex]
-                            Component.onCompleted: cbSubnet.currentIndex = cbSubnet.model.indexOf(settings.curVesselSubnet)
+                        spacing: 23
+                        RowLayout {
+                            FramCamComboBox {
+                                id: cbSubnet
+                                titleLabelText: 'Vessel Subnet'
+                                Layout.preferredWidth: 200
+                                Layout.preferredHeight: root.widgetHeight
+                                backgroundColor: appStyle.elevatedSurface_L5
+                                model: ['192.254.243', '192.254.242', '127.0.0.1']
+                                placeholderText: 'Select a vessel subnet...'
+                                onCurrentIndexChanged: settings.curVesselSubnet = model[currentIndex]
+                                Component.onCompleted: cbSubnet.currentIndex = cbSubnet.model.indexOf(settings.curVesselSubnet)
 
-                            Connections {
-                                target: settings
-                                function onBackdeckPinged(status) {
-                                    cbSubnet.borderColor = status ? appStyle.accentColor : appStyle.errorColor
+                                Connections {
+                                    target: settings
+                                    function onBackdeckPinged(status) {
+                                        cbSubnet.borderColor = status ? appStyle.accentColor : appStyle.errorColor
+                                    }
                                 }
                             }
-                        }
-                        FramCamButton {
-                            id: btnPing
-                            text: 'Ping'
-                            Layout.preferredHeight: root.widgetHeight
-                            Layout.preferredWidth: root.buttonWidth
-                            iconSource: settings.isPingRunning ? 'qrc:/svgs/loading_gif_youtube.svg' : null
-                            enabled: cbSubnet.currentIndex > -1
-                            onClicked: {
-                                settings.pingBackdeck()
+                            FramCamButton {
+                                id: btnPing
+                                text: 'Ping'
+                                Layout.preferredHeight: root.widgetHeight
+                                Layout.preferredWidth: root.buttonWidth
+                                iconSource: settings.isPingRunning ? 'qrc:/svgs/loading_gif_youtube.svg' : null
+                                enabled: cbSubnet.currentIndex > -1
+                                onClicked: {
+                                    settings.pingBackdeck()
+                                }
+                            }
+                        } // subnet row
+                        RowLayout {
+                            FramCamComboBox {
+                                id: cbLogLevels
+                                Layout.alignment: Qt.AlignLeft
+                                Layout.preferredWidth: 200
+                                Layout.preferredHeight: 75
+                                titleLabelText: "Logging Level"
+                                model: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+                                backgroundColor: appStyle.elevatedSurface_L5
+                                placeholderText: 'Select log level...'
+                                Component.onCompleted: cbLogLevels.currentIndex = cbLogLevels.model.indexOf(settings.curLogLevel)
+                                onCurrentIndexChanged: {
+                                    settings.curLogLevel = model[currentIndex]
+                                }
+                            }
+                            FramCamButton {
+                                text: "Launch\nConsole"
+                                Layout.preferredHeight: 75
+                                Layout.preferredWidth: 75
                             }
                         }
+                        FramCamComboBox {
+                            id: cbUiMode
+                            Layout.alignment: Qt.AlignLeft
+                            Layout.preferredWidth: 200
+                            Layout.preferredHeight: 75
+                            titleLabelText: "UI Color Mode"
+                            model: ['Dark', 'Light', 'Grey']
+                            backgroundColor: appStyle.elevatedSurface_L5
+                            placeholderText: 'Select UI mode...'
+                            Component.onCompleted: cbUiMode.currentIndex = cbUiMode.model.indexOf(settings.curUiMode)
+                            onCurrentIndexChanged: {
+                                settings.curUiMode = model[currentIndex]
+                            }
+                        }
+
                     }
                     RowLayout {
                         spacing: 10
-                        Label {
-                            text: "Wheelhouse Data Dir."
-                            font.pixelSize: root.labelSize
-                            color: appStyle.secondaryFontColor
-                            font.family: appStyle.fontFamily
-                            Layout.preferredWidth: root.labelWidth
-                        }
                         FramCamTextField {
                             id: tfWheelhouseDir
                             fontSize: 12
-                            Layout.preferredWidth: 400
+                            titleLabelText: 'Wheelhouse Data Dir.'
+                            Layout.preferredWidth: 570
                             Layout.preferredHeight: root.widgetHeight - 10  // not sure why text field comes out bigger than the rest
                             placeholderText: "Browse to PyCollector data folder over the network..."
                             Component.onCompleted: {
@@ -140,17 +167,12 @@ Item {
                     }
                     RowLayout {
                         spacing: 10
-                        Label {
-                            text: "Backdeck DB File"
-                            font.pixelSize: root.labelSize
-                            color: appStyle.secondaryFontColor
-                            font.family: appStyle.fontFamily
-                            Layout.preferredWidth: root.labelWidth
-                        }
+
                         FramCamTextField {
                             id: tfBackdeckDb
                             fontSize: 12
-                            Layout.preferredWidth: 400
+                            titleLabelText: 'Backdeck Database File'
+                            Layout.preferredWidth: 570
                             Layout.preferredHeight: root.widgetHeight - 10  // not sure why text field comes out bigger than the rest
                             placeholderText: "Browse to trawl_backdeck.db over the network..."
                             Component.onCompleted: {
@@ -187,40 +209,17 @@ Item {
                         }
                     }
                 }
-
             }
-            FramCamGroupBox {
-                id: gbUi
+            RowLayout {
                 Layout.preferredWidth: parent.width
-                //Layout.preferredHeight: parent.height * 0.2
-                property int labelWidth: 200
-                title: 'UI'
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
+                FramCamGroupBox {
+                    id: gbCamera
+                    Layout.preferredWidth: parent.width
+                    title: 'Camera'
                     RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 10
-                        Label {
-                            text: "Color Mode"
-                            color: appStyle.secondaryFontColor
-                            font.pixelSize: root.labelSize
-                            font.family: appStyle.fontFamily
-                            Layout.preferredWidth: gbUi.labelWidth
-                        }
-                        FramCamComboBox {
-                            Layout.alignment: Qt.AlignLeft
-                            Layout.preferredWidth: 300
-                            Layout.preferredHeight: 75
-                            model: ['Dark', 'Light', 'Grey']
-                            backgroundColor: appStyle.elevatedSurface_L5
-                            placeholderText: 'Select UI color mode...'
-                            onCurrentIndexChanged: {
-                                settings.curUiMode = model[currentIndex]
-                            }
-                        }
+
                     }
-                }
+                }  // ui group box end
             }
         }
     }
