@@ -128,8 +128,13 @@ class Settings(QObject):
         if self._cur_vessel_subnet != new_subnet:
             self._cur_vessel_subnet = new_subnet
             self._app.state.set_state_value('Current Vessel Subnet', new_subnet)
+
+            if self._cur_vessel_subnet:
+                self._cur_wheelhouse_ip = self._cur_vessel_subnet + '.5'
+
             self._backdeck_ping_worker.ip_address = self.curBackdeckIp
             self._wheelhouse_ping_worker.ip_address = self.curWheelhouseIp
+
             self.vesselSubnetChanged.emit(new_subnet)
 
     def _backdeck_pinged(self, status):
@@ -213,3 +218,14 @@ class Settings(QObject):
             status = os.path.isfile(self._cur_backdeck_db)
             self.backdeckDbVerified.emit(status)
 
+    @Slot()
+    def mapWDrive(self):
+        self._logger.info(f"Trying to map W drive at IP: {self._cur_wheelhouse_ip}...")
+        # Disconnect anything on W
+        subprocess.call(r'net use W: /del', shell=True)
+
+        # Connect to shared drive, use drive letter M
+        # subprocess.call(r'net use W: \\shared\folder /user:user123 password', shell=True)
+        if self._cur_wheelhouse_ip:
+            subprocess.call(r'net use W: ' + self._cur_wheelhouse_ip + ':\\C', shell=True)
+            self._logger.info(f"W: drive mapped to {self._cur_wheelhouse_ip}.")

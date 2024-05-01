@@ -162,7 +162,7 @@ Item {
                             text: 'Map W:'
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
-                            onClicked: console.info("NEED TO IMPLEMENT FUNC THAT MAPS TO WH MACHINE")
+                            onClicked: settings.mapWDrive()
                         }
                     }
                     RowLayout {
