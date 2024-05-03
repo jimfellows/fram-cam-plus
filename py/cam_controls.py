@@ -16,11 +16,13 @@ from py.qt_models import ImagesModel, FramCamFilterProxyModel
 # 3rd party imports
 from araviq6 import VideoFrameWorker, VideoFrameProcessor
 import cv2
+from PySide6.QtQml import QJSValue
 from PySide6.QtCore import (
     QObject,
     Slot,
     Property,
-    Signal
+    Signal,
+    QJsonValue
 )
 from PySide6.QtMultimedia import (
     QCamera,
@@ -60,6 +62,8 @@ class CVFrameWorker(VideoFrameWorker):
     taxonDetected = Signal(str, arguments=['taxon_name'])  # a taxon class was detected
     feedFrozen = Signal()  # frame feed was stopped (setting pencil sketch effect)
     feedUnfrozen = Signal()  # frame feed resumed (unset pencil sketch effect)
+    processingChanged = Signal()  # check if we actually need to pipe frame to CV worker
+    isProcessingNecessary = Signal(bool, arguments=['status'])  # just go direct to UI? false means no processing
 
     def __init__(self):
         VideoFrameWorker.__init__(self)
@@ -72,6 +76,22 @@ class CVFrameWorker(VideoFrameWorker):
         self._do_gaussian_blur = False  # if true, apply gaussian blur
         self._do_pencil_sketch = False  # if true, apply pencil sketch effect
         self._freeze_requested = False  # if true, apply pencil sketch and emit
+        self._do_process = None  # if false, send frames direct to UI
+        self.processingChanged.connect(self.check_processor_status)  # whenever a config changes, this emits
+
+    @property
+    def do_process(self) -> bool:
+        return self._do_process
+
+    @do_process.setter
+    def do_process(self, new_status: bool):
+        if self._do_process != new_status:
+            self._logger.debug(f"Status of frame processor changed, do_process={new_status}")
+            self._do_process = new_status
+            self.isProcessingNecessary.emit(new_status)
+
+    def check_processor_status(self):
+        self.do_process = self._do_scan_barcode or self._do_scan_taxon or self._do_pencil_sketch or self._do_gaussian_blur
 
     def request_freeze_frame(self):
         """
@@ -103,18 +123,46 @@ class CVFrameWorker(VideoFrameWorker):
         """
         self._logger.debug(f"Barcode scanner status set to: {status}")
         self._do_scan_barcode = status
+        self.processingChanged.emit()
 
     def enable_taxon_scanner(self, status: bool):
         self._logger.debug(f"Taxon scanner status set to: {status}")
         self._do_scan_taxon = status
+        self.processingChanged.emit()
 
     def enable_gaussian_blur(self, status: bool):
         self._logger.debug(f"Gausian blur status set to: {status}")
         self._do_gaussian_blur = status
+        self.processingChanged.emit()
 
     def enable_pencil_sketch(self, status: bool):
         self._logger.debug(f"Pencil sketch status set to: {status}")
         self._do_pencil_sketch = status
+        self.processingChanged.emit()
+
+    # def set_frame_size
+
+    def resize_image(self, img_array: np.ndarray) -> np.ndarray:
+        """
+        boost performance by downsizing image prior to processing
+        :param img_array: cv image array
+        :return: cv image array
+        """
+        _height, _width = img_array.shape[:2]
+
+        # _max_height, _max_width = 720, 1280
+        _max_height, _max_width = 480, 640
+
+        if _height > _max_height or _width > _max_width:
+            scaling_factor = _max_height / float(_height)
+            if _max_width / float(_width) < scaling_factor:
+                scaling_factor = _max_width / float(_width)
+
+            # resize image
+            img_array = cv2.resize(img_array, None, fx=scaling_factor, fy=scaling_factor, interpolation=cv2.INTER_AREA)
+        _height, _width = img_array.shape[:2]
+
+        return img_array
 
     def processArray(self, array: np.ndarray) -> np.ndarray:
         """
@@ -123,6 +171,8 @@ class CVFrameWorker(VideoFrameWorker):
         :param array: numpy array representing image pi3els
         :return: that same array, with a opencv bounding box drawn
         """
+        array = self.resize_image(array)
+
         if self._do_scan_barcode:
             array = self._scan_barcode(array)
 
@@ -229,6 +279,7 @@ class CamControls(QObject):
     videoFrameProcessed = Signal("QVariant", arguments=['new_frame'])  # send frame from processor to final sink
     controlsChanged = Signal()  # for now just using generic signal anytime control (e.g. flash, focus etc) changes
     flipCamera = Signal()
+    cameraResolutionChanged = Signal()
 
 
     def __init__(self, db, app=None, parent=None):
@@ -243,6 +294,7 @@ class CamControls(QObject):
         self._camera = self._get_camera_by_name(_state_cam)
         self._is_camera_running = False
         self._image_capture = QImageCapture()
+
         self._capture_session = QMediaCaptureSession()
         self._capture_session.setCamera(self._camera)
         self._capture_session.setImageCapture(self._image_capture)
@@ -254,9 +306,11 @@ class CamControls(QObject):
         # frame processing worker/thread setup
         self._frame_processor = VideoFrameProcessor()  # process frames here, runs CVFrameWorker on internal thread
         self._cv_frame_worker = CVFrameWorker()  # worker to use opencv to take frames from source sink
+        self._cv_frame_worker.isProcessingNecessary.connect(self._toggle_frame_processor)  # if not necessary, turn off
         self._frame_processor.setWorker(self._cv_frame_worker)  # connect processor and worker
-        self._capture_session.videoSink().videoFrameChanged.connect(self._frame_processor.processVideoFrame)  # pass frame from session to processor
-        self._frame_processor.videoFrameProcessed.connect(self._display_frame)  # pass frame back to target sink
+
+        # by default, hook up frame processor: sourceSink --> processor --> targetSink
+        self.connectFrameProcessor()
 
         # for some reason when I call self._camera.start / stop directly, this doesnt work
         self._cv_frame_worker.feedFrozen.connect(self.stopCamera)
@@ -277,6 +331,46 @@ class CamControls(QObject):
         self.curFocusMode = self._app.state.get_state_value('Focus Mode')
         self._detected_barcode = self._app.state.get_state_value('Last Barcode Detected')
         self.barcodeDetected.connect(self._select_barcode_info)
+
+    def _toggle_frame_processor(self, turn_on):
+        """
+        hooked up to cv_frame_processor, if a config changes in that class that makes processing
+        pointless, we turn it off, else turn on.
+        :param turn_on: boolean, should we process frames?
+        """
+        self._logger.debug(f"Toggling frame processor to {turn_on}")
+        if turn_on:
+            self.connectFrameProcessor()
+        else:
+            self.disconnectFrameProcessor()
+
+    @Slot()
+    def disconnectFrameProcessor(self):
+        """
+        break slot/signal connection that passes frames to processor, and
+        make connection direct from sourceSink --> targetSink
+        """
+        self._logger.debug("Disconnecting frame processor, piping frames direct to UI sink...")
+        self._capture_session.videoSink().videoFrameChanged.connect(self._display_frame)
+        try:
+            self._capture_session.videoSink().videoFrameChanged.disconnect(self._frame_processor.processVideoFrame)
+            self._frame_processor.videoFrameProcessed.disconnect(self._display_frame)  # pass frame back to target sink
+        except RuntimeError: # if not yet connected, thats ok
+            self._logger.debug(f"frameProcessor not yet connected, unable to disconnect.")
+
+    @Slot()
+    def connectFrameProcessor(self):
+        """
+        build slot/signal connection that passes frames to processor, and
+        disconnect direct connection from sourceSink --> targetSink
+        """
+        self._logger.debug("Disconnecting frame processor, piping frames direct to UI sink...")
+        self._frame_processor.videoFrameProcessed.connect(self._display_frame)  # pass frame back to target sink
+        self._capture_session.videoSink().videoFrameChanged.connect(self._frame_processor.processVideoFrame)  # pass frame from session to processor
+        try:
+            self._capture_session.videoSink().videoFrameChanged.disconnect(self._display_frame)
+        except RuntimeError as e:  # if not yet connected, thats ok
+            self._logger.debug(f"sourceSink --> targetSink not yet connected, unable to disconnect.")
 
     def startCamera(self):
         self._camera.start()
@@ -318,7 +412,6 @@ class CamControls(QObject):
             self._app.data_selector.set_combo_box_proj(_d['PROJECT_NAME'], _d['DISPLAY_NAME'])
             self._app.data_selector.set_combo_box_bio(_d['BIO_LABEL'])
 
-
     @Property(QObject)
     def camera(self) -> QCamera:
         return self._camera
@@ -352,6 +445,34 @@ class CamControls(QObject):
     @Property(str, notify=cameraChanged)
     def curCameraName(self) -> str:
         return self._camera.cameraDevice().description()
+
+    @Property("QVariant", notify=cameraResolutionChanged)
+    def curCameraResolution(self):
+        return self._cur_camera_resolution
+
+    @curCameraResolution.setter
+    def curCameraResolution(self, new_res):
+        print(f"New res ({type(new_res)}): {new_res}")
+        self._logger.info(f"Setting camera resolution to {new_res}")
+        if isinstance(new_res, QJSValue):
+            print(f"Converting res to variant!")
+            new_res = new_res.toVariant()
+
+        print(f"New res after conversion: {new_res}")
+        self._cur_camera_resolution = new_res
+        try:
+            _fmt = self._camera.cameraFormat()
+            _fmt.resolution().setWidth(new_res['width'])
+            _fmt.resolution().setHeight(new_res['height'])
+            self._camera.setCameraFormat(_fmt)
+        except Exception as e:
+            self._logger.error(f"Unable to set camera resolution to {new_res}: {e}")
+
+    def _view_camera_formats(self):
+        print(f"Our current fmt is {self._camera.cameraFormat().resolution()}")
+        for fmt in self._camera.cameraDevice().videoFormats():
+            print(f"Camera option = {fmt.resolution()}")
+            # print(fmt.resolution())
 
     def _view_camera_features(self):
         """
@@ -400,6 +521,8 @@ class CamControls(QObject):
 
         if len(self._devices.videoInputs()) == 1:
             self._logger.info(f"Only one video input device available")
+            self._view_camera_features()
+            self._view_camera_formats()
             return
 
         try:

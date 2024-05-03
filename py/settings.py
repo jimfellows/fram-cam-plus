@@ -59,6 +59,7 @@ class Settings(QObject):
     wheelhouseDataDirChanged = Signal(str, arguments=['new_dir'])
     wheelhouseDataDirVerified = Signal(bool, arguments=['isValid'])
     backdeckDbVerified = Signal(bool, arguments=['isValid'])
+    imageQualityChanged = Signal(str, arguments=['quality'])
 
     def __init__(self, db, app=None, parent=None):
         super().__init__(parent)
@@ -72,12 +73,14 @@ class Settings(QObject):
         self._cur_backdeck_ip = None
         self._cur_backdeck_db = None
         self._cur_wheelhouse_ip = None
+        self._cur_image_quality = None
 
         # vars that the user can set from the UI, lets try to pull them from FRAM_CAM_STATE on startup
         self._cur_ui_mode = self._app.state.get_state_value('Current UI Mode')
         self._cur_backdeck_db = self._app.state.get_state_value('Current Backdeck DB')
         self._cur_wheelhouse_data_dir = self._app.state.get_state_value('Current Wheelhouse Data Dir')
         self._cur_log_level = self._app.state.get_state_value('Current Log Level')
+        self._cur_image_quality = self._app.state.get_state_value('Current Image Quality')
         if self._cur_log_level:
             self._logger.setLevel(self._cur_log_level)
 
@@ -203,6 +206,17 @@ class Settings(QObject):
             self._cur_wheelhouse_data_dir = new_dir
             self._app.state.set_state_value('Current Wheelhouse Data Dir', new_dir)
             self.wheelhouseDataDirChanged.emit(new_dir)
+
+    @Property(str, notify=imageQualityChanged)
+    def curImageQuality(self):
+        return self._cur_image_quality
+
+    @curImageQuality.setter
+    def curImageQuality(self, new_image_quality):
+        if self._cur_image_quality != new_image_quality:
+            self._cur_image_quality = new_image_quality
+            self._app.state.set_state_value('Current Image Quality', new_image_quality)
+            self.imageQualityChanged.emit(new_image_quality)
 
     @Slot()
     def verifyWheelhouseDataDir(self):

@@ -217,9 +217,30 @@ Item {
                     Layout.preferredWidth: parent.width
                     title: 'Camera'
                     RowLayout {
-
+                        FramCamComboBox {
+                            id: cbCameraQuality
+                            Layout.alignment: Qt.AlignLeft
+                            Layout.preferredWidth: 300
+                            Layout.preferredHeight: 75
+                            titleLabelText: "Camera Image Quality"
+                            // https://doc.qt.io/qt-6/qimagecapture.html#Quality-enum
+                            model: ["Very High", "Normal", "Low", "Very Low"]
+                            backgroundColor: appStyle.elevatedSurface_L5
+                            placeholderText: 'Select Image Quality'
+                            Component.onCompleted: cbCameraQuality.currentIndex = cbCameraQuality.model.indexOf(settings.curImageQuality)
+                            onCurrentIndexChanged: {
+                                var selected = model[currentIndex]
+                                console.info("Resolution selected: " + selected);
+                                if (selected === "Very High") {
+                                    camControls.curCameraResolution = {"width": 1280, "height": 720}
+                                } else {
+                                    camControls.curCameraResolution = {"width": 640, "height": 480}
+                                }
+                                settings.curImageQuality = model[currentIndex]
+                            }
+                        }
                     }
-                }  // ui group box end
+                }  // camera group box end
             }
         }
     }
