@@ -158,6 +158,7 @@ Rectangle {
             implicitHeight: 60
             radius: 20
             iconSource: 'qrc:/svgs/download.svg'
+            onClicked: dataSelector.getBackdeckBios()
         }
     }
 }

@@ -248,7 +248,8 @@ class FramCamSqlListModel(QAbstractListModel):
 class HaulsModel(FramCamSqlListModel):
     def __init__(self, db):
         super().__init__(db)
-        self.sql = 'select * from fram_cam_hauls order by cast(haul_number as bigint) desc'
+        #self.sql = 'select * from fram_cam_hauls order by cast(haul_number as bigint) desc'
+        self.sql = 'select distinct haul_number from backdeck_bios_vw order by substr(haul_number, -3)'
 
 
 class CatchesModel(FramCamSqlListModel):
@@ -258,12 +259,9 @@ class CatchesModel(FramCamSqlListModel):
             select  distinct
                     display_name
                     ,haul_number
-                    ,fram_cam_haul_id
-                    ,fram_cam_catch_id
                     
-            from    BIO_OPTIONS_VW
-            where   opt_instance = 1
-                    and fram_cam_haul_id = :fram_cam_haul_id
+            from    backdeck_bios_vw
+            where   haul_number = :haul_number
         '''
 
 
@@ -277,9 +275,8 @@ class ProjectsModel(FramCamSqlListModel):
                     ,display_name
                     ,bio_filter_str
             from    BIO_OPTIONS_VW
-            where   opt_instance = 1
-                    and project_name is not null
-                    and fram_cam_haul_id = :fram_cam_haul_id
+            where   project_name is not null
+                    and haul_number = :haul_number
         '''
 
 class BiosModel(FramCamSqlListModel):
@@ -289,8 +286,7 @@ class BiosModel(FramCamSqlListModel):
             select 
                     *
             from    BIO_OPTIONS_VW
-            where   opt_instance = 1
-                    and fram_cam_haul_id = :fram_cam_haul_id
+            where   haul_number = :haul_number
                     and bio_label is not null
         '''
 
