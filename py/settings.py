@@ -48,6 +48,33 @@ class PingWorker(QObject):
         return True
 
 
+class MapDriveWorker(QObject):
+
+    mapperFinished = Signal(bool, arguments=['result'])
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._logger = Logger.get_root()
+        self._ip = None
+        self._letter = None
+        self._user = None
+        self._pw = None
+
+    def prepare(self, ip, letter, user, pw):
+        self._ip, self._letter, self._user, self._pw = ip, letter, user, pw
+
+    def map_drive(self):
+        self._logger.info(f"Mapping {self._letter} drive at IP: {self._ip}...")
+
+        # Disconnect anything existing
+        subprocess.call(f'net use {self._letter}: \\del', shell=True)
+
+        # Connect to shared drive, use drive letter M
+        # subprocess.call(r'net use W: \\shared\folder /user:user123 password', shell=True)
+        subprocess.call(f"net use {self._letter}: \\\\{self._ip}\\C /user:{self._user} {self._pw}", shell=True)
+        self._logger.info(f"{self._letter}: drive mapped to {self._ip}.")
+
+
 class Settings(QObject):
 
     vesselSubnetChanged = Signal(str, arguments=['new_subnet'])
@@ -60,6 +87,8 @@ class Settings(QObject):
     wheelhouseDataDirVerified = Signal(bool, arguments=['isValid'])
     backdeckDbVerified = Signal(bool, arguments=['isValid'])
     imageQualityChanged = Signal(str, arguments=['quality'])
+
+    driveMapAttempted = Signal(str, bool, arguments=['letter', 'result'])
 
     def __init__(self, db, app=None, parent=None):
         super().__init__(parent)
@@ -109,6 +138,11 @@ class Settings(QObject):
 
         self.curVesselSubnet = self._app.state.get_state_value('Current Vessel Subnet')
 
+        self._map_drive_thread = QThread()
+        self._map_drive_worker = MapDriveWorker()
+        self._map_drive_worker.moveToThread(self._map_drive_thread)
+        self._map_drive_thread.started.connect(self._map_drive_worker.map_drive)
+
 
     def _update_ping_status(self):
         self._logger.debug(f"Updating ping status")
@@ -132,8 +166,13 @@ class Settings(QObject):
             self._cur_vessel_subnet = new_subnet
             self._app.state.set_state_value('Current Vessel Subnet', new_subnet)
 
-            if self._cur_vessel_subnet:
+            if self._cur_vessel_subnet == TEST_IP:
+                self._cur_wheelhouse_ip = TEST_IP
+                self._cur_backdeck_ip = TEST_IP
+
+            elif self._cur_vessel_subnet:
                 self._cur_wheelhouse_ip = self._cur_vessel_subnet + '.5'
+                self._cur_backdeck_ip = self._cur_vessel_subnet + '.2'
 
             self._backdeck_ping_worker.ip_address = self.curBackdeckIp
             self._wheelhouse_ping_worker.ip_address = self.curWheelhouseIp
@@ -232,14 +271,43 @@ class Settings(QObject):
             status = os.path.isfile(self._cur_backdeck_db)
             self.backdeckDbVerified.emit(status)
 
-    @Slot()
-    def mapWDrive(self):
-        self._logger.info(f"Trying to map W drive at IP: {self._cur_wheelhouse_ip}...")
-        # Disconnect anything on W
-        subprocess.call(r'net use W: /del', shell=True)
+    def _map_ip_drive_letter(self, ip, letter, user, pw):
+        self._logger.info(f"Mapping {letter} drive at IP: {ip}...")
+
+        # Disconnect anything existing
+        subprocess.call(f'net use {letter}: \\del', shell=True)
 
         # Connect to shared drive, use drive letter M
         # subprocess.call(r'net use W: \\shared\folder /user:user123 password', shell=True)
+        subprocess.call(f"net use {letter}: \\\\{ip}\\C /user:{user} {pw}", shell=True)
+        self._logger.info(f"{letter}: drive mapped to {ip}.")
+
+    @Slot(str, str)
+    def mapWDrive(self, user, pw):
+        self._map_drive_worker.prepare(
+            self._cur_wheelhouse_ip,
+            'W',
+            user,
+            pw
+        )
+
+    @Slot(str, str)
+    def mapVDrive(self, user, pw):
+        self._map_drive_worker.prepare(
+            self._cur_backdeck_ip,
+            'V',
+            user,
+            pw
+        )
+
+    @Slot(str, str)
+    def mapWDriveOld(self, user, pw):
         if self._cur_wheelhouse_ip:
-            subprocess.call(r'net use W: ' + self._cur_wheelhouse_ip + ':\\C', shell=True)
-            self._logger.info(f"W: drive mapped to {self._cur_wheelhouse_ip}.")
+            self._map_ip_drive_letter(self._cur_wheelhouse_ip, 'W', user, pw)
+
+    @Slot(str, str)
+    def mapVDriveOld(self, user, pw):
+        self._logger.info(f"Mapping V drive with {self._cur_backdeck_ip} {user} {pw}")
+        if self._cur_backdeck_ip:
+            self._map_ip_drive_letter(self._cur_backdeck_ip, 'V', user, pw)
+
