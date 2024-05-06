@@ -274,7 +274,7 @@ class ProjectsModel(FramCamSqlListModel):
                     project_name
                     ,display_name
                     ,bio_filter_str
-            from    BIO_OPTIONS_VW
+            from    backdeck_bios_vw
             where   project_name is not null
                     and haul_number = :haul_number
         '''
@@ -285,7 +285,7 @@ class BiosModel(FramCamSqlListModel):
         self.sql = '''
             select 
                     *
-            from    BIO_OPTIONS_VW
+            from    backdeck_bios_vw
             where   haul_number = :haul_number
                     and bio_label is not null
         '''
