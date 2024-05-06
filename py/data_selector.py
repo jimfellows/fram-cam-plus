@@ -1,9 +1,108 @@
 
 
-from PySide6.QtSql import QSqlQueryModel, QSqlRelationalTableModel, QSqlRelation, QSqlQuery, QSqlRecord
-from PySide6.QtCore import QObject, PyClassProperty, Property, Slot, Signal, QSortFilterProxyModel
+from PySide6.QtSql import QSqlQueryModel, QSqlTableModel, QSqlRelation, QSqlQuery, QSqlRecord
+from PySide6.QtCore import QObject, PyClassProperty, Property, Slot, Signal, QSortFilterProxyModel, QThread
 from py.logger import Logger
 from py.qt_models import FramCamSqlListModel, FramCamFilterProxyModel, HaulsModel, CatchesModel, ProjectsModel, BiosModel
+from datetime import datetime
+
+from py.qsqlite import QSqlite
+import socket
+from xmlrpc import client as xrc
+
+
+class GetBackdeckBiosWorker(QObject):
+    """
+    call to backdeck rpc server to retrieve data from backdeck sqlite db.
+    Idea here is this goes to work whenever user requests new data from the backdeck software, which
+    has an RPC server spinning at a particular ip/port.
+
+    Function will return
+        1.) a list of all hauls
+        2a.) catch/bios for the most recent haul
+        2b.) catch/bios for the specified haul, if different from the most recent
+
+    Should allow the app to always have all tows, but only pull catch data for the desired tow of interest
+    """
+
+    backdeckResults = Signal(bool, str, int, arguments=['status', 'msg', 'rowsRetrieved'])
+    pullComplete = Signal()
+
+    def __init__(self, app=None, db=None):
+        super().__init__()
+        self._logger = Logger.get_root()
+        self._app = app
+
+        self._hauls_table_model = QSqlTableModel(db=db)
+        self._hauls_table_model.setTable('BACKDECK_HAULS_LOG')
+        self._hauls_table_model.setEditStrategy(QSqlTableModel.OnManualSubmit)
+
+        self._bio_table_model = QSqlTableModel(db=db)
+        self._bio_table_model.setTable('BACKDECK_BIOS_LOG')
+        self._bio_table_model.setEditStrategy(QSqlTableModel.OnManualSubmit)
+
+
+    def run(self):
+        """
+        Get data from backdeck and append to log-style table.  Signal emitted should be
+        picked up to notify UI/app that we have new data
+        :return:
+        """
+        _success = False
+        _msg = ''
+        _bios = []
+        _backdeck_address = f'http://{self._app.settings.curBackdeckIp}:{self._app.settings.curBackdeckRpcPort}'
+
+        self._logger.debug(f"Retrieving new data from backdeck at {_backdeck_address}")
+        try:
+            try:
+                _server = xrc.ServerProxy(_backdeck_address, allow_none=True, use_builtin_types=True)
+                _bios = _server.get_backdeck_bios()
+            except Exception as ex:
+                _msg = 'Error contacting backdeck computer: ' + str(ex)
+                self._logger.error(_msg)
+                return
+
+            try:
+                _hauls = list(set([b['HAUL_NUMBER'] for b in _bios]))  # get unique list of hauls
+                for _h in _hauls:
+                    _haul_rec = self._hauls_table_model.record()
+                    _haul_rec.setValue(self._hauls_table_model.fieldIndex('HAUL_NUMBER'), _h)
+                    _haul_rec.setValue(self._hauls_table_model.fieldIndex('INSERTED_DT'), datetime.now().isoformat(timespec="milliseconds"))
+                    self._hauls_table_model.insertRecord(-1, _haul_rec)
+                    self._hauls_table_model.submitAll()
+
+                for _b in _bios:
+                    _bio_rec = self._bio_table_model.record()
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('BACKDECK_CLIENT_NAME'), _b['BACKDECK_CLIENT_NAME'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('HAUL_NUMBER'), _b['HAUL_NUMBER'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('DISPLAY_NAME'), _b['DISPLAY_NAME'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('COMMON_NAME'), _b['COMMON_NAME'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('SCIENTIFIC_NAME'), _b['SCIENTIFIC_NAME'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('BIO_LABEL'), _b['BIO_LABEL'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('BIO_TYPE'), _b['BIO_TYPE'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('BIO_SUBTYPE'), _b['BIO_SUBTYPE'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('PROJECT_NAME'), _b['PROJECT_NAME'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('PROJECT_SCIENTIST'), _b['PROJECT_SCIENTIST'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('INSERTED_DT'), datetime.now().isoformat(timespec="milliseconds"))
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('HAUL_ID'), _b['HAUL_ID'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('CATCH_ID'), _b['CATCH_ID'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('SPECIMEN_ID'), _b['SPECIMEN_ID'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('SPECIMEN_ATTR_ID'), _b['SPECIMEN_ATTR_ID'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('TAXONOMY_ID'), _b['TAXONOMY_ID'])
+
+                    self._bio_table_model.insertRecord(-1, _bio_rec)
+                    self._bio_table_model.submitAll()
+
+                self._logger.info(f"Retrieved and inserted {len(_bios)} from backdeck machine.")
+                self._success = True
+
+            except Exception as e:
+                _msg = f"Error while inserting backdeck bio data: {e}"
+                self._logger.error(_msg)
+        finally:
+            self.backdeckResults.emit(_success, _msg, _bios)
+            self.pullComplete.emit()
 
 
 class DataSelector(QObject):
@@ -13,11 +112,17 @@ class DataSelector(QObject):
     curCatchChanged = Signal(str, arguments=['new_catch'])
     curProjectChanged = Signal(str, arguments=['new_project'])
     curBioChanged = Signal(str, arguments=['new_bio'])
+    newBackdeckData = Signal(int, arguments=['new_rows'])
 
     def __init__(self, db, app=None):
         super().__init__()
         self._app = app
+        self._db = db
         self._logger = Logger.get_root()
+
+        self._get_bios_thread = None
+        self._get_bios_worker = GetBackdeckBiosWorker(app=self._app, db=self._db)
+        self._get_bios_worker.pullComplete.connect()
 
         # on init, get values that we've persisted to the db in state table
         self._cur_haul_num = self._app.state.get_state_value('Current Haul Number')
@@ -55,7 +160,7 @@ class DataSelector(QObject):
         # if we have pre-selected vals from db, set them now, in order (haul,catch,project,bio)
         if self._cur_haul_num:
             _haul_model_ix = self._hauls_model.getRowIndexByValue('haul_number', self._cur_haul_num)
-            _haul_id = self._hauls_model.getData(_haul_model_ix, 'fram_cam_haul_id')
+            #_haul_id = self._hauls_model.getData(_haul_model_ix, 'fram_cam_haul_id')
             self._logger.debug(f"Setting initial HaulsModel row to {_haul_model_ix}, haul={self._cur_haul_num}")
             self._hauls_model.setIndexSilently(_haul_model_ix)
             self._on_haul_changed(_haul_model_ix)
@@ -80,10 +185,24 @@ class DataSelector(QObject):
             self._bios_model.setIndexSilently(_bios_model_ix)
             self._on_bio_changed(_bios_model_ix)
 
+    @Slot()
+    def getBackdeckBios(self):
+        if isinstance(self._get_bios_thread, QThread) and self._get_bios_thread.isRunning():
+            self._logger.info("Backdeck bios thread is busy, try again later")
+            return
+
+        # vars we need for data retrieval from backdeck
+        self._get_bios_worker = GetBackdeckBiosWorker(db=self._db, app=self._app)
+        self._get_bios_thread = QThread()
+        self._get_bios_worker.moveToThread(self._get_bios_thread)
+        self._get_bios_thread.started.connect(self._get_bios_worker.run)
+        self._get_bios_worker.pullComplete.connect(self._get_bios_thread.quit)
+        self._get_bios_thread.start()
+
     def _on_haul_changed(self, new_haul_index):
         self.cur_haul_num = self._hauls_model.getData(new_haul_index, 'haul_number')
-        self.cur_haul_id = self._hauls_model.getData(new_haul_index, 'fram_cam_haul_id')
-        _haul_id_binding = {':fram_cam_haul_id': self._cur_haul_id}
+        #self.cur_haul_id = self._hauls_model.getData(new_haul_index, 'fram_cam_haul_id')
+        _haul_id_binding = {':haul_number': self.cur_haul_num}
         self._catches_model.loadModel(bind_params=_haul_id_binding)
         self._projects_model.loadModel(bind_params=_haul_id_binding)
         self._bios_model.loadModel(bind_params=_haul_id_binding)
@@ -99,7 +218,7 @@ class DataSelector(QObject):
         :return:
         """
         self.cur_catch_display = self._catches_model.getData(new_catch_index, 'display_name')
-        self.cur_catch_id = self._catches_model.getData(new_catch_index, 'fram_cam_catch_id')
+        #self.cur_catch_id = self._catches_model.getData(new_catch_index, 'fram_cam_catch_id')
         self._logger.info(f"Selected catch changed to {self._cur_catch_display}")
         self._projects_proxy.filterRoleOnRegex('bio_filter_str', f'"display_name":"{self._cur_catch_display}"')
         self._bios_proxy.filterRoleOnRegex('bio_filter_str', f'"display_name":"{self._cur_catch_display}"')
@@ -113,7 +232,7 @@ class DataSelector(QObject):
 
     def _on_bio_changed(self, new_bio_index):
         self.cur_bio_label = self._bios_model.getData(new_bio_index, 'bio_label')
-        self.cur_bio_id = self._bios_model.getData(new_bio_index, 'fram_cam_bio_id')
+        #self.cur_bio_id = self._bios_model.getData(new_bio_index, 'fram_cam_bio_id')
         self._logger.info(f"Selected bio label changed to {self._cur_bio_label}")
 
         # TODO: all of the next lines work, but tthings are pretty messy...
