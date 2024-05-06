@@ -87,7 +87,7 @@ class Settings(QObject):
     wheelhouseDataDirVerified = Signal(bool, arguments=['isValid'])
     backdeckDbVerified = Signal(bool, arguments=['isValid'])
     imageQualityChanged = Signal(str, arguments=['quality'])
-
+    backdeckRpcPortChanged = Signal(int, arguments=['newPort'])
     driveMapAttempted = Signal(str, bool, arguments=['letter', 'result'])
 
     def __init__(self, db, app=None, parent=None):
@@ -103,6 +103,7 @@ class Settings(QObject):
         self._cur_backdeck_db = None
         self._cur_wheelhouse_ip = None
         self._cur_image_quality = None
+        self._cur_backdeck_rpc_port = None
 
         # vars that the user can set from the UI, lets try to pull them from FRAM_CAM_STATE on startup
         self._cur_ui_mode = self._app.state.get_state_value('Current UI Mode')
@@ -187,19 +188,30 @@ class Settings(QObject):
     def pingBackdeck(self):
         self._backdeck_ping_thread.start()
 
+    @Property(int, notify=backdeckRpcPortChanged)
+    def curBackdeckRpcPort(self):
+        # return self._cur_backdeck_rpc_port
+        return 9000
+
+    @curBackdeckRpcPort.setter
+    def curBackdeckRpcPort(self, new_port):
+        if self._cur_backdeck_rpc_port != new_port:
+            self._cur_backdeck_rpc_port = new_port
+            self.backdeckRpcPortChanged.emit(new_port)
+
     @Property(str, notify=vesselSubnetChanged)
     def curBackdeckIp(self):
         if self._cur_vessel_subnet == TEST_IP:
             return TEST_IP
         else:
-            return f"{self._cur_vessel_subnet}.{5}"
+            return f"{self._cur_vessel_subnet}.{2}"
 
     @Property(str, notify=vesselSubnetChanged)
     def curWheelhouseIp(self):
         if self._cur_vessel_subnet == TEST_IP:
             return TEST_IP
         else:
-            return f"{self._cur_vessel_subnet}.{2}"
+            return f"{self._cur_vessel_subnet}.{5}"
 
     @Property(str, notify=uiModeChanged)
     def curUiMode(self):
