@@ -64,15 +64,7 @@ class GetBackdeckBiosWorker(QObject):
                 return
 
             try:
-                _hauls = list(set([b['HAUL_NUMBER'] for b in _bios]))  # get unique list of hauls
-                for _h in _hauls:
-                    _haul_rec = self._hauls_table_model.record()
-                    _haul_rec.setValue(self._hauls_table_model.fieldIndex('HAUL_NUMBER'), _h)
-                    _haul_rec.setValue(self._hauls_table_model.fieldIndex('INSERTED_DT'), datetime.now().isoformat(timespec="milliseconds"))
-                    self._hauls_table_model.insertRecord(-1, _haul_rec)
-                    self._hauls_table_model.submitAll()
-
-                for _b in _bios:
+                for _b in [x for x in _bios]:
                     _bio_rec = self._bio_table_model.record()
                     _bio_rec.setValue(self._bio_table_model.fieldIndex('BACKDECK_CLIENT_NAME'), _b['BACKDECK_CLIENT_NAME'])
                     _bio_rec.setValue(self._bio_table_model.fieldIndex('HAUL_NUMBER'), _b['HAUL_NUMBER'])
@@ -95,13 +87,14 @@ class GetBackdeckBiosWorker(QObject):
                     self._bio_table_model.submitAll()
 
                 self._logger.info(f"Retrieved and inserted {len(_bios)} from backdeck machine.")
-                self._success = True
+                _success = True
 
             except Exception as e:
                 _msg = f"Error while inserting backdeck bio data: {e}"
                 self._logger.error(_msg)
         finally:
-            self.backdeckResults.emit(_success, _msg, _bios)
+            self._logger.debug(f"Backdeck pull results: status: {_success}, {_msg} rows: {len(_bios)}")
+            self.backdeckResults.emit(_success, _msg, len(_bios))
             self.pullComplete.emit()
 
 
@@ -121,8 +114,6 @@ class DataSelector(QObject):
         self._logger = Logger.get_root()
 
         self._get_bios_thread = None
-        self._get_bios_worker = GetBackdeckBiosWorker(app=self._app, db=self._db)
-        self._get_bios_worker.pullComplete.connect()
 
         # on init, get values that we've persisted to the db in state table
         self._cur_haul_num = self._app.state.get_state_value('Current Haul Number')
@@ -185,6 +176,14 @@ class DataSelector(QObject):
             self._bios_model.setIndexSilently(_bios_model_ix)
             self._on_bio_changed(_bios_model_ix)
 
+    def _refresh_after_backdeck_pull(self, status, msg, rows_retrieved):
+        if status and rows_retrieved:
+            # order of ops is important, get index first, then reload, then reselect
+            _haul_ix = self._hauls_model.getRowIndexByValue('haul_number', self._cur_haul_num)
+            _catch_ix = self._catches_model
+            self._hauls_model.loadModel()
+            self._hauls_model.selectIndexInUI.emit(_haul_ix)
+
     @Slot()
     def getBackdeckBios(self):
         if isinstance(self._get_bios_thread, QThread) and self._get_bios_thread.isRunning():
@@ -192,8 +191,9 @@ class DataSelector(QObject):
             return
 
         # vars we need for data retrieval from backdeck
-        self._get_bios_worker = GetBackdeckBiosWorker(db=self._db, app=self._app)
         self._get_bios_thread = QThread()
+        self._get_bios_worker = GetBackdeckBiosWorker(app=self._app, db=self._db)
+        self._get_bios_worker.backdeckResults.connect(lambda status, msg, rows: self._refresh_after_backdeck_pull(status, msg, rows))
         self._get_bios_worker.moveToThread(self._get_bios_thread)
         self._get_bios_thread.started.connect(self._get_bios_worker.run)
         self._get_bios_worker.pullComplete.connect(self._get_bios_thread.quit)
@@ -201,11 +201,10 @@ class DataSelector(QObject):
 
     def _on_haul_changed(self, new_haul_index):
         self.cur_haul_num = self._hauls_model.getData(new_haul_index, 'haul_number')
-        #self.cur_haul_id = self._hauls_model.getData(new_haul_index, 'fram_cam_haul_id')
-        _haul_id_binding = {':haul_number': self.cur_haul_num}
-        self._catches_model.loadModel(bind_params=_haul_id_binding)
-        self._projects_model.loadModel(bind_params=_haul_id_binding)
-        self._bios_model.loadModel(bind_params=_haul_id_binding)
+        _haul_num_binding = {':haul_number': self.cur_haul_num}
+        self._catches_model.loadModel(bind_params=_haul_num_binding)
+        self._projects_model.loadModel(bind_params=_haul_num_binding)
+        self._bios_model.loadModel(bind_params=_haul_num_binding)
 
         # filter here should blank out these proxies (we want user to select a catch first)
         self._projects_proxy.filterRoleOnRegex('display_name', f'"display_name":"{self._cur_catch_display}"')

@@ -249,8 +249,8 @@ class HaulsModel(FramCamSqlListModel):
     def __init__(self, db):
         super().__init__(db)
         #self.sql = 'select * from fram_cam_hauls order by cast(haul_number as bigint) desc'
-        self.sql = 'select distinct haul_number from backdeck_bios_vw order by substr(haul_number, -3)'
-
+        self.sql = 'select distinct haul_number from backdeck_bios_vw order by substr(haul_number, -3) desc'
+        # self.sql = 'select distinct haul_number from backdeck_hauls_log order by substr(haul_number, -1)'
 
 class CatchesModel(FramCamSqlListModel):
     def __init__(self, db):
