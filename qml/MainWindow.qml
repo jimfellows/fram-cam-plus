@@ -295,7 +295,6 @@ Window {
                     anchors.bottomMargin: 0
                     anchors.rightMargin: 0
                     anchors.leftMargin: 0
-
                     Label {
                         id: lblDescr
                         y: 5
@@ -307,6 +306,27 @@ Window {
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
                         anchors.leftMargin: 5
+                    }
+                    Image {
+                        id: imgNoaaLogo
+                        //width: 35
+
+                        anchors {
+                            right: parent.right
+                            rightMargin: 15
+                            top: parent.top
+                            topMargin: 3
+                            bottom: parent.bottom
+                            bottomMargin: 3
+                        }
+
+                        source: "qrc:/pngs/noaa_fisheries_small.png"
+                        sourceSize.width: 32
+                        sourceSize.height: 32
+                        fillMode: Image.PreserveAspectFit
+                        antialiasing: true
+                        smooth: true
+                        mipmap: true
                     }
                 }
 
