@@ -41,6 +41,15 @@ class GetBackdeckBiosWorker(QObject):
         self._bio_table_model.setTable('BACKDECK_BIOS_LOG')
         self._bio_table_model.setEditStrategy(QSqlTableModel.OnManualSubmit)
 
+        self._cur_haul_num = None
+
+    @property
+    def cur_haul_num(self):
+        return self._cur_haul_num
+
+    @cur_haul_num.setter
+    def cur_haul_num(self, haul_num):
+        self._cur_haul_num = haul_num
 
     def run(self):
         """
@@ -57,7 +66,7 @@ class GetBackdeckBiosWorker(QObject):
         try:
             try:
                 _server = xrc.ServerProxy(_backdeck_address, allow_none=True, use_builtin_types=True)
-                _bios = _server.get_backdeck_bios()
+                _bios = _server.get_backdeck_bios(self._cur_haul_num)
             except Exception as ex:
                 _msg = 'Error contacting backdeck computer: ' + str(ex)
                 self._logger.error(_msg)
@@ -215,6 +224,7 @@ class DataSelector(QObject):
         # vars we need for data retrieval from backdeck
         self._get_bios_thread = QThread()
         self._get_bios_worker = GetBackdeckBiosWorker(app=self._app, db=self._db)
+        self._get_bios_worker.cur_haul_num = self._cur_haul_num  # use haul num in request
         self._get_bios_worker.backdeckResults.connect(lambda status, msg, rows: self._refresh_after_backdeck_pull(status, msg, rows))
         self._get_bios_worker.moveToThread(self._get_bios_thread)
         self._get_bios_thread.started.connect(self._get_bios_worker.run)
