@@ -8,7 +8,7 @@ import 'qrc:/controls'
 
 Rectangle {
     id: root
-    implicitHeight: 60
+    implicitHeight: 75
     implicitWidth: 500
     color: "#00ffffff"
     anchors.left: parent.left
@@ -20,7 +20,10 @@ Rectangle {
 
     Row {
         anchors.fill: parent
+        anchors.verticalCenter: parent.verticalCenter
         spacing: 10
+        anchors.top: parent.top
+        anchors.topMargin: -5
         anchors.rightMargin: 50
         FramCamComboBox {
             id: comboHauls
@@ -75,6 +78,12 @@ Rectangle {
                     comboCatch.currentIndex = model.getProxyRowFromSource(new_index)
                 }
                 function onSelectIndexInUI(index) {
+                    comboCatch.currentIndex = index
+                }
+            }
+            Connections {
+                target: dataSelector.catches_proxy
+                function onSelectProxyIndexInUI(index) {
                     comboCatch.currentIndex = index
                 }
             }
@@ -143,8 +152,8 @@ Rectangle {
         }
         FramCamButton {
             id: btnClear
-            implicitWidth: 60
-            implicitHeight: 60
+            implicitWidth: 75
+            implicitHeight: 75
             radius: 20
             iconSource: 'qrc:/svgs/sweep.svg'
             onClicked: {
@@ -154,10 +163,11 @@ Rectangle {
         }
         FramCamButton {
             id: btnDownloadData
-            implicitWidth: 60
-            implicitHeight: 60
+            implicitWidth: 75
+            implicitHeight: 75
             radius: 20
             iconSource: 'qrc:/svgs/download.svg'
+            onClicked: dataSelector.getBackdeckBios()
         }
     }
 }

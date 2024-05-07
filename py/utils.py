@@ -16,6 +16,9 @@ class Utils:
             20: 'LS'
         }
         try:
+            if 't' in haul_number.lower():
+                return 'TT'
+
             return vessels_dict[int(haul_number[6:9])]
         except (TypeError) as e1:
             LOGGER.error(f"Unable to extract integer ID from haul {haul_number}")

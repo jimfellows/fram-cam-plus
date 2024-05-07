@@ -5,6 +5,7 @@ import Qt5Compat.GraphicalEffects
 import QtQuick.Dialogs
 
 import 'qrc:/controls'
+import 'qrc:/components'
 
 Item {
     id: root
@@ -26,6 +27,10 @@ Item {
         onAccepted: {
             tfBackdeckDb.text = selectedFile.toString().replace('file:///', '')
         }
+    }
+
+    CredentialsDialog {
+        id: dlgCreds
     }
 
     Connections {
@@ -64,7 +69,7 @@ Item {
                                 Layout.preferredWidth: 200
                                 Layout.preferredHeight: root.widgetHeight
                                 backgroundColor: appStyle.elevatedSurface_L5
-                                model: ['192.254.243', '192.254.242', '127.0.0.1']
+                                model: ['192.254.253', '192.254.252', '127.0.0.1']
                                 placeholderText: 'Select a vessel subnet...'
                                 onCurrentIndexChanged: settings.curVesselSubnet = model[currentIndex]
                                 Component.onCompleted: cbSubnet.currentIndex = cbSubnet.model.indexOf(settings.curVesselSubnet)
@@ -162,7 +167,7 @@ Item {
                             text: 'Map W:'
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
-                            onClicked: console.info("NEED TO IMPLEMENT FUNC THAT MAPS TO WH MACHINE")
+                            onClicked: settings.mapWDrive()
                         }
                     }
                     RowLayout {
@@ -205,7 +210,16 @@ Item {
                             text: 'Map V:'
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
-                            onClicked: console.info("NEED TO IMPLEMENT FUNC THAT MAPS TO BD MACHINE")
+                            onClicked: {
+                                dlgCreds.loginDestination = 'Backdeck Machine'
+                                dlgCreds.open()
+                            }
+                            Connections {
+                                target: dlgCreds
+                                function onLoginAttempt(username, password) {
+                                    settings.mapVDrive(username, password)
+                                }
+                            }
                         }
                     }
                 }
@@ -217,9 +231,29 @@ Item {
                     Layout.preferredWidth: parent.width
                     title: 'Camera'
                     RowLayout {
-
+                        FramCamComboBox {
+                            id: cbCameraQuality
+                            Layout.alignment: Qt.AlignLeft
+                            Layout.preferredWidth: 300
+                            Layout.preferredHeight: 75
+                            titleLabelText: "Camera Image Quality"
+                            // https://doc.qt.io/qt-6/qimagecapture.html#Quality-enum
+                            model: ["Very High", "Normal", "Low", "Very Low"]
+                            backgroundColor: appStyle.elevatedSurface_L5
+                            placeholderText: 'Select Image Quality'
+                            Component.onCompleted: cbCameraQuality.currentIndex = cbCameraQuality.model.indexOf(settings.curImageQuality)
+                            onCurrentIndexChanged: {
+                                var selected = model[currentIndex]
+                                console.info("Resolution selected: " + selected);
+                                if (selected === "Very High") {
+                                    camControls.curCameraResolution = {"width": 1280, "height": 720}
+                                } else {
+                                    camControls.curCameraResolution = {"width": 640, "height": 480}
+                                }
+                            }
+                        }
                     }
-                }  // ui group box end
+                }  // camera group box end
             }
         }
     }

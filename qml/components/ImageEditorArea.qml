@@ -62,7 +62,7 @@ Rectangle {
         opacity: 0.7
         color: appStyle.surfaceColor
         height: parent.height * 0.4
-        width: 250
+        width: parent.width * 0.4
 
         anchors {
             top: rectImgName.bottom

@@ -35,8 +35,6 @@ Button {
                                        btnLeftMenu.hovered ? colorMouseOver : colorDefault
                                    }
     }
-//    flat:true
-//    highlighted:true
     background: Rectangle {
         id: rectBg
         color: internal.dynamicColor
@@ -67,13 +65,14 @@ Button {
             source: btnLeftMenu.iconSource
             sourceSize.height: iconHeight
             sourceSize.width: iconWidth
-            anchors.leftMargin: 6
+            anchors.leftMargin: 18
             anchors.left: parent.left
             height: iconHeight
             anchors.verticalCenter: parent.verticalCenter
             width: iconWidth
             fillMode: Image.PreserveAspectFit
             antialiasing: true
+            mipmap: true
         }
 
         ColorOverlay {

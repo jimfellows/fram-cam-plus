@@ -35,8 +35,28 @@ Item {
     SoundEffect {
         id: shotgun
         source: "qrc:/sounds/shotgun.wav"
+    }
+
+    YesNoDialog {
+        id: dlgBarcodeNotFound
+        title: "Scanned Barcode Not Found"
+        onDeclined: this.close()
+        onAccepted: {
+            dataSelector.getBackdeckBios()
+            this.close()
+        }
+        Connections {
+            target: camControls
+            function onBarcodeNotFound(barcode) {
+                dlgBarcodeNotFound.lblMessage.text = "Barcode " + barcode + " not found."
+                dlgBarcodeNotFound.lblAction.text = "Refresh data from backdeck machine?"
+                dlgBarcodeNotFound.open()
+            }
+        }
 
     }
+
+
     Connections {
             target: camControls
             function onBarcodeDetected(barcode) {
@@ -176,34 +196,35 @@ Item {
                         height: 40
 //                        opacity: 0.5
                         color: "#00000000"
-                        anchors.top: parent.top
-                        anchors.topMargin: -40
-                        //anchors.left: rowControls.right
-                        anchors.horizontalCenter: parent.horizontalCenter
+
+                        anchors {
+                            top: parent.top
+                            topMargin: -40
+                            left: parent.left
+                        }
 
                         Connections {
                             target: animationControls
                             function onFinished() {
                                 if (rectControls.height > 75) {
                                     //rectMoveControls.anchors.topMargin = 0
-                                    imgMoveControls.source = "qrc:/svgs/down_arrow.svg"
+                                    imgMoveControls.source = "qrc:/svgs/collapse_down.svg"
                                 } else {
                                     //rectMoveControls.anchors.topMargin = -40
-                                    imgMoveControls.source = "qrc:/svgs/up_arrow.svg"
+                                    imgMoveControls.source = "qrc:/svgs/expand_up.svg"
                                 }
                             }
                         }
                         Image {
                             id: imgMoveControls
                             anchors.fill: parent
-                            source: "qrc:/svgs/down_arrow.svg"
+                            source: "qrc:/svgs/collapse_down.svg"
                             fillMode: Image.PreserveAspectFit
                         }
 
                         ColorOverlay {
                             source: imgMoveControls
-                            color: appStyle.primaryFontColor
-                            opacity: 0.75
+                            color: appStyle.secondaryFontColor
                             anchors.top: imgMoveControls.top
                             anchors.bottom: imgMoveControls.bottom
                             antialiasing: true
@@ -221,22 +242,27 @@ Item {
                         id: rowControls
                         anchors.fill: parent
                         anchors.rightMargin: btnCapture.width + 10
-                        anchors.leftMargin: 10
-                        anchors.topMargin: 10
-                        //anchors.verticalCenter: parent.verticalCenter
+                        anchors.leftMargin: 15
+                        anchors.verticalCenter: parent.verticalCenter
                         spacing: 20
+                        anchors.top: parent.top
+                        anchors.topMargin: 5
+
+                        property int buttonHeight: 90
+                        property int buttonWidth: 100
+
                         FramCamButton {
                             id: btnChangeCamera
-                            implicitWidth: 75
-                            implicitHeight: 75
+                            implicitWidth: rowControls.buttonWidth
+                            implicitHeight: rowControls.buttonHeight
                             radius: 20
                             onClicked: camControls.toggleCamera()
                             iconSource: 'qrc:/svgs/change_camera.svg'
                         }
                         FramCamButton {
                             id: btnStartCamera
-                            width: 75
-                            height: 75
+                            implicitWidth: rowControls.buttonWidth
+                            implicitHeight: rowControls.buttonHeight
                             radius: 20
                             iconSource: checked ? 'qrc:/svgs/video_on.svg' : 'qrc:/svgs/video_off.svg'
                             checkable: true
@@ -251,8 +277,8 @@ Item {
                         }
                         FramCamButton {
                             id: btnFlash
-                            implicitWidth: 75
-                            implicitHeight: 75
+                            implicitWidth: rowControls.buttonWidth
+                            implicitHeight: rowControls.buttonHeight
                             radius: 20
                             iconSource: checked ? 'qrc:/svgs/flash_on.svg' : 'qrc:/svgs/flash_off.svg'
                             checkable: true
@@ -260,8 +286,8 @@ Item {
                         }
                         FramCamButton {
                             id: btnTorch
-                            implicitWidth: 75
-                            implicitHeight: 75
+                            implicitWidth: rowControls.buttonWidth
+                            implicitHeight: rowControls.buttonHeight
                             radius: 20
                             iconSource: checked ? 'qrc:/svgs/torch_on.svg' : 'qrc:/svgs/torch_off.svg'
                             checkable: true
@@ -269,8 +295,8 @@ Item {
                         }
                         FramCamButton {
                             id: btnAutofocus
-                            implicitWidth: 75
-                            implicitHeight: 75
+                            implicitWidth: rowControls.buttonWidth
+                            implicitHeight: rowControls.buttonHeight
                             radius: 20
                             iconSource: 'qrc:/svgs/autofocus.svg'
                             checkable: true
@@ -278,8 +304,8 @@ Item {
                         }
                         FramCamButton {
                             id: btnBarcodeScan
-                            implicitWidth: 75
-                            implicitHeight: 75
+                            implicitWidth: rowControls.buttonWidth
+                            implicitHeight: rowControls.buttonHeight
                             radius: 20
                             iconSource: 'qrc:/svgs/barcode.svg'
                             checkable: true
@@ -290,11 +316,16 @@ Item {
                         }
                         FramCamButton {
                             id: btnTaxonScan
-                            implicitWidth: 75
-                            implicitHeight: 75
+                            implicitWidth: rowControls.buttonWidth
+                            implicitHeight: rowControls.buttonHeight
                             radius: 20
                             iconSource: 'qrc:/svgs/kraken.svg'
                             checkable: true
+                            onClicked: {
+                                if (checked) {
+                                    camControls.testEmit()
+                                }
+                            }
                         }
 
                     }

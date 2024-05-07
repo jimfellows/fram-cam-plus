@@ -36,10 +36,14 @@ class QSqlite(QObject):
     def open_connection(self):
         if self._db.open():
             self._logger.info(f"Successfully opened connection to {self._db_path}")
+            return True
         else:
             msg = f"Unable to connect to db: {LOCAL_DB_PATH}"
             self._logger.error(msg)
-            raise Exception(msg)
+            return False
+    def close_connection(self):
+        if self._db.open():
+            self._db.close()
 
     def execute_query(self, sql: str, params=None):
         results = []
