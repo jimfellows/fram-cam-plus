@@ -511,12 +511,21 @@ Window {
                         id: lblBarcode
                         font.bold: true
                         font.family: appStyle.fontFamily
-                        color: appStyle.accentColor
-                        text: camControls.detectedBarcode ? "Barcode Detected:" + camControls.detectedBarcode : ''
                         anchors.right: parent.right
                         anchors.rightMargin: 5
                         anchors.verticalCenter: parent.verticalCenter
                         font.pixelSize: 12
+                        Connections {
+                            target: camControls
+                            function onBarcodeFound(barcode) {
+                                lblBarcode.text = "Barcode: " + barcode
+                                lblBarcode.color = appStyle.accentColor
+                            }
+                            function onBarcodeNotFound(barcode) {
+                                lblBarcode.text = "Barcode missing: " + barcode
+                                lblBarcode.color = appStyle.errorColor
+                            }
+                        }
                     }
                 }
             }

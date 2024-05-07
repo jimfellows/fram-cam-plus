@@ -35,8 +35,28 @@ Item {
     SoundEffect {
         id: shotgun
         source: "qrc:/sounds/shotgun.wav"
+    }
+
+    YesNoDialog {
+        id: dlgBarcodeNotFound
+        title: "Scanned Barcode Not Found"
+        onDeclined: this.close()
+        onAccepted: {
+            dataSelector.getBackdeckBios()
+            this.close()
+        }
+        Connections {
+            target: camControls
+            function onBarcodeNotFound(barcode) {
+                dlgBarcodeNotFound.lblMessage.text = "Barcode " + barcode + " not found."
+                dlgBarcodeNotFound.lblAction.text = "Refresh data from backdeck machine?"
+                dlgBarcodeNotFound.open()
+            }
+        }
 
     }
+
+
     Connections {
             target: camControls
             function onBarcodeDetected(barcode) {
@@ -301,6 +321,11 @@ Item {
                             radius: 20
                             iconSource: 'qrc:/svgs/kraken.svg'
                             checkable: true
+                            onClicked: {
+                                if (checked) {
+                                    camControls.testEmit()
+                                }
+                            }
                         }
 
                     }

@@ -280,6 +280,8 @@ class CamControls(QObject):
     controlsChanged = Signal()  # for now just using generic signal anytime control (e.g. flash, focus etc) changes
     flipCamera = Signal()
     cameraResolutionChanged = Signal()
+    barcodeNotFound = Signal(str, arguments=['barcode'])
+    barcodeFound = Signal(str, arguments=['barcode'])
 
 
     def __init__(self, db, app=None, parent=None):
@@ -393,12 +395,12 @@ class CamControls(QObject):
 
     def _select_barcode_info(self, barcode: str):
         _sql = '''
-            select
+            select      distinct
                         haul_number
                         ,display_name
                         ,project_name
                         ,bio_label
-            from        bio_options_vw
+            from        backdeck_bios_vw
             where       bio_label = :bio_label
         '''
         results = self._app.sqlite.execute_query(_sql, params={':bio_label': barcode})
@@ -411,6 +413,9 @@ class CamControls(QObject):
             self._app.data_selector.set_combo_box_catch(_d['DISPLAY_NAME'])
             self._app.data_selector.set_combo_box_proj(_d['PROJECT_NAME'], _d['DISPLAY_NAME'])
             self._app.data_selector.set_combo_box_bio(_d['BIO_LABEL'])
+            self.barcodeFound.emit(barcode)
+        else:
+            self.barcodeNotFound.emit(barcode)
 
     @Property(QObject)
     def camera(self) -> QCamera:
