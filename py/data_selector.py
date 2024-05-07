@@ -214,6 +214,8 @@ class DataSelector(QObject):
             _bio_proxy_ix = self._bios_proxy.getProxyRowFromSource(_bio_ix)
             self._bios_proxy.selectProxyIndexInUI.emit(_bio_proxy_ix)
 
+            self.newBackdeckData.emit(rows_retrieved)
+
 
     @Slot()
     def getBackdeckBios(self):
