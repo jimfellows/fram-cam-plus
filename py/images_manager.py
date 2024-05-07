@@ -240,12 +240,13 @@ class ImageManager(QObject):
         """
         self._images_model.clearBindParams()
         # TODO: do i need to handle null vals?
-        self._images_model.setBindParam(':fram_cam_haul_id', self._app.data_selector.cur_haul_id)
-        self._images_model.setBindParam(':fram_cam_catch_id', self._app.data_selector.cur_catch_id)
+        self._images_model.setBindParam(':haul_number', self._app.data_selector.cur_haul_num)
+        self._images_model.setBindParam(':catch_display', self._app.data_selector.cur_catch_id)
         self._images_model.setBindParam(':project_name', self._app.data_selector.cur_project_name)
         self._images_model.setBindParam(':bio_label', self._app.data_selector.cur_bio_label)
         self._logger.debug(f"Loading images model for params {self._images_model._bind_params}")
         self._images_model.loadModel()
+        print(self._images_model.roleNames())
 
     def _on_image_captured(self, image_path: str):
         """
@@ -254,8 +255,9 @@ class ImageManager(QObject):
         """
         self._images_model.append_new_image(
             image_path,
-            haul_id=self._app.data_selector.cur_haul_id,
-            catch_id=self._app.data_selector.cur_catch_id,
-            bio_id=self._app.data_selector.cur_bio_id
+            haul_number=self._app.data_selector.cur_haul_num,
+            catch_display=self._app.data_selector.cur_catch_display,
+            project=self._app.data_selector.cur_project_name,
+            bio_label=self._app.data_selector.cur_bio_label
         )
 

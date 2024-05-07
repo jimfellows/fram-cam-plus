@@ -180,9 +180,42 @@ class DataSelector(QObject):
         if status and rows_retrieved:
             # order of ops is important, get index first, then reload, then reselect
             _haul_ix = self._hauls_model.getRowIndexByValue('haul_number', self._cur_haul_num)
-            _catch_ix = self._catches_model
+            _orig_catch_display = self._cur_catch_display
+            _orig_project = self._cur_project_name
+            _orig_bio = self._cur_bio_label
+            _orig_filter_str = f'"display_name":"{_orig_catch_display or "NULL"}","project_name":"{_orig_project or "NULL"}"'
+
+            print('----------------------------------------------------------------')
+            print(f"Orig catch display: {_orig_catch_display}")
+            print(f"Orig project: {_orig_project}")
+            print(f"Orig filter: {_orig_filter_str}")
+            print(f"Orig boi: {_orig_bio}")
+            print('----------------------------------------------------------------')
+
             self._hauls_model.loadModel()
             self._hauls_model.selectIndexInUI.emit(_haul_ix)
+
+            _catch_ix = self._catches_model.getRowIndexByValue('display_name', _orig_catch_display)
+            _catch_proxy_ix = self._catches_proxy.getProxyRowFromSource(_catch_ix)
+            self._catches_proxy.selectProxyIndexInUI.emit(_catch_proxy_ix)
+
+
+            _project_ix = self._projects_model.getRowIndexByValue('bio_filter_str', _orig_filter_str)
+            _project_proxy_ix = self._projects_proxy.getProxyRowFromSource(_project_ix)
+            self._projects_proxy.selectProxyIndexInUI.emit(_project_proxy_ix)
+
+            _bio_ix = self._bios_model.getRowIndexByValue('bio_label', _orig_bio)
+            _bio_proxy_ix = self._bios_proxy.getProxyRowFromSource(_bio_ix)
+            self._bios_proxy.selectProxyIndexInUI.emit(_bio_proxy_ix)
+            print('----------------------------------------------------------------')
+            print(f"catch display ix:{_catch_ix} : {_catch_proxy_ix}")
+            print(f"project ix: {_project_ix} : {_project_proxy_ix}")
+            print(f"bio: {_bio_ix} : {_bio_proxy_ix}")
+            print('----------------------------------------------------------------')
+
+
+            print(f"Attempting to re-select catch with display {_orig_catch_display}, source index = {_catch_ix} --> proxy index {_catch_proxy_ix}")
+
 
     @Slot()
     def getBackdeckBios(self):
@@ -200,6 +233,7 @@ class DataSelector(QObject):
         self._get_bios_thread.start()
 
     def _on_haul_changed(self, new_haul_index):
+        # self.cur_haul_id =
         self.cur_haul_num = self._hauls_model.getData(new_haul_index, 'haul_number')
         _haul_num_binding = {':haul_number': self.cur_haul_num}
         self._catches_model.loadModel(bind_params=_haul_num_binding)
@@ -219,15 +253,15 @@ class DataSelector(QObject):
         self.cur_catch_display = self._catches_model.getData(new_catch_index, 'display_name')
         #self.cur_catch_id = self._catches_model.getData(new_catch_index, 'fram_cam_catch_id')
         self._logger.info(f"Selected catch changed to {self._cur_catch_display}")
-        self._projects_proxy.filterRoleOnRegex('bio_filter_str', f'"display_name":"{self._cur_catch_display}"')
-        self._bios_proxy.filterRoleOnRegex('bio_filter_str', f'"display_name":"{self._cur_catch_display}"')
+        self._projects_proxy.filterRoleWildcard('bio_filter_str', f'*"display_name":"{self._cur_catch_display}"*')
+        self._bios_proxy.filterRoleWildcard('bio_filter_str', f'*"display_name":"{self._cur_catch_display}"*')
 
     def _on_project_changed(self, new_project_index):
         self.cur_project_name = self._projects_model.getData(new_project_index, 'project_name')
         self._logger.info(f"Selected project changed to {self._cur_project_name}")
-        _regex = f'"display_name":"{str(self._cur_catch_display) or "NULL"}","project_name":"{str(self._cur_project_name) or "NULL"}"'
-        self._logger.debug(f"Filtering bios menu: {_regex}")
-        self._bios_proxy.filterRoleOnRegex('bio_filter_str', _regex)
+        _wildcard = f'*"display_name":"{str(self._cur_catch_display) or "NULL"}","project_name":"{str(self._cur_project_name) or "NULL"}"*'
+        self._logger.debug(f"Filtering bios menu: {_wildcard}")
+        self._bios_proxy.filterRoleWildcard('bio_filter_str', _wildcard)
 
     def _on_bio_changed(self, new_bio_index):
         self.cur_bio_label = self._bios_model.getData(new_bio_index, 'bio_label')

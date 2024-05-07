@@ -154,7 +154,7 @@ Window {
 
                 FramCamMenuButton {
                     id: btnToggleNavBar
-                    width: 70
+                    width: 100
                     height: 60
                     anchors.left: parent.left
                     anchors.top: parent.top
@@ -346,7 +346,7 @@ Window {
 
                 Rectangle {
                     id: rectLeftNavBar
-                    width: 70
+                    width: 100
                     color: appStyle.surfaceColor
                     anchors.left: parent.left
                     anchors.top: parent.top
@@ -360,7 +360,7 @@ Window {
                         id: animationLeftMenu
                         target: rectLeftNavBar
                         property: "width"
-                        to: if(rectLeftNavBar.width === 70) return 250; else return 70;
+                        to: if(rectLeftNavBar.width === 100) return 250; else return 100;
                         duration:400
                         easing.type: Easing.InOutQuint
                     }
@@ -375,10 +375,13 @@ Window {
                         anchors.topMargin: 0
                         anchors.rightMargin: 0
                         anchors.leftMargin: 0
+
+                        property int buttonHeight: 80
+
                         FramCamNavButton {
                             id: btnCapturePage
                             width: rectLeftNavBar.width
-                            height: 75
+                            height: colNavButtons.buttonHeight
                             text: "Image Capture"
                             colorDefault: "transparent"
                             font.bold: true
@@ -390,7 +393,7 @@ Window {
                             id: btnImageManagerPage
                             width: rectLeftNavBar.width
                             text: "File Manager"
-                            height: 75
+                            height: colNavButtons.buttonHeight
                             colorDefault: "transparent"
                             font.bold: true
                             font.pointSize: 13
@@ -402,7 +405,7 @@ Window {
                             id: btnSpeciesPage
                             width: rectLeftNavBar.width
                             text: 'Species Select'
-                            height: 75
+                            height: colNavButtons.buttonHeight
                             colorDefault: "transparent"
                             font.bold: true
                             font.pointSize: 13
@@ -414,7 +417,7 @@ Window {
                             id: btnUploadPage
                             width: rectLeftNavBar.width
                             text: 'Cloud Upload'
-                            height: 75
+                            height: colNavButtons.buttonHeight
                             colorDefault: "transparent"
                             font.bold: true
                             font.pointSize: 13
@@ -430,7 +433,7 @@ Window {
                         width: rectLeftNavBar.width
                         text: 'Settings'
                         anchors.left: parent.left
-                        height: 75
+                        height: colNavButtons.buttonHeight
                         anchors.bottom: parent.bottom
                         colorDefault: "transparent"
                         anchors.leftMargin: 0

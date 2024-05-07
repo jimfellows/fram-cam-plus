@@ -412,14 +412,15 @@ class ImagesModel(FramCamSqlListModel):
         super().__init__(db)
         self.sql = '''
             select      *
-            from        IMAGES_VW
-            where       coalesce(:fram_cam_haul_id, fram_cam_haul_id, 1) = coalesce(fram_cam_haul_id, 1)
-                        and coalesce(:fram_cam_catch_id, fram_cam_catch_id, 1) = coalesce(fram_cam_catch_id, 1)
-                        and coalesce(:project_name, project_name, '1') = coalesce(project_name, '1')
-                        and coalesce(:bio_label, bio_label, '1') = coalesce(bio_label, '1')
+            from        IMAGES2_VW
+            where       coalesce(nullif(:haul_number, ''), haul_number, '1') = coalesce(haul_number, '1')
+                        and coalesce(nullif(:catch_display, ''), catch_display, '1') = coalesce(catch_display, '1')
+                        and coalesce(nullif(:project_name, ''), project_name, '1') = coalesce(project_name, '1')
+                        and coalesce(nullif(:bio_label, ''), bio_label, '1') = coalesce(bio_label, '1')
                         and coalesce(:image_id, image_id) = image_id
             order by    image_id desc
         '''
+
         self._table_model = QSqlTableModel(db=self._db)
         self._table_model.setTable('IMAGES')
         self._table_model.setEditStrategy(QSqlTableModel.OnManualSubmit)
@@ -540,7 +541,7 @@ class ImagesModel(FramCamSqlListModel):
             self.setRoleData(_model_row, 'backup_path', sync_path)
             self.currentImageChanged.emit()
 
-    def insert_to_db(self, image_path, haul_id=None, catch_id=None, specimen_id=None):
+    def insert_to_db(self, image_path, haul_number=None, catch_display=None, project=None, bio_label=None):
         """
         method to create a new rec in IMAGES table and return newly generated IMAGE_ID pkey value
         :param image_path: full str path to image
@@ -559,9 +560,10 @@ class ImagesModel(FramCamSqlListModel):
         _img = self._table_model.record()
         _img.setValue(self._table_model.fieldIndex('FILE_PATH'), os.path.dirname(image_path))
         _img.setValue(self._table_model.fieldIndex('FILE_NAME'), os.path.basename(image_path))
-        _img.setValue(self._table_model.fieldIndex('FRAM_CAM_HAUL_ID'), haul_id)
-        _img.setValue(self._table_model.fieldIndex('FRAM_CAM_CATCH_ID'), catch_id)
-        _img.setValue(self._table_model.fieldIndex('FRAM_CAM_BIO_ID'), specimen_id)
+        _img.setValue(self._table_model.fieldIndex('HAUL_NUMBER'), haul_number)
+        _img.setValue(self._table_model.fieldIndex('CATCH_DISPLAY'), catch_display)
+        _img.setValue(self._table_model.fieldIndex('PROJECT_NAME'), project)
+        _img.setValue(self._table_model.fieldIndex('BIO_LABEL'), bio_label)
         _img.setValue(self._table_model.fieldIndex('CAPTURED_DT'), datetime.now().isoformat(timespec="seconds"))
 
         # do the insert, manually commit, then get newly created ID back out
@@ -589,7 +591,7 @@ class ImagesModel(FramCamSqlListModel):
         self._logger.debug(f"image_id {image_id} loaded to list model at index {self._current_index}")
         self.sendIndexToProxy.emit(index)  # selects new row in proxy / listview
 
-    def append_new_image(self, image_path, haul_id=None, catch_id=None, bio_id=None):
+    def append_new_image(self, image_path, haul_number=None, catch_display=None, project=None, bio_label=None):
         """
         In the event that the camera has saved an image to disk, this function performs what needs
         to happen immediately after with respect to the  list model
@@ -603,7 +605,7 @@ class ImagesModel(FramCamSqlListModel):
             return
 
         self._logger.debug(f"Inserting record to IMAGES for: {image_path}")
-        _img_id = self.insert_to_db(image_path, haul_id, catch_id, bio_id)
+        _img_id = self.insert_to_db(image_path, haul_number, catch_display, project, bio_label)
         self.load_image_from_view(_img_id)
 
     @Slot(int)

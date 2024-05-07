@@ -191,7 +191,7 @@ class Settings(QObject):
     @Property(int, notify=backdeckRpcPortChanged)
     def curBackdeckRpcPort(self):
         # return self._cur_backdeck_rpc_port
-        return 9000
+        return 9001
 
     @curBackdeckRpcPort.setter
     def curBackdeckRpcPort(self, new_port):
