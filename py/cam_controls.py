@@ -221,7 +221,8 @@ class CVFrameWorker(VideoFrameWorker):
         :return: same array but with bounding poly drawn
         """
         _redraw_every_n = 1  # adjust higher if you want to not process each...
-
+        _throttle_scan_for_n = 2
+        _throttle_count = -1
         try:
             if self._barcode_frames_scanned % _redraw_every_n == 0:
                 _binary = self._apply_threshold(array)
@@ -230,7 +231,11 @@ class CVFrameWorker(VideoFrameWorker):
                     # https://docs.opencv.org/3.4/dc/da5/tutorial_py_drawing_functions.html
                     self._barcode_polys = np.array([[p.x, p.y] for p in r[0][3]], np.int32)
                     self._barcode_polys = [self._barcode_polys.reshape((len(self._barcode_polys), 1, 2))]
-                    self.barcodeDetected.emit(r[0][0].decode('utf-8'))  # notify UI that we scanned a barcode
+                    _throttle_count -= 1
+                    if _throttle_count < 0:
+                        self.barcodeDetected.emit(r[0][0].decode('utf-8'))  # notify UI that we scanned a barcode
+                        _throttle_count = _throttle_scan_for_n
+
                 else:
                     self._barcode_polys = None
                     return array
