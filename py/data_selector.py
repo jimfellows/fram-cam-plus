@@ -116,6 +116,10 @@ class DataSelector(QObject):
     curBioChanged = Signal(str, arguments=['new_bio'])
     newBackdeckData = Signal(int, arguments=['new_rows'])
 
+    newDropDownRows = Signal(str, arguments=['dropdown'])
+
+
+
     def __init__(self, db, app=None):
         super().__init__()
         self._app = app
@@ -189,9 +193,13 @@ class DataSelector(QObject):
         if status and rows_retrieved:
             # first, preserve values before doing anything to comboboxes
             _orig_haul_num = self._cur_haul_num
+            _orig_haul_ct = self._hauls_model.rowCount()
             _orig_catch_display = self._cur_catch_display
+            _orig_catch_ct = self._catches_proxy.rowCount()
             _orig_project = self._cur_project_name
+            _orig_project_ct = self._projects_proxy.rowCount()
             _orig_bio = self._cur_bio_label
+            _orig_bio_ct = self._bios_proxy.rowCount()
             _orig_filter_str = f'"display_name":"{_orig_catch_display or "NULL"}","project_name":"{_orig_project or "NULL"}"'
 
             # first, load hauls model, get new index based on haul num, then select
@@ -214,8 +222,17 @@ class DataSelector(QObject):
             _bio_proxy_ix = self._bios_proxy.getProxyRowFromSource(_bio_ix)
             self._bios_proxy.selectProxyIndexInUI.emit(_bio_proxy_ix)
 
-            self.newBackdeckData.emit(rows_retrieved)
+            if _orig_haul_ct != self._hauls_model.rowCount():
+                self.newDropDownRows.emit('hauls')
 
+            if _orig_catch_ct != self._catches_proxy.rowCount():
+                self.newDropDownRows.emit('catches')
+
+            if _orig_project_ct != self._projects_proxy.rowCount():
+                self.newDropDownRows.emit('projects')
+
+            if _orig_bio_ct != self._bios_proxy.rowCount():
+                self.newDropDownRows.emit('bios')
 
     @Slot()
     def getBackdeckBios(self):

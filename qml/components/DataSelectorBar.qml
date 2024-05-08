@@ -20,11 +20,11 @@ Rectangle {
 
     Connections {
         target: dataSelector
-        function onNewBackdeckData(rows) {
-            comboHauls.startPulse()
-            comboCatch.startPulse()
-            comboProject.startPulse()
-            comboBiolabel.startPulse()
+        function onNewDropDownRows(dropdown) {
+            if (dropdown === 'hauls') comboHauls.startPulse();
+            if (dropdown === 'catches') comboCatch.startPulse();
+            if (dropdown === 'projects') comboProject.startPulse();
+            if (dropdown === 'bios') comboBiolabel.startPulse();
         }
     }
 
