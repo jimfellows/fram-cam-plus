@@ -452,7 +452,7 @@ Item {
                         }
                         Label {
                             id: imgLabel
-                            text: model.bio_label ? model.display_name + '\n' +model.bio_label : model.display_name ? model.display_name : "Haul# " + model.haul_number
+                            text: model.bio_label ? model.catch_display + '\n' +model.bio_label : model.catch_display ? model.catch_display : "Haul# " + model.haul_number
                             font.pixelSize: 8
                             font.bold: true
                             font.family: 'roboto'

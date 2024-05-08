@@ -28,6 +28,36 @@ ComboBox {
     property int maxPopupHeight: 10000;
     property string titleLabelText;
 
+    SequentialAnimation {
+        id: pulse
+        property int duration: 300
+        property int maxSize: 7
+        PropertyAnimation { target: rectButton; property: "border.color"; to: appStyle.accentColor }
+        NumberAnimation { target: rectButton; property: "border.width"; to: pulse.maxSize; duration: pulse.duration;}
+        NumberAnimation { target: rectButton; property: "border.width"; to: 1; duration: pulse.duration;}
+        NumberAnimation { target: rectButton; property: "border.width"; to: pulse.maxSize; duration: pulse.duration;}
+        NumberAnimation { target: rectButton; property: "border.width"; to: 1; duration: pulse.duration;}
+        PropertyAnimation { target: rectButton; property: "border.color"; to: root.borderColor }
+    }
+
+    SequentialAnimation {
+        id: flash
+        property int duration: 100
+        property int maxSize: 7
+        PropertyAnimation { target: rectButton; property: "border.color"; to: appStyle.accentColor }
+        PropertyAnimation { target: rectButton; property: "border.width"; to: pulse.maxSize; duration: 1}
+        NumberAnimation { target: rectButton; property: "border.width"; to: 1; duration: 500;}
+        PropertyAnimation { target: rectButton; property: "border.color"; to: root.borderColor }
+    }
+
+    function startPulse() {
+        pulse.running = true;
+    }
+
+    function startFlash() {
+        flash.running = true;
+    }
+
     /*
     delegate here represents each item in the popup aka the drop down,
     but not the actual backdrop of the popup
@@ -40,8 +70,9 @@ ComboBox {
 
         // popup row background rectangle
         background: Rectangle {
+            //color: "green"
             color: root.currentIndex === index || popupRow.hovered ? root.backgroundColor.darker(0.7) : root.backgroundColor
-            anchors.fill: parent
+            anchors.fill: popupRow
             anchors.leftMargin: -50
             anchors.rightMargin: -20
             radius: root.radius
@@ -51,11 +82,14 @@ ComboBox {
             anchors.fill: parent
             spacing: 2
             Rectangle {
-                Layout.preferredWidth: 5
+                Layout.leftMargin: -2
+                Layout.topMargin: -2
+                Layout.bottomMargin: -2
+                Layout.preferredWidth: 8
                 Layout.fillHeight: true
                 radius: root.radius
                 visible: root.currentIndex === index
-                color: appStyle.accentColor
+                color: appStyle.primaryColor
             }
             Label {
                 id: popupLabel
@@ -79,7 +113,7 @@ ComboBox {
                 layer {
                     enabled: true
                     effect: ColorOverlay {
-                        color: appStyle.accentColor
+                        color: appStyle.primaryColor
                     }
                 }
             }

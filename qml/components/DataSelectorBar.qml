@@ -18,6 +18,16 @@ Rectangle {
     anchors.rightMargin: 0
     anchors.topMargin: 0
 
+    Connections {
+        target: dataSelector
+        function onNewDropDownRows(dropdown) {
+            if (dropdown === 'hauls') comboHauls.startPulse();
+            if (dropdown === 'catches') comboCatch.startPulse();
+            if (dropdown === 'projects') comboProject.startPulse();
+            if (dropdown === 'bios') comboBiolabel.startPulse();
+        }
+    }
+
     Row {
         anchors.fill: parent
         anchors.verticalCenter: parent.verticalCenter
@@ -168,6 +178,7 @@ Rectangle {
             radius: 20
             iconSource: 'qrc:/svgs/download.svg'
             onClicked: dataSelector.getBackdeckBios()
+            //onClicked: comboHauls.startFlash()
         }
     }
 }
