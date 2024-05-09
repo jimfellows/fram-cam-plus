@@ -412,7 +412,9 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
 class ImagesModel(FramCamSqlListModel):
     sendIndexToProxy = Signal(int, arguments=['new_index'])  # TODO: move me into framcamsqllistmodel, rename to sendIndexToView???
     currentImageChanged = Signal()
-    currentImageValChanged = Signal()
+    currentImageValChanged = Signal(str, "QVariant", arguments=['role_name', 'value'])
+    curImageNotesChanged = Signal()  # use me to update backup status (notes change --> need to repush)
+
 
     def __init__(self, db):
         super().__init__(db)
@@ -435,6 +437,10 @@ class ImagesModel(FramCamSqlListModel):
 
         self._cur_image = None
         self._cur_image_file_name = None
+        self._is_cur_image_backed_up = None
+
+        # anytime notes change on image, flag image for re-backup
+        self.curImageNotesChanged.connect(lambda k='is_backed_up', v=0: self._set_cur_value(k, v))
 
         super().currentIndexChanged.connect(self._set_cur_image)
 
@@ -491,6 +497,7 @@ class ImagesModel(FramCamSqlListModel):
         return self.getData(self._current_index, 'captured_dt')  or ''
 
     def _set_cur_value(self, role_name, value):
+
         if not self.curImgId:
             self._logger.warning(f"Unable to set {role_name} = {value}, curImgId not set.")
             return
@@ -499,7 +506,8 @@ class ImagesModel(FramCamSqlListModel):
             self._logger.warning(f"Current Images index not set, unable to set {role_name} = {value}")
             return
 
-        for _i in range(self._table_model.rowCount()):
+        self._logger.debug(f"SETTING {role_name}={value}")
+        for _i in range(self._table_model.rowCount()):  # todo: is this iteration the best way to do this?
             if self._table_model.record(_i).value('image_id') == self.curImgId:
                 _r = self._table_model.record(_i)
                 _r.setValue(self._table_model.fieldIndex(role_name.upper()), value)
@@ -507,8 +515,7 @@ class ImagesModel(FramCamSqlListModel):
                 self._table_model.submitAll()
 
         self.setRoleData(self._current_index, role_name.lower(), value)
-        self.currentImageValChanged.emit()  # TODO: emit kv pair?
-
+        self.currentImageValChanged.emit(role_name.lower(), value)  # TODO: emit kv pair?
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgNotes(self):
@@ -517,6 +524,7 @@ class ImagesModel(FramCamSqlListModel):
     @curImgNotes.setter
     def curImgNotes(self, new_notes):
         self._set_cur_value('notes', new_notes)
+        self.curImageNotesChanged.emit()
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgBackupPath(self):
@@ -528,7 +536,7 @@ class ImagesModel(FramCamSqlListModel):
 
     @Property(bool, notify=currentImageChanged)
     def isImgBackedUp(self):
-        return True if self.curImgBackupPath else False
+        return self.getData(self._current_index, 'is_backed_up') == 1
 
     def setImageSyncPath(self, local_path, sync_path, is_successful):
         """
@@ -541,6 +549,7 @@ class ImagesModel(FramCamSqlListModel):
                 if self._table_model.record(_i).value('image_id') == _img_id:
                     _r = self._table_model.record(_i)
                     _r.setValue(self._table_model.fieldIndex('BACKUP_PATH'), sync_path)
+                    _r.setValue(self._table_model.fieldIndex('IS_BACKED_UP'), 1)
                     self._table_model.setRecord(_i, _r)
                     self._table_model.submitAll()
 
@@ -566,8 +575,7 @@ class ImagesModel(FramCamSqlListModel):
         _img = self._table_model.record()
         _img.setValue(self._table_model.fieldIndex('FILE_PATH'), os.path.dirname(image_path))
         _img.setValue(self._table_model.fieldIndex('FILE_NAME'), os.path.basename(image_path))
-
-        print(f"Trying to insert image to db: {image_data}")
+        self._logger.debug(f"Creating image with the following data: {image_data}")
         for k, v in image_data.items():
             _col_ix = self._table_model.fieldIndex(str(k).upper())
             if _col_ix:

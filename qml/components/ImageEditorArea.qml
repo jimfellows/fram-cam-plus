@@ -214,8 +214,15 @@ Rectangle {
                     function onFileCopied(path, new_path, success) {
                         if (!success) progressCopy.runningColor = appStyle.errorColor
                     }
-                    function onCurrentImageChanged() {
-                        console.info("IMAGE CHANGED, is it backed up? " + imageManager.imagesModel.isImgBackedUp)
+                }
+                Connections {
+                    target: imageManager.imagesModel
+                    function onCurrentImageValChanged(role_name, value) {
+                        if (role_name === 'is_backed_up') {
+                            if (value == 0) {
+                                animateProgressUndo.running = true
+                            }
+                        }
                     }
                 }
                 PropertyAnimation{
@@ -224,6 +231,14 @@ Rectangle {
                     property: "value"
                     to: 1
                     duration: 1000
+                    easing.type: Easing.InOutQuint
+                }
+                PropertyAnimation{
+                    id: animateProgressUndo
+                    target: progressCopy
+                    property: "value"
+                    to: 0
+                    duration: 700
                     easing.type: Easing.InOutQuint
                 }
             }
