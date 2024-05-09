@@ -7,6 +7,20 @@ import 'qrc:/controls'
 import 'qrc:/components'
 
 Item {
+
+    YesNoDialog {
+        id: dlgDeletePhotos
+        title: "Delete photos?"
+        acceptButtonText: "Delete"
+        declineButtonText: "Cancel"
+        action: "Are you sure?"
+        onDeclined: this.close()
+        onAccepted: {
+            lvImages.deleteSelected()
+            this.close()
+        }
+    }
+
     Rectangle {
         id: rectParent
         color: appStyle.elevatedSurface_L5
@@ -54,6 +68,15 @@ Item {
                         imageManager.imagesModel.removeImage(sourceIndex)
                     }
                 }
+            }
+            function countSelected() {
+                var selectedPhotos = 0;
+                for (var i = 0; i < lvImages.model.rowCount(); i++) {
+                    if (lvImages.itemAtIndex(i).isChecked) {
+                        selectedPhotos += 1
+                    }
+                }
+                return selectedPhotos;
             }
             anchors {
                 top: dataSelectorBar.bottom
@@ -268,7 +291,13 @@ Item {
                     text: "Delete\nSelected"
                     pressedColor: appStyle.errorColor
                     Layout.preferredHeight: 75
-                    onClicked: lvImages.deleteSelected()
+                    onClicked: {
+                        var selPhotos = lvImages.countSelected()
+                        if (selPhotos) {
+                            dlgDeletePhotos.message = selPhotos + " photo(s) are selected for deletion from this device."
+                            dlgDeletePhotos.open()
+                        }
+                    }
                 }
             }
         }

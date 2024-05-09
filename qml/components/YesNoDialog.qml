@@ -22,6 +22,11 @@ Dialog {
     signal accepted;
     signal declined;
 
+    property string message;
+    property string action;
+    property string acceptButtonText: "Accept"
+    property string declineButtonText: "Decline"
+
     property alias lblMessage : lblMessage
     property alias lblAction : lblAction
     property alias btnAccept: btnAccept;
@@ -45,6 +50,7 @@ Dialog {
                 color: appStyle.secondaryFontColor
                 font.pixelSize: 16
                 horizontalAlignment: Text.AlignHCenter
+                text: dlg.message
             }
             Label {
                 id: lblAction
@@ -52,20 +58,22 @@ Dialog {
                 color: appStyle.secondaryFontColor
                 font.pixelSize: 16
                 horizontalAlignment: Text.AlignHCenter
+                text: dlg.action
             }
             RowLayout {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignHCenter
                 FramCamButton {
                     id: btnAccept
-                    text: "Accept"
+                    text: dlg.acceptButtonText
                     Layout.preferredHeight: 75
                     Layout.preferredWidth: 150
                     onClicked: dlg.accepted()
+
                 }
                 FramCamButton {
                     id: btnDecline
-                    text: "Decline"
+                    text: dlg.declineButtonText
                     Layout.preferredHeight: 75
                     Layout.preferredWidth: 150
                     pressedColor: appStyle.errorColor
