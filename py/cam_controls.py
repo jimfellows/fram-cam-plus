@@ -399,6 +399,9 @@ class CamControls(QObject):
         self._set_detected_barcode(None)
 
     def _select_barcode_info(self, barcode: str):
+        if not barcode:
+            return
+
         _sql = '''
             select      distinct
                         haul_number
