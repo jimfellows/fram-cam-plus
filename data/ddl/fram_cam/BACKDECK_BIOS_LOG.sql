@@ -23,7 +23,7 @@ CREATE TABLE "BACKDECK_BIOS_LOG" (
   "BACKDECK_BIOS_LOG_ID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "BACKDECK_CLIENT_NAME" text,
   "HAUL_NUMBER" text,
-  "DISPLAY_NAME" text,
+  "CATCH_DISPLAY_NAME" text,
   "COMMON_NAME" text,
   "SCIENTIFIC_NAME" text,
   "BIO_LABEL" text,
@@ -32,10 +32,10 @@ CREATE TABLE "BACKDECK_BIOS_LOG" (
   "PROJECT_NAME" text,
   "PROJECT_SCIENTIST" text,
   "INSERTED_DT" text,
-  HAUL_ID integer,
-  CATCH_ID integer,
-  SPECIMEN_ID integer,
-  SPECIMEN_ATTR_ID integer,
+  BACKDECK_HAUL_ID integer,
+  BACKDECK_CATCH_ID integer,
+  BACKDECK_SPECIMEN_ID integer,
+  BACKDECK_SPECIMEN_ATTR_ID integer,
   TAXONOMY_ID integer
 );
 
@@ -45,3 +45,4 @@ CREATE TABLE "BACKDECK_BIOS_LOG" (
 -- UPDATE "sqlite_sequence" SET seq = 64 WHERE name = 'BACKDECK_BIOS_LOG';
 
 PRAGMA foreign_keys = true;
+

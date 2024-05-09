@@ -73,7 +73,7 @@ Rectangle {
             maxPopupHeight: windowMain.height * 0.65
             width: parent.width * 0.225
             model: dataSelector.catches_proxy
-            textRole: "display_name"
+            textRole: "catch_display_name"
             placeholderText: dataSelector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
             fontSize: 12
             onCurrentIndexChanged: {

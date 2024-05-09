@@ -215,11 +215,11 @@ class ImageManager(QObject):
         if not self._app.data_selector.cur_catch_display:
             search_str = f'"haul_number":"{_haul}"*'
         elif not self._app.data_selector.cur_project_name:
-            search_str = f'"haul_number":"{_haul}","display_name":"{_catch}"*'
+            search_str = f'"haul_number":"{_haul}","catch_display_name":"{_catch}"*'
         elif not self._app.data_selector.cur_bio_label:
-            search_str = f'"haul_number":"{_haul}","display_name":"{_catch}","project_name":"{_proj}"*'
+            search_str = f'"haul_number":"{_haul}","catch_display_name":"{_catch}","project_name":"{_proj}"*'
         else:
-            search_str = f'"haul_number":"{_haul}","display_name":"{_catch}","project_name":"{_proj}","bio_label":"{_bio}"'
+            search_str = f'"haul_number":"{_haul}","catch_display_name":"{_catch}","project_name":"{_proj}","bio_label":"{_bio}"'
 
         search_str = QRegularExpression.wildcardToRegularExpression(search_str)  # convert our "*" chars to regex
         self._logger.debug(f"Filtering images based on filter string: {search_str}")

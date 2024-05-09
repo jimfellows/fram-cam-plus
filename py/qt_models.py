@@ -258,7 +258,7 @@ class CatchesModel(FramCamSqlListModel):
         super().__init__(db)
         self.sql = '''
             select  distinct
-                    display_name
+                    catch_display_name
                     ,haul_number
                     ,common_name
                     ,scientific_name
@@ -277,7 +277,7 @@ class ProjectsModel(FramCamSqlListModel):
         self.sql = '''
             select  distinct
                     project_name
-                    ,display_name
+                    ,catch_display_name
                     ,project_scientist
                     ,bio_filter_str
             from    backdeck_bios_vw
@@ -422,7 +422,7 @@ class ImagesModel(FramCamSqlListModel):
             select      *
             from        IMAGES_VW
             where       coalesce(nullif(:haul_number, ''), haul_number, '1') = coalesce(haul_number, '1')
-                        and coalesce(nullif(:display_name, ''), display_name, '1') = coalesce(display_name, '1')
+                        and coalesce(nullif(:catch_display_name, ''), catch_display_name, '1') = coalesce(catch_display_name, '1')
                         and coalesce(nullif(:project_name, ''), project_name, '1') = coalesce(project_name, '1')
                         and coalesce(nullif(:bio_label, ''), bio_label, '1') = coalesce(bio_label, '1')
                         and coalesce(:image_id, image_id) = image_id
@@ -482,7 +482,7 @@ class ImagesModel(FramCamSqlListModel):
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCatch(self):
-        return self.getData(self._current_index, 'catch_display') or ''
+        return self.getData(self._current_index, 'catch_display_name') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCommonName(self):

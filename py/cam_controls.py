@@ -402,7 +402,7 @@ class CamControls(QObject):
         _sql = '''
             select      distinct
                         haul_number
-                        ,display_name
+                        ,catch_display_name
                         ,project_name
                         ,bio_label
             from        backdeck_bios_vw
@@ -415,8 +415,8 @@ class CamControls(QObject):
 
         if _d:
             self._app.data_selector.set_combo_box_haul(_d['HAUL_NUMBER'])
-            self._app.data_selector.set_combo_box_catch(_d['DISPLAY_NAME'])
-            self._app.data_selector.set_combo_box_proj(_d['PROJECT_NAME'], _d['DISPLAY_NAME'])
+            self._app.data_selector.set_combo_box_catch(_d['CATCH_DISPLAY_NAME'])
+            self._app.data_selector.set_combo_box_proj(_d['PROJECT_NAME'], _d['CATCH_DISPLAY_NAME'])
             self._app.data_selector.set_combo_box_bio(_d['BIO_LABEL'])
             self.barcodeFound.emit(barcode)
         else:
