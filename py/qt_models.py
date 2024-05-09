@@ -185,6 +185,9 @@ class FramCamSqlListModel(QAbstractListModel):
         except KeyError:
             self._logger.error(f"{prop_name} not found in model {self.__class__.__name__}, unable to getData.")
 
+    def getCurrentData(self, prop_name):
+        return self.getData(self._current_index, prop_name)
+
     def getItem(self, index):
         if index == -1:
             return None
@@ -248,9 +251,7 @@ class FramCamSqlListModel(QAbstractListModel):
 class HaulsModel(FramCamSqlListModel):
     def __init__(self, db):
         super().__init__(db)
-        #self.sql = 'select * from fram_cam_hauls order by cast(haul_number as bigint) desc'
-        self.sql = 'select distinct haul_number from backdeck_bios_vw order by substr(haul_number, -3) desc'
-        # self.sql = 'select distinct haul_number from backdeck_hauls_log order by substr(haul_number, -1)'
+        self.sql = 'select distinct haul_number, backdeck_haul_id from backdeck_bios_vw order by substr(haul_number, -3) desc'
 
 class CatchesModel(FramCamSqlListModel):
     def __init__(self, db):
@@ -259,6 +260,10 @@ class CatchesModel(FramCamSqlListModel):
             select  distinct
                     display_name
                     ,haul_number
+                    ,common_name
+                    ,scientific_name
+                    ,taxonomy_id
+                    ,backdeck_catch_id
                     
             from    backdeck_bios_vw
             where   haul_number = :haul_number
@@ -273,6 +278,7 @@ class ProjectsModel(FramCamSqlListModel):
             select  distinct
                     project_name
                     ,display_name
+                    ,project_scientist
                     ,bio_filter_str
             from    backdeck_bios_vw
             where   project_name is not null
@@ -412,9 +418,9 @@ class ImagesModel(FramCamSqlListModel):
         super().__init__(db)
         self.sql = '''
             select      *
-            from        IMAGES2_VW
+            from        IMAGES_VW
             where       coalesce(nullif(:haul_number, ''), haul_number, '1') = coalesce(haul_number, '1')
-                        and coalesce(nullif(:catch_display, ''), catch_display, '1') = coalesce(catch_display, '1')
+                        and coalesce(nullif(:display_name, ''), display_name, '1') = coalesce(display_name, '1')
                         and coalesce(nullif(:project_name, ''), project_name, '1') = coalesce(project_name, '1')
                         and coalesce(nullif(:bio_label, ''), bio_label, '1') = coalesce(bio_label, '1')
                         and coalesce(:image_id, image_id) = image_id
@@ -470,7 +476,7 @@ class ImagesModel(FramCamSqlListModel):
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCatch(self):
-        return self.getData(self._current_index, 'display_name') or ''
+        return self.getData(self._current_index, 'catch_display') or ''
 
     @Property("QVariant", notify=currentImageChanged)
     def curImgCommonName(self):
@@ -541,7 +547,7 @@ class ImagesModel(FramCamSqlListModel):
             self.setRoleData(_model_row, 'backup_path', sync_path)
             self.currentImageChanged.emit()
 
-    def insert_to_db(self, image_path, haul_number=None, catch_display=None, project=None, bio_label=None):
+    def insert_to_db(self, image_path: str, image_data: dict):
         """
         method to create a new rec in IMAGES table and return newly generated IMAGE_ID pkey value
         :param image_path: full str path to image
@@ -560,10 +566,19 @@ class ImagesModel(FramCamSqlListModel):
         _img = self._table_model.record()
         _img.setValue(self._table_model.fieldIndex('FILE_PATH'), os.path.dirname(image_path))
         _img.setValue(self._table_model.fieldIndex('FILE_NAME'), os.path.basename(image_path))
-        _img.setValue(self._table_model.fieldIndex('HAUL_NUMBER'), haul_number)
-        _img.setValue(self._table_model.fieldIndex('CATCH_DISPLAY'), catch_display)
-        _img.setValue(self._table_model.fieldIndex('PROJECT_NAME'), project)
-        _img.setValue(self._table_model.fieldIndex('BIO_LABEL'), bio_label)
+
+        print(f"Trying to insert image to db: {image_data}")
+        for k, v in image_data.items():
+            _col_ix = self._table_model.fieldIndex(str(k).upper())
+            if _col_ix:
+                try:
+                    _img.setValue(k, v)
+                except Exception as e:
+                    self._logger.error(f"Unable to set {k} = {v} in IMAGES table model")
+                    continue
+            else:
+                self._logger.warning(f"Column {str(k).upper()} not found in IMAGES table model.")
+
         _img.setValue(self._table_model.fieldIndex('CAPTURED_DT'), datetime.now().isoformat(timespec="seconds"))
 
         # do the insert, manually commit, then get newly created ID back out
@@ -591,7 +606,7 @@ class ImagesModel(FramCamSqlListModel):
         self._logger.debug(f"image_id {image_id} loaded to list model at index {self._current_index}")
         self.sendIndexToProxy.emit(index)  # selects new row in proxy / listview
 
-    def append_new_image(self, image_path, haul_number=None, catch_display=None, project=None, bio_label=None):
+    def append_new_image(self, image_path: str, image_data: dict):
         """
         In the event that the camera has saved an image to disk, this function performs what needs
         to happen immediately after with respect to the  list model
@@ -605,7 +620,7 @@ class ImagesModel(FramCamSqlListModel):
             return
 
         self._logger.debug(f"Inserting record to IMAGES for: {image_path}")
-        _img_id = self.insert_to_db(image_path, haul_number, catch_display, project, bio_label)
+        _img_id = self.insert_to_db(image_path, image_data)
         self.load_image_from_view(_img_id)
 
     @Slot(int)

@@ -86,10 +86,10 @@ class GetBackdeckBiosWorker(QObject):
                     _bio_rec.setValue(self._bio_table_model.fieldIndex('PROJECT_NAME'), _b['PROJECT_NAME'])
                     _bio_rec.setValue(self._bio_table_model.fieldIndex('PROJECT_SCIENTIST'), _b['PROJECT_SCIENTIST'])
                     _bio_rec.setValue(self._bio_table_model.fieldIndex('INSERTED_DT'), datetime.now().isoformat(timespec="milliseconds"))
-                    _bio_rec.setValue(self._bio_table_model.fieldIndex('HAUL_ID'), _b['HAUL_ID'])
-                    _bio_rec.setValue(self._bio_table_model.fieldIndex('CATCH_ID'), _b['CATCH_ID'])
-                    _bio_rec.setValue(self._bio_table_model.fieldIndex('SPECIMEN_ID'), _b['SPECIMEN_ID'])
-                    _bio_rec.setValue(self._bio_table_model.fieldIndex('SPECIMEN_ATTR_ID'), _b['SPECIMEN_ATTR_ID'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('BACKDECK_HAUL_ID'), _b['HAUL_ID'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('BACKDECK_CATCH_ID'), _b['CATCH_ID'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('BACKDCK_SPECIMEN_ID'), _b['SPECIMEN_ID'])
+                    _bio_rec.setValue(self._bio_table_model.fieldIndex('BACKDECK_SPECIMEN_ATTR_ID'), _b['SPECIMEN_ATTR_ID'])
                     _bio_rec.setValue(self._bio_table_model.fieldIndex('TAXONOMY_ID'), _b['TAXONOMY_ID'])
 
                     self._bio_table_model.insertRecord(-1, _bio_rec)
@@ -114,6 +114,9 @@ class DataSelector(QObject):
     curCatchChanged = Signal(str, arguments=['new_catch'])
     curProjectChanged = Signal(str, arguments=['new_project'])
     curBioChanged = Signal(str, arguments=['new_bio'])
+
+
+
     newBackdeckData = Signal(int, arguments=['new_rows'])
 
     newDropDownRows = Signal(str, arguments=['dropdown'])
@@ -130,12 +133,9 @@ class DataSelector(QObject):
 
         # on init, get values that we've persisted to the db in state table
         self._cur_haul_num = self._app.state.get_state_value('Current Haul Number')
-        self._cur_haul_id = self._app.state.get_state_value('Current Haul ID')
         self._cur_catch_display = self._app.state.get_state_value('Current Catch Display')
-        self._cur_catch_id = self._app.state.get_state_value('Current Catch ID')
         self._cur_project_name = self._app.state.get_state_value('Current Project Name')
         self._cur_bio_label = self._app.state.get_state_value('Current Bio Label')
-        self._cur_bio_id = self._app.state.get_state_value('Current Bio ID')
 
         # setup base models used for combobox listviews
         self._hauls_model = HaulsModel(db)
@@ -251,7 +251,6 @@ class DataSelector(QObject):
         self._get_bios_thread.start()
 
     def _on_haul_changed(self, new_haul_index):
-        # self.cur_haul_id =
         self.cur_haul_num = self._hauls_model.getData(new_haul_index, 'haul_number')
         _haul_num_binding = {':haul_number': self.cur_haul_num}
         self._catches_model.loadModel(bind_params=_haul_num_binding)
@@ -283,7 +282,6 @@ class DataSelector(QObject):
 
     def _on_bio_changed(self, new_bio_index):
         self.cur_bio_label = self._bios_model.getData(new_bio_index, 'bio_label')
-        #self.cur_bio_id = self._bios_model.getData(new_bio_index, 'fram_cam_bio_id')
         self._logger.info(f"Selected bio label changed to {self._cur_bio_label}")
 
         # TODO: all of the next lines work, but tthings are pretty messy...
@@ -354,14 +352,8 @@ class DataSelector(QObject):
             self.curHaulChanged.emit(new_haul_num)
 
     @Property(str, notify=curHaulChanged)
-    def cur_haul_id(self):
-        return self._cur_haul_id
-
-    @cur_haul_id.setter
-    def cur_haul_id(self, new_haul_id):
-        if self._cur_haul_id != new_haul_id:
-            self._cur_haul_id = new_haul_id
-            self._app.state.set_state_value('Current Haul ID', new_haul_id)
+    def cur_backdeck_haul_id(self):
+        return self._catches_model.getCurrentData('backdeck_haul_id')
 
     @Property(str, notify=curCatchChanged)
     def cur_catch_display(self):
@@ -376,15 +368,20 @@ class DataSelector(QObject):
             self.curCatchChanged.emit(new_catch_display)
 
     @Property(str, notify=curCatchChanged)
-    def cur_catch_id(self):
-        return self._cur_catch_id
+    def cur_backdeck_catch_id(self):
+        return self._catches_model.getCurrentData('backdeck_catch_id')
 
-    @cur_catch_id.setter
-    def cur_catch_id(self, new_catch_id):
-        self._logger.error(f"Setting catch id to {new_catch_id}")
-        if self._cur_catch_id != new_catch_id:
-            self._cur_catch_id = new_catch_id
-            self._app.state.set_state_value('Current Catch ID', new_catch_id)
+    @Property(str, notify=curCatchChanged)
+    def cur_common_name(self):
+        return self._catches_model.getCurrentData('common_name')
+
+    @Property(str, notify=curCatchChanged)
+    def cur_scientific_name(self):
+        return self._catches_model.getCurrentData('scientific_name')
+
+    @Property(str, notify=curCatchChanged)
+    def cur_taxonomy_id(self):
+        return self._catches_model.getCurrentData('taxonomy_id')
 
     @Property(str, notify=curProjectChanged)
     def cur_project_name(self):
@@ -398,6 +395,10 @@ class DataSelector(QObject):
             self._app.state.set_state_value('Current Project Name', new_project_name)
             self.curProjectChanged.emit(new_project_name)
 
+    @Property(str, notify=curProjectChanged)
+    def cur_project_scientist(self):
+        return self._projects_model.getCurrentData('project_scientist')
+
     @Property(str, notify=curBioChanged)
     def cur_bio_label(self):
         return self._cur_bio_label
@@ -409,12 +410,37 @@ class DataSelector(QObject):
             self._app.state.set_state_value('Current Bio Label', new_bio_label)
             self.curBioChanged.emit(new_bio_label)
 
-    @Property(str, notify=unusedSignal)
-    def cur_bio_id(self):
-        return self._cur_bio_id
+    @Property(str, notify=curBioChanged)
+    def cur_backdeck_specimen_id(self):
+        return self._bios_model.getCurrentData('backdeck_specimen_id')
 
-    @cur_bio_id.setter
-    def cur_bio_id(self, new_bio_id):
-        if self._cur_bio_id != new_bio_id:
-            self._cur_bio_id = new_bio_id
-            self._app.state.set_state_value('Current Bio ID', new_bio_id)
+    @Property(str, notify=curBioChanged)
+    def cur_backdeck_specimen_attr_id(self):
+        return self._bios_model.getCurrentData('backdeck_specimen_attr_id')
+
+    @Property(str, notify=curBioChanged)
+    def cur_bio_type(self):
+        return self._bios_model.getCurrentData('bio_type')
+
+    @Property(str, notify=curBioChanged)
+    def cur_bio_subtype(self):
+        return self._bios_model.getCurrentData('bio_subtype')
+
+    @property
+    def cur_selection_data(self):
+        return {
+            'HAUL_NUMBER': self._cur_haul_num,
+            'BACKDECK_HAUL_ID': self.cur_backdeck_haul_id,
+            'DISPLAY_NAME': self._cur_catch_display,
+            'COMMON_NAME': self.cur_common_name,
+            'SCIENTIFIC_NAME': self.cur_scientific_name,
+            'TAXONOMY_ID': self.cur_taxonomy_id,
+            'BACKDECK_CATCH_ID': self.cur_backdeck_catch_id,
+            'PROJECT_NAME': self._cur_project_name,
+            'PROJECT_SCIENTIST': self.cur_project_scientist,
+            'BIO_LABEL': self._cur_bio_label,
+            'BIO_TYPE': self.cur_bio_type,
+            'BIO_SUBTYPE': self.cur_bio_subtype,
+            'BACKDECK_SPECIMEN_ID': self.cur_backdeck_specimen_id,
+            'BACKDECK_SPECIMEN_ATTR_ID': self.cur_backdeck_specimen_attr_id
+        }
