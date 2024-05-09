@@ -18,8 +18,9 @@ Button {
 
     //custom props
     property color colorDefault: '#55aaff';
-    property color colorMouseOver: '#0085CA';
+    property color colorMouseOver: appStyle.primaryColor;
     property color colorPressed: '#55aaff';
+    property color hoveredIconColor: appStyle.primaryFontColor
     property int iconWidth: 35;
     property int iconHeight: 35;
     property url iconSource: 'qrc:/svgs/menu_icon.svg'
@@ -78,7 +79,7 @@ Button {
         ColorOverlay {
             anchors.fill: imgMenuIcon
             source: imgMenuIcon
-            color: appStyle.iconColor
+            color: btnLeftMenu.hovered ? hoveredIconColor : appStyle.iconColor
             anchors.verticalCenter: parent.verticalCenter
             antialiasing: true
             width: iconWidth
