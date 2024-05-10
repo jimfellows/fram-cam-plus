@@ -18,13 +18,20 @@ Rectangle {
     anchors.rightMargin: 0
     anchors.topMargin: 0
 
+    function flashAllMenus() {
+        comboHauls.startFlash()
+        comboCatch.startFlash()
+        comboProject.startFlash()
+        comboBiolabel.startFlash()
+    }
+
     Connections {
         target: dataSelector
         function onNewDropDownRows(dropdown) {
-            if (dropdown === 'hauls') comboHauls.startPulse();
-            if (dropdown === 'catches') comboCatch.startPulse();
-            if (dropdown === 'projects') comboProject.startPulse();
-            if (dropdown === 'bios') comboBiolabel.startPulse();
+            if (dropdown === 'hauls') comboHauls.startGlow();
+            if (dropdown === 'catches') comboCatch.startGlow();
+            if (dropdown === 'projects') comboProject.startGlow();
+            if (dropdown === 'bios') comboBiolabel.startGlow();
         }
     }
 
@@ -167,6 +174,7 @@ Rectangle {
             radius: 20
             iconSource: 'qrc:/svgs/sweep.svg'
             onClicked: {
+                root.flashAllMenus()
                 comboHauls.currentIndex = -1
                 camControls.clearBarcode()
             }
@@ -178,7 +186,6 @@ Rectangle {
             radius: 20
             iconSource: 'qrc:/svgs/download.svg'
             onClicked: dataSelector.getBackdeckBios()
-            //onClicked: comboHauls.startFlash()
         }
     }
 }

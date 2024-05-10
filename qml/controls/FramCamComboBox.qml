@@ -29,33 +29,35 @@ ComboBox {
     property string titleLabelText;
 
     SequentialAnimation {
-        id: pulse
-        property int duration: 300
-        property int maxSize: 7
-        PropertyAnimation { target: rectButton; property: "border.color"; to: appStyle.accentColor }
-        NumberAnimation { target: rectButton; property: "border.width"; to: pulse.maxSize; duration: pulse.duration;}
-        NumberAnimation { target: rectButton; property: "border.width"; to: 1; duration: pulse.duration;}
-        NumberAnimation { target: rectButton; property: "border.width"; to: pulse.maxSize; duration: pulse.duration;}
-        NumberAnimation { target: rectButton; property: "border.width"; to: 1; duration: pulse.duration;}
-        PropertyAnimation { target: rectButton; property: "border.color"; to: root.borderColor }
+        id: glow
+        property int duration: 800
+        property int maxGlow: 15
+        PropertyAnimation { target: rectGlow; property: "visible"; to: true; }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: glow.maxGlow; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: 0; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: glow.maxGlow; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: 0; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: glow.maxGlow; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: 0; duration: glow.duration }
+        PropertyAnimation { target: rectGlow; property: "visible"; to: false; }
     }
 
     SequentialAnimation {
         id: flash
         property int duration: 100
         property int maxSize: 7
-        PropertyAnimation { target: rectButton; property: "border.color"; to: appStyle.accentColor }
-        PropertyAnimation { target: rectButton; property: "border.width"; to: pulse.maxSize; duration: 1}
-        NumberAnimation { target: rectButton; property: "border.width"; to: 1; duration: 500;}
-        PropertyAnimation { target: rectButton; property: "border.color"; to: root.borderColor }
-    }
-
-    function startPulse() {
-        pulse.running = true;
+        PropertyAnimation { target: rectButton; property: "color"; to: root.fontColor; duration: 50 }
+        PropertyAnimation { target: rectButton; property: "color"; to: root.backgroundColor; duration: 100 }
+        PropertyAnimation { target: rectButton; property: "color"; to: root.fontColor; duration: 50 }
+        PropertyAnimation { target: rectButton; property: "color"; to: root.backgroundColor; duration: 1000}
     }
 
     function startFlash() {
         flash.running = true;
+    }
+
+    function startGlow() {
+        glow.running = true;
     }
 
     /*
@@ -151,13 +153,29 @@ ComboBox {
     popup/drop down that is displayed, displayed when combobox is collapsed
     */
     background: Rectangle {
-        id: rectButton
-        implicitWidth: root.width
-        implicitHeight: root.height
-        color: root.backgroundColor
-        radius: root.radius
-        border.color: root.borderColor
+        color: "transparent"
+            implicitWidth: root.width
+            implicitHeight: root.height
+            RectangularGlow {
+                id: rectGlow
+                anchors.fill: rectButton
+                glowRadius: 0
+                spread: 0.5
+                color: appStyle.accentColor
+                cornerRadius: rectButton.radius + glowRadius
+                visible: false
+            }
+            Rectangle {
+                id: rectButton
+                anchors.fill: parent
+                color: root.backgroundColor
+                radius: root.radius
+                border.color: root.borderColor
+            }
     }
+
+
+
     /*
     contentItem represents content of button shown when combobox is collapsed
     */
