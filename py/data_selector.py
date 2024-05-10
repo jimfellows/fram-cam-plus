@@ -68,7 +68,7 @@ class GetBackdeckBiosWorker(QObject):
                 _server = xrc.ServerProxy(_backdeck_address, allow_none=True, use_builtin_types=True)
                 _bios = _server.get_backdeck_bios(self._cur_haul_num)
             except Exception as ex:
-                _msg = 'Error contacting backdeck computer: ' + str(ex)
+                _msg = 'Error: ' + str(ex)
                 self._logger.error(_msg)
                 return
 
@@ -95,6 +95,7 @@ class GetBackdeckBiosWorker(QObject):
                     self._bio_table_model.insertRecord(-1, _bio_rec)
                     self._bio_table_model.submitAll()
 
+                _msg = f"{len(_bios)} new rows pulled from backdeck"
                 self._logger.info(f"Retrieved and inserted {len(_bios)} from backdeck machine.")
                 _success = True
 
@@ -114,14 +115,8 @@ class DataSelector(QObject):
     curCatchChanged = Signal(str, arguments=['new_catch'])
     curProjectChanged = Signal(str, arguments=['new_project'])
     curBioChanged = Signal(str, arguments=['new_bio'])
-
-
-
     newBackdeckData = Signal(int, arguments=['new_rows'])
-
     newDropDownRows = Signal(str, arguments=['dropdown'])
-
-
 
     def __init__(self, db, app=None):
         super().__init__()
@@ -130,6 +125,7 @@ class DataSelector(QObject):
         self._logger = Logger.get_root()
 
         self._get_bios_thread = None
+        self._get_bios_worker = None
 
         # on init, get values that we've persisted to the db in state table
         self._cur_haul_num = self._app.state.get_state_value('Current Haul Number')
@@ -233,6 +229,10 @@ class DataSelector(QObject):
 
             if _orig_bio_ct != self._bios_proxy.rowCount():
                 self.newDropDownRows.emit('bios')
+
+    @Property("QVariant")  # declaring as qvariant since it inits as none
+    def backdeckBiosWorker(self):
+        return self._get_bios_worker
 
     @Slot()
     def getBackdeckBios(self):

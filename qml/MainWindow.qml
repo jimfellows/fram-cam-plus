@@ -500,10 +500,20 @@ Window {
                         Connections {
                             target: imageManager
                             function onBadDestinationPath(path) {
+                                lblWarning.color = appStyle.errorColor
                                 lblWarning.text = "Bad Sync Path: " + path
                             }
                             function onCopyStarted(no_of_files) {
                                 lblWarning.text = ''
+                            }
+                        }
+                        Connections {
+                            target: dataSelector.backdeckBiosWorker
+                            function onBackdeckResults(status, msg, rows) {
+                                console.info("FOUND ONE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                                lblWarning.color = status ? appStyle.secondaryFontColor : appStyle.errorColor
+                                lblWarning.text = msg
+                                lblWarning.visible = true
                             }
                         }
                     }
