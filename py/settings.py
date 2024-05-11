@@ -104,6 +104,7 @@ class Settings(QObject):
         self._cur_wheelhouse_ip = None
         self._cur_image_quality = None
         self._cur_backdeck_rpc_port = None
+        self._cur_ui_mode = None
 
         # vars that the user can set from the UI, lets try to pull them from FRAM_CAM_STATE on startup
         self._cur_ui_mode = self._app.state.get_state_value('Current UI Mode')

@@ -120,7 +120,7 @@ Item {
                             Layout.preferredWidth: 200
                             Layout.preferredHeight: 75
                             titleLabelText: "UI Color Mode"
-                            model: ['Dark', 'Light', 'Grey']
+                            model: ['Wheelhouse', 'Backdeck', 'NOAA']
                             backgroundColor: appStyle.elevatedSurface_L5
                             placeholderText: 'Select UI mode...'
                             Component.onCompleted: cbUiMode.currentIndex = cbUiMode.model.indexOf(settings.curUiMode)
@@ -167,7 +167,10 @@ Item {
                             text: 'Map W:'
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
-                            onClicked: settings.mapWDrive()
+                            onClicked: {
+                                dlgCreds.loginDestination = 'Wheelhouse CPU'
+                                dlgCreds.open()
+                            }
                         }
                     }
                     RowLayout {
@@ -211,7 +214,7 @@ Item {
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
                             onClicked: {
-                                dlgCreds.loginDestination = 'Backdeck Machine'
+                                dlgCreds.loginDestination = 'Backdeck CPU'
                                 dlgCreds.open()
                             }
                             Connections {

@@ -13,7 +13,7 @@ Dialog {
 
     implicitWidth: 500
     implicitHeight: 350
-    Material.theme: Material.Dark
+    Material.theme: settings.curUiMode === 'Wheelhouse' ? Material.Dark : Material.Light
     title: "Enter your credentials..."
 
     property string defaultUserName;
