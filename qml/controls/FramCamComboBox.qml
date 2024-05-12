@@ -56,7 +56,9 @@ ComboBox {
         flash.running = true;
     }
 
-    function startGlow() {
+function startGlow(color) {
+        if (color === undefined) color = appStyle.accentColor
+        rectButton.color = color;
         glow.running = true;
     }
 
