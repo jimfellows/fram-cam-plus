@@ -25,6 +25,24 @@ TextField {
     color: root.fontColor
     font.pixelSize: fontSize
 
+    SequentialAnimation {
+        id: glow
+        property int duration: 800
+        property int maxGlow: 15
+        PropertyAnimation { target: rectGlow; property: "visible"; to: true; }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: glow.maxGlow; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: 0; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: glow.maxGlow; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: 0; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: glow.maxGlow; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: 0; duration: glow.duration }
+        PropertyAnimation { target: rectGlow; property: "visible"; to: false; }
+    }
+    function startGlow(color) {
+        if (color === undefined) color = appStyle.accentColor
+        rectBackground.color = color;
+        glow.running = true;
+    }
     Label {
         visible: root.titleLabelText
         text: root.titleLabelText
@@ -40,13 +58,26 @@ TextField {
     }
 
     background: Rectangle {
+        color: "transparent"
         implicitHeight: root.implicitHeight
         implicitWidth: root.implicitWidth
-        radius: root.radius
-        color: root.backgroundColor
-        border.color: root.activeFocus ? root.focusedColor : root.borderColor
-        border.width: root.activeFocus ? 2 : 1
-
+        RectangularGlow {
+            id: rectGlow
+            anchors.fill: rectBackground
+            glowRadius: 0
+            spread: 0.5
+            color: appStyle.accentColor
+            cornerRadius: rectBackground.radius + glowRadius
+            visible: false
+        }
+        Rectangle {
+            id: rectBackground
+            anchors.fill: parent
+            radius: root.radius
+            color: root.backgroundColor
+            border.color: root.activeFocus ? root.focusedColor : root.borderColor
+            border.width: root.activeFocus ? 2 : 1
+        }
     }
 
 }

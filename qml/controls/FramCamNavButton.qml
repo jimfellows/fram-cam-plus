@@ -46,7 +46,7 @@ Button {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.left: parent.left
-            width: 4
+            width: 8
             visible: btnLeftMenu.isActive
             color: appStyle.primaryColor
         }

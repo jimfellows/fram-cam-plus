@@ -5,6 +5,7 @@ import QtQuick.Controls 6.3
 import Qt5Compat.GraphicalEffects
 import QtQuick.Dialogs
 import QtQuick.Controls.Material
+import QtQuick.VirtualKeyboard 2.1
 
 import 'qrc:/controls'
 
@@ -13,11 +14,12 @@ Dialog {
 
     implicitWidth: 500
     implicitHeight: 350
-    Material.theme: Material.Dark
+    Material.theme: settings.curUiMode === 'Wheelhouse' ? Material.Dark : Material.Light
     title: "Enter your credentials..."
 
     property string defaultUserName;
     property alias btnLogin: btnLogin;
+    property string loginButtonText: "Login"
     property alias tfPassword: tfPassword
     property alias tfUsername: tfUsername
 
@@ -91,10 +93,11 @@ Dialog {
                 Layout.alignment: Qt.AlignHCenter
                 FramCamButton {
                     id: btnLogin
-                    text: "Login"
+                    text: dlg.loginButtonText
                     Layout.preferredHeight: 75
                     Layout.preferredWidth: 150
                     onClicked: {
+                        keyboard.visible = true
                         dlg.loginFailed()
                         if (!tfUsername.text | !tfPassword.text) {
                             console.info("Please enter user/pw")
@@ -113,5 +116,14 @@ Dialog {
             }
         }
     }
-
+    InputPanel  {
+        id: keyboard
+        opacity: 0.6
+        visible: false
+        Connections {
+            target: Qt.inputMethod
+            //https://stackoverflow.com/questions/69814505/how-to-capture-hide-key-event-in-qt-virtualkeyboard
+            function onVisibleChanged() { keyboard.visible = Qt.inputMethod.visible }
+        }
+    }
 }

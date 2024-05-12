@@ -205,11 +205,12 @@ Window {
                         fillMode: Image.PreserveAspectFit
                         antialiasing: false
                         smooth: true
+                        mipmap: true
                     }
 
                     ColorOverlay {
                         source: imgAppLogo
-                        color: 'white'
+                        color: appStyle.primaryColor
 //                        anchors.verticalCenter: parent.verticalCenter
                         anchors.top: imgAppLogo.top
                         anchors.bottom: imgAppLogo.bottom

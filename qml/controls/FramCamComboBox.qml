@@ -17,7 +17,7 @@ ComboBox {
     Material.theme: Material.Dark
 
     //custom props
-    property color backgroundColor: appStyle.elevatedSurface_L5;
+    property color backgroundColor: appStyle.elevatedSurface_L9;
     property color borderColor: appStyle.iconColor
     property color fontColor: appStyle.secondaryFontColor
     property color hoveredColor: appStyle.elevatedSurface_L5.darker(0.7)
@@ -56,7 +56,9 @@ ComboBox {
         flash.running = true;
     }
 
-    function startGlow() {
+function startGlow(color) {
+        if (color === undefined) color = appStyle.accentColor
+        rectButton.color = color;
         glow.running = true;
     }
 

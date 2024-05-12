@@ -224,7 +224,7 @@ Item {
 
                         ColorOverlay {
                             source: imgMoveControls
-                            color: appStyle.secondaryFontColor
+                            color: appStyle.primaryColorAltDark
                             anchors.top: imgMoveControls.top
                             anchors.bottom: imgMoveControls.bottom
                             antialiasing: true
@@ -372,7 +372,7 @@ Item {
             Rectangle {
                 id: rectThumbnails
                 y: 0
-                color: appStyle.surfaceColor
+                color: appStyle.elevatedSurface_L5.darker(1.2)
                 anchors.left: rectImgPreview.right
                 anchors.right: parent.right
                 anchors.top: parent.top

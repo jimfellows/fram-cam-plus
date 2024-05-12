@@ -10,7 +10,7 @@ Rectangle {
     id: root
     implicitHeight: 75
     implicitWidth: 500
-    color: "#00ffffff"
+    color: appStyle.elevatedSurface_L5
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: parent.top
