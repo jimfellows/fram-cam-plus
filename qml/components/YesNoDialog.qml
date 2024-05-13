@@ -16,7 +16,9 @@ Dialog {
 
     implicitWidth: 500
     implicitHeight: 300
-    Material.theme: Material.Dark
+
+    Material.theme: settings.curUiMode === 'Wheelhouse' ? Material.Dark : Material.Light
+
     title: "Yes/No"
 
     signal accepted;
