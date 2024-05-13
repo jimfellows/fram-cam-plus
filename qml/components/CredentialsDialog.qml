@@ -12,8 +12,8 @@ import 'qrc:/controls'
 Dialog {
     id: dlg
 
-    implicitWidth: 500
-    implicitHeight: 350
+    implicitWidth: 700
+    implicitHeight: 600
     Material.theme: settings.curUiMode === 'Wheelhouse' ? Material.Dark : Material.Light
     title: "Enter your credentials..."
 
@@ -64,7 +64,7 @@ Dialog {
         color: appStyle.elevatedSurface_L9
         radius: 10
         ColumnLayout {
-            spacing: 5
+            spacing: 3
             anchors {
                 fill: parent
                 topMargin: 10
@@ -87,6 +87,13 @@ Dialog {
                 placeholderText: "Enter password..."
                 passwordCharacter: "*"
                 echoMode: TextInput.Password
+            }
+            InputPanel  {
+                id: keyboard
+                opacity: 0.7
+                visible: true
+                implicitWidth: dlg.width * 0.90
+                Layout.alignment: Qt.AlginHCenter
             }
             RowLayout {
                 Layout.fillWidth: true
@@ -113,16 +120,6 @@ Dialog {
                     onClicked: dlg.close()
                 }
             }
-        }
-    }
-    InputPanel  {
-        id: keyboard
-        opacity: 0.6
-        visible: false
-        Connections {
-            target: Qt.inputMethod
-            //https://stackoverflow.com/questions/69814505/how-to-capture-hide-key-event-in-qt-virtualkeyboard
-            function onVisibleChanged() { keyboard.visible = Qt.inputMethod.visible }
         }
     }
 }
