@@ -40,23 +40,47 @@ Item {
     YesNoDialog {
         id: dlgBarcodeNotFound
         title: "Scanned Barcode Not Found"
-        onDeclined: this.close()
+        acceptButtonText: 'Refresh &\nRetry'
+
+        property string missedBarcode;  // stash barcode value here for re-try on search
+        property bool awaitingRepull: false;  // use to indicate that on our next pull we want to try selection
+        onDeclined: this.close()  // do nothing on cancel
+
+        /*
+        How this dialog functions
+
+        1.) Barcode is scanned and not found, dialog opens
+        2.) User selects retry, barcode var and is waiting bool flag are set, backdeck retrieval thread starts
+        3.) Backdeck retrieval thread results come back, onBackdeckPullResults signal is retrieved
+        4.) on success, and with queued flags, we re-attempt data selector barcode select
+        */
+
         onAccepted: {
-            dataSelector.getBackdeckBios()
             this.close()
+            awaitingRepull = true;  // true indicates that, when getBackdeckBios finishes, we re-try search
+            dataSelector.getBackdeckBios();  // threaded re-pull of backdeck data is async
         }
         Connections {
-            target: camControls
-            function onBarcodeNotFound(barcode) {
-                dlgBarcodeNotFound.lblMessage.text = "Barcode " + barcode + " not found."
-                dlgBarcodeNotFound.lblAction.text = "Refresh data from backdeck machine?"
-                dlgBarcodeNotFound.open()
+            target: dataSelector
+            function onBarcodeSearched(success, barcode) {
+                if (!success) {  // if we search and fail, open this dialog
+                    dlgBarcodeNotFound.missedBarcode = barcode
+                    dlgBarcodeNotFound.lblMessage.text = "Barcode " + barcode + " not found."
+                    dlgBarcodeNotFound.lblAction.text = "Refresh data from backdeck machine and retry?"
+                    dlgBarcodeNotFound.open()
+                } else {
+                    rectDataSelection.flashAllMenus()  // on success, flash TODO: play sound?
+                }
+            }
+            function onBackdeckPullResults(success, msg, rows) {
+                // this only attempts a re-select of barcode if awaitingRepull and missedBarcode were originally set
+                if (success && dlgBarcodeNotFound.awaitingRepull && dlgBarcodeNotFound.missedBarcode) {
+                    dlgBarcodeNotFound.awaitingRepull = false;
+                    dataSelector.selectBarcode(dlgBarcodeNotFound.missedBarcode)
+                }
             }
         }
-
     }
-
-
     Connections {
             target: camControls
             function onBarcodeDetected(barcode) {

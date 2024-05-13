@@ -11,7 +11,7 @@ import socket
 from xmlrpc import client as xrc
 
 
-class GetBackdeckBiosWorker(QObject):
+class BackdeckPullWorker(QObject):
     """
     call to backdeck rpc server to retrieve data from backdeck sqlite db.
     Idea here is this goes to work whenever user requests new data from the backdeck software, which
@@ -25,7 +25,7 @@ class GetBackdeckBiosWorker(QObject):
     Should allow the app to always have all tows, but only pull catch data for the desired tow of interest
     """
 
-    backdeckResults = Signal(bool, str, int, arguments=['status', 'msg', 'rowsRetrieved'])
+    pullResults = Signal(bool, str, int, arguments=['status', 'msg', 'rowsRetrieved'])
     pullComplete = Signal()
 
     def __init__(self, app=None, db=None):
@@ -104,7 +104,7 @@ class GetBackdeckBiosWorker(QObject):
                 self._logger.error(_msg)
         finally:
             self._logger.debug(f"Backdeck pull results: status: {_success}, {_msg} rows: {len(_bios)}")
-            self.backdeckResults.emit(_success, _msg, len(_bios))
+            self.pullResults.emit(_success, _msg, len(_bios))
             self.pullComplete.emit()
 
 
@@ -115,8 +115,9 @@ class DataSelector(QObject):
     curCatchChanged = Signal(str, arguments=['new_catch'])
     curProjectChanged = Signal(str, arguments=['new_project'])
     curBioChanged = Signal(str, arguments=['new_bio'])
-    newBackdeckData = Signal(int, arguments=['new_rows'])
+    backdeckPullResults = Signal(bool, str, int, arguments=['status', 'msg', 'rowsRetrieved'])  # pass worker signal to this
     newDropDownRows = Signal(str, arguments=['dropdown'])
+    barcodeSearched = Signal(bool, str, arguments=['success', 'barcode'])
 
     def __init__(self, db, app=None):
         super().__init__()
@@ -124,8 +125,8 @@ class DataSelector(QObject):
         self._db = db
         self._logger = Logger.get_root()
 
-        self._get_bios_thread = None
-        self._get_bios_worker = None
+        self._backdeck_pull_thread = None
+        self._backdeck_pull_worker = None
 
         # on init, get values that we've persisted to the db in state table
         self._cur_haul_num = self._app.state.get_state_value('Current Haul Number')
@@ -185,6 +186,42 @@ class DataSelector(QObject):
             self._bios_model.setIndexSilently(_bios_model_ix)
             self._on_bio_changed(_bios_model_ix)
 
+        self._app.cam_controls.barcodeDetected.connect(self.selectBarcode)
+
+    @Slot(str)
+    def selectBarcode(self, barcode: str):
+        """
+        find barcode in bios_model, and select the relevant combobox rows if successful
+        :param barcode: str
+        """
+        if not barcode:
+            return
+
+        _sql = '''
+            select      distinct
+                        haul_number
+                        ,catch_display_name
+                        ,project_name
+                        ,bio_label
+            from        backdeck_bios_vw
+            where       bio_label = :bio_label
+        '''
+        results = self._app.sqlite.execute_query(_sql, params={':bio_label': barcode})
+        _d = None
+        for r in results:
+            _d = self._app.sqlite.record_to_dict(r)
+
+        self._logger.debug(f"Barcode data found: {_d}")
+
+        if _d:
+            self.set_combo_box_haul(_d['HAUL_NUMBER'])
+            self.set_combo_box_catch(_d['CATCH_DISPLAY_NAME'])
+            self.set_combo_box_proj(_d['PROJECT_NAME'], _d['CATCH_DISPLAY_NAME'])
+            self.set_combo_box_bio(_d['BIO_LABEL'])
+            self.barcodeSearched.emit(True, barcode)
+        else:
+            self.barcodeSearched.emit(False, barcode)
+
     def _refresh_after_backdeck_pull(self, status, msg, rows_retrieved):
         if status and rows_retrieved:
             # first, preserve values before doing anything to comboboxes
@@ -231,24 +268,25 @@ class DataSelector(QObject):
                 self.newDropDownRows.emit('bios')
 
     @Property("QVariant")  # declaring as qvariant since it inits as none
-    def backdeckBiosWorker(self):
-        return self._get_bios_worker
+    def backdeckPullWorker(self):
+        return self._backdeck_pull_worker
 
     @Slot()
     def getBackdeckBios(self):
-        if isinstance(self._get_bios_thread, QThread) and self._get_bios_thread.isRunning():
+        if isinstance(self._backdeck_pull_thread, QThread) and self._backdeck_pull_thread.isRunning():
             self._logger.info("Backdeck bios thread is busy, try again later")
             return
 
         # vars we need for data retrieval from backdeck
-        self._get_bios_thread = QThread()
-        self._get_bios_worker = GetBackdeckBiosWorker(app=self._app, db=self._db)
-        self._get_bios_worker.cur_haul_num = self._cur_haul_num  # use haul num in request
-        self._get_bios_worker.backdeckResults.connect(lambda status, msg, rows: self._refresh_after_backdeck_pull(status, msg, rows))
-        self._get_bios_worker.moveToThread(self._get_bios_thread)
-        self._get_bios_thread.started.connect(self._get_bios_worker.run)
-        self._get_bios_worker.pullComplete.connect(self._get_bios_thread.quit)
-        self._get_bios_thread.start()
+        self._backdeck_pull_thread = QThread()
+        self._backdeck_pull_worker = BackdeckPullWorker(app=self._app, db=self._db)
+        self._backdeck_pull_worker.cur_haul_num = self._cur_haul_num  # use haul num in request
+        self._backdeck_pull_worker.pullResults.connect(lambda status, msg, rows: self._refresh_after_backdeck_pull(status, msg, rows))
+        self._backdeck_pull_worker.pullResults.connect(self.backdeckPullResults.emit)
+        self._backdeck_pull_worker.moveToThread(self._backdeck_pull_thread)
+        self._backdeck_pull_thread.started.connect(self._backdeck_pull_worker.run)
+        self._backdeck_pull_worker.pullComplete.connect(self._backdeck_pull_thread.quit)
+        self._backdeck_pull_thread.start()
 
     def _on_haul_changed(self, new_haul_index):
         self.cur_haul_num = self._hauls_model.getData(new_haul_index, 'haul_number')
@@ -325,20 +363,25 @@ class DataSelector(QObject):
     def set_combo_box_haul(self, haul_num):
         _haul_model_ix = self._hauls_model.getRowIndexByValue('haul_number', haul_num)
         self._hauls_model.selectIndexInUI.emit(_haul_model_ix)
+        self._logger.debug(f"Haul combobox set to index {_haul_model_ix} for haul {haul_num}")
 
     def set_combo_box_catch(self, display_name):
         _catch_model_ix = self._catches_model.getRowIndexByValue('catch_display_name', display_name)
         self._catches_model.selectIndexInUI.emit(_catch_model_ix)
+        self._logger.debug(f"Catch combobox set to index {_catch_model_ix} for catch {display_name}")
 
     def set_combo_box_proj(self, proj, display):
-        _projects_model_ix = self._projects_model.getItemIndex({'project_name': proj, 'catch_display_name': display})
+        _filter_str = f'"catch_display_name":"{display}","project_name":"{proj}"'
+        _projects_model_ix = self._projects_model.getRowIndexByValue('bio_filter_str', _filter_str)
         _proxy_ix = self._projects_proxy.getProxyRowFromSource(_projects_model_ix)
         self._projects_proxy.selectProxyIndexInUI.emit(_proxy_ix)
+        self._logger.debug(f"Project combobox set to index {_proxy_ix} for catch/proj: {_filter_str}")
 
     def set_combo_box_bio(self, bio):
         _bios_model_ix = self._bios_model.getRowIndexByValue('bio_label', bio)
         _proxy_ix = self._bios_proxy.getProxyRowFromSource(_bios_model_ix)
         self._bios_proxy.selectProxyIndexInUI.emit(_proxy_ix)
+        self._logger.debug(f"Bios combobox set to index {_proxy_ix} for bio label {bio}")
 
     @Property(str, notify=curHaulChanged)
     def cur_haul_num(self):

@@ -527,14 +527,15 @@ Window {
                         anchors.verticalCenter: parent.verticalCenter
                         font.pixelSize: 12
                         Connections {
-                            target: camControls
-                            function onBarcodeFound(barcode) {
-                                lblBarcode.text = "Barcode: " + barcode
-                                lblBarcode.color = appStyle.accentColor
-                            }
-                            function onBarcodeNotFound(barcode) {
-                                lblBarcode.text = "Barcode missing: " + barcode
-                                lblBarcode.color = appStyle.errorColor
+                            target: dataSelector
+                            function onBarcodeSearched(success, barcode) {
+                                if (success) {
+                                    lblBarcode.text = "Barcode: " + barcode
+                                    lblBarcode.color = appStyle.accentColor
+                                } else {
+                                    lblBarcode.text = "Barcode missing: " + barcode
+                                    lblBarcode.color = appStyle.errorColor
+                                }
                             }
                         }
                     }
