@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 
 Item {
@@ -18,6 +18,7 @@ Item {
             source: "qrc:/svgs/construction_sign.svg"
             anchors.horizontalCenter: parent.horizontalCenter
             fillMode: Image.PreserveAspectFit
+            mipmap: true
             layer {
                 enabled: true
                 effect: ColorOverlay {
@@ -26,7 +27,6 @@ Item {
             }
         }
     }
-
 }
 
 /*##^##

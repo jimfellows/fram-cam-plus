@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 import QtQuick.Layouts 6.3
 
@@ -14,8 +14,25 @@ Item {
         anchors.leftMargin: 5
         anchors.bottomMargin: 5
         anchors.topMargin: 5
-
+        Image {
+            id: image
+            width: 100
+            height: 100
+            anchors.verticalCenter: parent.verticalCenter
+            source: "qrc:/svgs/construction_sign.svg"
+            anchors.horizontalCenter: parent.horizontalCenter
+            fillMode: Image.PreserveAspectFit
+            mipmap: true
+            layer {
+                enabled: true
+                effect: ColorOverlay {
+                    color: appStyle.iconColor
+                }
+            }
+        }
+        /*
         ColumnLayout {
+            visible: false
             anchors.fill: parent
             RowLayout {
                 Layout.fillWidth: true
@@ -40,10 +57,8 @@ Item {
                 }
             }
         }
-
-
+        */
     }
-
 }
 
 /*##^##
