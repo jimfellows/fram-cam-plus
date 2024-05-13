@@ -174,7 +174,6 @@ Rectangle {
             radius: 20
             iconSource: 'qrc:/svgs/sweep.svg'
             onClicked: {
-                root.flashAllMenus()
                 comboHauls.currentIndex = -1
                 camControls.clearBarcode()
             }

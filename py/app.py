@@ -47,8 +47,8 @@ class FramCamPlus(QObject):
         self.state = FramCamState(self.sqlite.db, app=self)
         self.settings = Settings(self.sqlite.db, app=self)
         self.style = Style(app=self)
-        self.data_selector = DataSelector(self.sqlite.db, app=self)
         self.cam_controls = CamControls(self.sqlite.db, self)
+        self.data_selector = DataSelector(self.sqlite.db, app=self)
         self.image_manager = ImageManager(self.sqlite.db, self)
         self.cloud_uploader = CloudUploader(self.sqlite.db, self)
 
