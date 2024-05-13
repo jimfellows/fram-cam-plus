@@ -48,6 +48,10 @@ Item {
         }
     }
 
+    LoggingDialog {
+        id: dlgLogs
+    }
+
     Connections {
         target: settings
         function onBackdeckPinged(pingStatus) {
@@ -127,6 +131,7 @@ Item {
                                 text: "Launch\nConsole"
                                 Layout.preferredHeight: 75
                                 Layout.preferredWidth: 75
+                                onClicked: dlgLogs.open()
                             }
                         }
                         FramCamComboBox {
@@ -150,8 +155,8 @@ Item {
                         FramCamTextField {
                             id: tfWheelhouseDir
                             fontSize: 12
-                            titleLabelText: 'Wheelhouse Data Dir.'
-                            Layout.preferredWidth: 570
+                            titleLabelText: 'Wheelhouse Data Dir. (Image Backup Path)'
+                            Layout.preferredWidth: 475
                             Layout.preferredHeight: root.widgetHeight - 10  // not sure why text field comes out bigger than the rest
                             placeholderText: "Browse to PyCollector data folder over the network..."
                             Component.onCompleted: {
@@ -187,43 +192,6 @@ Item {
                                 dlgDriveMapper.driveLetter = 'W'
                                 dlgDriveMapper.open()
                             }
-                        }
-                    }
-                    RowLayout {
-                        spacing: 10
-
-                        FramCamTextField {
-                            id: tfBackdeckDb
-                            fontSize: 12
-                            titleLabelText: 'Backdeck Database File'
-                            Layout.preferredWidth: 570
-                            Layout.preferredHeight: root.widgetHeight - 10  // not sure why text field comes out bigger than the rest
-                            placeholderText: "Browse to trawl_backdeck.db over the network..."
-                            Component.onCompleted: {
-                                console.info("COMPLETED DB, heres our path: " + settings.curBackdeckDb)
-                                tfBackdeckDb.text = settings.curBackdeckDb
-                                settings.verifyBackdeckDb()
-                            }
-                            onTextChanged: settings.curBackdeckDb = text
-                            Connections {
-                                target: settings
-                                function onBackdeckDbVerified(status) {
-                                    tfBackdeckDb.borderColor = status ? appStyle.accentColor : appStyle.errorColor
-                                }
-                            }
-                        }
-                        FramCamButton {
-                            text: 'Browse'
-                            Layout.preferredHeight: root.widgetHeight
-                            Layout.preferredWidth: root.buttonWidth
-                            onClicked: dlgFiles.open()
-                        }
-                        FramCamButton {
-                            text: 'Verify'
-                            Layout.preferredHeight: root.widgetHeight
-                            Layout.preferredWidth: root.buttonWidth
-                            onClicked: settings.verifyBackdeckDb()
-
                         }
                         FramCamButton {
                             text: 'Map V:'

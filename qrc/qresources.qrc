@@ -27,6 +27,7 @@
         <file alias="ImageEditorArea.qml">../qml/components/ImageEditorArea.qml</file>
         <file alias="CredentialsDialog.qml">../qml/components/CredentialsDialog.qml</file>
         <file alias="YesNoDialog.qml">../qml/components/YesNoDialog.qml</file>
+        <file alias="LoggingDialog.qml">../qml/components/LoggingDialog.qml</file>
     </qresource>
     <qresource prefix="/svgs">
         <file alias="aperture.svg">../resources/svgs/aperture_1.svg</file>
