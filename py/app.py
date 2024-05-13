@@ -2,6 +2,7 @@
 # standard imports
 import os
 import sys
+import time
 
 # local imports
 from py.logger import Logger
@@ -17,9 +18,46 @@ from py.cloud_uploader import CloudUploader
 from qrc import qresources  # need this to import compiled qrc resources
 
 # 3rd party imports
-from PySide6.QtGui import QGuiApplication, QIcon, QPixmap
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QApplication, QMessageBox
 from PySide6.QtQml import QQmlApplicationEngine
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, QTextStream
+from PySide6.QtNetwork import QLocalServer, QLocalSocket
+
+
+
+
+class QSingleApplication(QApplication):
+    """
+    very basic class that will, if another app is running with the same id on local server
+    return isRunning = True.  More comprehensive examples exist out there, for now this is good enough:
+
+    https://github.nwfsc2.noaa.gov/nwfsc-fram/pyFieldSoftware/blob/master/py/common/QSingleApplication.py
+    https://gist.github.com/blaxter/5413516
+    https://forum.qt.io/topic/5616/pyside-qtsingleapplication
+
+    """
+    def __init__(self, app_id, *argv):
+
+        super().__init__(*argv)
+        self._app_id = app_id
+
+        # Is there another instance running?
+        self._outSocket = QLocalSocket()
+        self._outSocket.connectToServer(self._app_id)
+        self._isRunning = self._outSocket.waitForConnected()
+
+        if self._isRunning:
+            # Yes, there is.
+            self._outStream = QTextStream(self._outSocket)
+
+        else:
+            self._server = QLocalServer()
+            self._server.listen(self._app_id)
+
+    def isRunning(self):
+        return self._isRunning
+
 
 class FramCamPlus(QObject):
 
@@ -32,8 +70,15 @@ class FramCamPlus(QObject):
         self._logger.info(f'~~><((*>  ~~><((*>  ~~><((*> | FramCam+ starting up | ~~><((*>  ~~><((*>  ~~><((*>')
         self._logger.info('-------------------------------------------------------------------------------------------')
 
-        # create qml engine, make python classes available to qml context
-        self.app = QGuiApplication(sys.argv)
+        self.app = QSingleApplication('018f72bf-b6c2-7ce7-85ec-17c168491a30', sys.argv)
+        if self.app.isRunning():
+            # if another instance of framcam is already running, pop error dialog and call exec_() early
+            dlg = QMessageBox()
+            dlg.setWindowTitle('FRAMCam already running')
+            dlg.setText("ERROR: Unable to run multiple FRAMCam instances!\n\nShutting down...")
+            dlg.show()
+            sys.exit(self.app.exec_())
+
         # self.app.setWindowIcon(QPixmap('qrc:/icons/black_nautilus.ico'))  # cant seem to make this work
         self.app.setWindowIcon(QPixmap(r"resources\icons\blue_nautilus.ico"))
         self.engine = QQmlApplicationEngine()
