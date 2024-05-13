@@ -97,12 +97,11 @@ Dialog {
                     Layout.preferredHeight: 75
                     Layout.preferredWidth: 150
                     onClicked: {
-                        keyboard.visible = true
-                        dlg.loginFailed()
                         if (!tfUsername.text | !tfPassword.text) {
                             console.info("Please enter user/pw")
+                            dlg.loginFailed()
                         } else {
-                            //loginAttempt(tfUsername.text, tfPassword.text)
+                            loginAttempt(tfUsername.text, tfPassword.text)
                         }
                     }
                 }

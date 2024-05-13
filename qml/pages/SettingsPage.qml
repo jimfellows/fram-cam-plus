@@ -30,7 +30,22 @@ Item {
     }
 
     CredentialsDialog {
-        id: dlgCreds
+        id: dlgDriveMapper
+        property string driveLetter;
+        onLoginAttempt: {
+            if (driveLetter === 'W') settings.mapDrive(driveLetter, tfUsername.text, tfPassword.text);
+            if (driveLetter === 'V') settings.mapDrive(driveLetter, tfUsername.text, tfPassword.text);
+        }
+        Connections {
+            target: settings
+            function onDriveMapAttempted(success, msg, drive_letter) {
+                if (success) {
+                    dlgDriveMapper.close()
+                } else {
+                    dlgDriveMapper.loginFailed()
+                }
+            }
+        }
     }
 
     Connections {
@@ -168,8 +183,9 @@ Item {
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
                             onClicked: {
-                                dlgCreds.loginDestination = 'Wheelhouse CPU'
-                                dlgCreds.open()
+                                dlgDriveMapper.loginDestination = 'Wheelhouse CPU'
+                                dlgDriveMapper.driveLetter = 'W'
+                                dlgDriveMapper.open()
                             }
                         }
                     }
@@ -214,14 +230,9 @@ Item {
                             Layout.preferredHeight: root.widgetHeight
                             Layout.preferredWidth: root.buttonWidth
                             onClicked: {
-                                dlgCreds.loginDestination = 'Backdeck CPU'
-                                dlgCreds.open()
-                            }
-                            Connections {
-                                target: dlgCreds
-                                function onLoginAttempt(username, password) {
-                                    settings.mapVDrive(username, password)
-                                }
+                                dlgDriveMapper.loginDestination = 'Backdeck CPU'
+                                dlgDriveMapper.driveLetter = 'V'
+                                dlgDriveMapper.open()
                             }
                         }
                     }

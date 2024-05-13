@@ -50,7 +50,7 @@ class PingWorker(QObject):
 
 class MapDriveWorker(QObject):
 
-    mapperFinished = Signal(bool, arguments=['result'])
+    mapperFinished = Signal(bool, str, str, arguments=['success', 'msg', 'drive_letter'])
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -59,21 +59,44 @@ class MapDriveWorker(QObject):
         self._letter = None
         self._user = None
         self._pw = None
+        self._timeout_s = 2
 
     def prepare(self, ip, letter, user, pw):
         self._ip, self._letter, self._user, self._pw = ip, letter, user, pw
 
     def map_drive(self):
         self._logger.info(f"Mapping {self._letter} drive at IP: {self._ip}...")
+        _msg = ''
+        _success = False
+        _command = None
 
         # Disconnect anything existing
-        subprocess.call(f'net use {self._letter}: \\del', shell=True)
+        try:
+            try:
+                subprocess.check_output(f'net use {self._letter}: /del', shell=True, timeout=self._timeout_s)
+            except subprocess.CalledProcessError:
+                pass
 
-        # Connect to shared drive, use drive letter M
-        # subprocess.call(r'net use W: \\shared\folder /user:user123 password', shell=True)
-        subprocess.call(f"net use {self._letter}: \\\\{self._ip}\\C /user:{self._user} {self._pw}", shell=True)
-        self._logger.info(f"{self._letter}: drive mapped to {self._ip}.")
+            # Connect to shared drive, use drive letter M
+            if self._ip == TEST_IP:
+                _command = f"net use {self._letter}: \\\\{self._ip}\\C$"
+            else:
+                _command = f"net use {self._letter}: \\\\{self._ip}\\C$ /user:{self._user} {self._pw}"
 
+            self._logger.info(f"Trying to map drive with command: {_command}")
+            subprocess.check_output(_command, shell=True, timeout=self._timeout_s)
+
+            _msg = f"Drive {self._letter} mapped successfully"
+            _success = True
+
+        except subprocess.CalledProcessError as e:
+            self._logger.error(str(e))
+            _msg = str(e)
+            _success = False
+
+        finally:
+            self._logger.debug(f"Mapped drive results: command={_command} --> status={_success}, msg={_msg}")
+            self.mapperFinished.emit(_success, _msg, self._letter)
 
 class Settings(QObject):
 
@@ -88,7 +111,7 @@ class Settings(QObject):
     backdeckDbVerified = Signal(bool, arguments=['isValid'])
     imageQualityChanged = Signal(str, arguments=['quality'])
     backdeckRpcPortChanged = Signal(int, arguments=['newPort'])
-    driveMapAttempted = Signal(str, bool, arguments=['letter', 'result'])
+    driveMapAttempted = Signal(bool, str, str, arguments=['status', 'msg', 'letter'])
 
     def __init__(self, db, app=None, parent=None):
         super().__init__(parent)
@@ -140,10 +163,11 @@ class Settings(QObject):
 
         self.curVesselSubnet = self._app.state.get_state_value('Current Vessel Subnet')
 
+        # drive mapper
         self._map_drive_thread = QThread()
         self._map_drive_worker = MapDriveWorker()
-        self._map_drive_worker.moveToThread(self._map_drive_thread)
-        self._map_drive_thread.started.connect(self._map_drive_worker.map_drive)
+
+
 
 
     def _update_ping_status(self):
@@ -284,43 +308,21 @@ class Settings(QObject):
             status = os.path.isfile(self._cur_backdeck_db)
             self.backdeckDbVerified.emit(status)
 
-    def _map_ip_drive_letter(self, ip, letter, user, pw):
-        self._logger.info(f"Mapping {letter} drive at IP: {ip}...")
+    @Property(QObject, constant=True)
+    def mapDriveWorker(self):
+        return self._map_drive_worker
 
-        # Disconnect anything existing
-        subprocess.call(f'net use {letter}: \\del', shell=True)
+    @Slot(str, str, str)
+    def mapDrive(self, letter, user, pw):
+        if isinstance(self.thread, QThread) and self._map_drive_thread.isRunning():
+            self._logger.info("Drive Mapper thread is busy, try again later")
+            return
 
-        # Connect to shared drive, use drive letter M
-        # subprocess.call(r'net use W: \\shared\folder /user:user123 password', shell=True)
-        subprocess.call(f"net use {letter}: \\\\{ip}\\C /user:{user} {pw}", shell=True)
-        self._logger.info(f"{letter}: drive mapped to {ip}.")
-
-    @Slot(str, str)
-    def mapWDrive(self, user, pw):
-        self._map_drive_worker.prepare(
-            self._cur_wheelhouse_ip,
-            'W',
-            user,
-            pw
-        )
-
-    @Slot(str, str)
-    def mapVDrive(self, user, pw):
-        self._map_drive_worker.prepare(
-            self._cur_backdeck_ip,
-            'V',
-            user,
-            pw
-        )
-
-    @Slot(str, str)
-    def mapWDriveOld(self, user, pw):
-        if self._cur_wheelhouse_ip:
-            self._map_ip_drive_letter(self._cur_wheelhouse_ip, 'W', user, pw)
-
-    @Slot(str, str)
-    def mapVDriveOld(self, user, pw):
-        self._logger.info(f"Mapping V drive with {self._cur_backdeck_ip} {user} {pw}")
-        if self._cur_backdeck_ip:
-            self._map_ip_drive_letter(self._cur_backdeck_ip, 'V', user, pw)
-
+        self._map_drive_thread = QThread()
+        self._map_drive_worker = MapDriveWorker()
+        self._map_drive_worker.prepare(self._cur_wheelhouse_ip, letter, user, pw)
+        self._map_drive_worker.moveToThread(self._map_drive_thread)
+        self._map_drive_thread.started.connect(self._map_drive_worker.map_drive)
+        self._map_drive_worker.mapperFinished.connect(self._map_drive_thread.quit)
+        self._map_drive_worker.mapperFinished.connect(self.driveMapAttempted.emit)
+        self._map_drive_thread.start()
