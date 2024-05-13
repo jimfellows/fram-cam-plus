@@ -3,12 +3,68 @@
 from PySide6.QtSql import QSqlQueryModel, QSqlTableModel, QSqlRelation, QSqlQuery, QSqlRecord
 from PySide6.QtCore import QObject, PyClassProperty, Property, Slot, Signal, QSortFilterProxyModel, QThread
 from py.logger import Logger
-from py.qt_models import FramCamSqlListModel, FramCamFilterProxyModel, HaulsModel, CatchesModel, ProjectsModel, BiosModel
+from py.qt_models import FramCamSqlListModel, FramCamFilterProxyModel
 from datetime import datetime
 
 from py.qsqlite import QSqlite
 import socket
 from xmlrpc import client as xrc
+
+
+class HaulsModel(FramCamSqlListModel):
+    def __init__(self, db):
+        super().__init__(db)
+        self.sql = 'select distinct haul_number, backdeck_haul_id from backdeck_bios_vw order by substr(haul_number, -3) desc'
+
+
+class CatchesModel(FramCamSqlListModel):
+    def __init__(self, db):
+        super().__init__(db)
+        self.sql = '''
+            select  distinct
+                    catch_display_name
+                    ,haul_number
+                    ,common_name
+                    ,scientific_name
+                    ,taxonomy_id
+                    ,backdeck_catch_id
+
+            from    backdeck_bios_vw
+            where   haul_number = :haul_number
+        '''
+
+
+class ProjectsModel(FramCamSqlListModel):
+    """
+    distinct list of projects along with their respective catch
+    and the string we use to filter
+    """
+    def __init__(self, db):
+        super().__init__(db)
+        # get distinct list of projects, display names, and filter str, project must be not null
+        self.sql = '''
+            select  distinct
+                    project_name
+                    ,catch_display_name
+                    ,project_scientist
+                    ,bio_filter_str
+            from    backdeck_bios_vw
+            where   project_name is not null
+                    and haul_number = :haul_number
+        '''
+
+
+class BiosModel(FramCamSqlListModel):
+    def __init__(self, db):
+        super().__init__(db)
+        self.sql = '''
+            select 
+                    *
+            from    backdeck_bios_vw
+            where   haul_number = :haul_number
+                    and bio_label is not null
+        '''
+
 
 
 class BackdeckPullWorker(QObject):
@@ -147,10 +203,10 @@ class DataSelector(QObject):
         self._bios_proxy = FramCamFilterProxyModel(self._bios_model, name='BiosProxy')
 
         # when one model changes, we need to do things to others  TODO: push this connection trigger down to cur property changed?
-        self._hauls_model.currentIndexChanged.connect(lambda i: self._on_haul_changed(i))
-        self._catches_model.currentIndexChanged.connect(lambda i: self._on_catch_changed(i))
-        self._projects_model.currentIndexChanged.connect(lambda i: self._on_project_changed(i))
-        self._bios_model.currentIndexChanged.connect(lambda i: self._on_bio_changed(i))
+        self._hauls_model.selectedIndexChanged.connect(lambda i: self._on_haul_changed(i))
+        self._catches_model.selectedIndexChanged.connect(lambda i: self._on_catch_changed(i))
+        self._projects_model.selectedIndexChanged.connect(lambda i: self._on_project_changed(i))
+        self._bios_model.selectedIndexChanged.connect(lambda i: self._on_bio_changed(i))
 
         """
         Below we select model rows pulled from database on startup.  Note that we set _current_index, not
@@ -161,30 +217,24 @@ class DataSelector(QObject):
         # if we have pre-selected vals from db, set them now, in order (haul,catch,project,bio)
         if self._cur_haul_num:
             _haul_model_ix = self._hauls_model.getRowIndexByValue('haul_number', self._cur_haul_num)
-            #_haul_id = self._hauls_model.getData(_haul_model_ix, 'fram_cam_haul_id')
             self._logger.debug(f"Setting initial HaulsModel row to {_haul_model_ix}, haul={self._cur_haul_num}")
-            self._hauls_model.setIndexSilently(_haul_model_ix)
-            self._on_haul_changed(_haul_model_ix)
+            self._hauls_model.selectedIndex = _haul_model_ix
 
         if self._cur_catch_display:
             _catch_model_ix = self._catches_model.getRowIndexByValue('catch_display_name', self._cur_catch_display)
             self._logger.debug(f"Setting initial CatchesModel row to {_catch_model_ix},  catch display = {self._cur_catch_display}")
-            self._catches_model.setIndexSilently(_catch_model_ix)
-            self._on_catch_changed(_catch_model_ix)
+            self._catches_model.selectedIndex = _catch_model_ix
 
         if self._cur_project_name and self._cur_catch_display:
-            _projects_model_ix = self._projects_model.getItemIndex({'project_name': self._cur_project_name, 'catch_display_name': self._cur_catch_display})
-            _proxy_ix = self._projects_proxy.getProxyRowFromSource(_projects_model_ix)
-            self._logger.debug(f"Setting initial ProjectsModel row to {_projects_model_ix}, proxy {_proxy_ix}, project {self._cur_project_name}")
-            self._projects_model.setIndexSilently(_projects_model_ix)
-            self._on_project_changed(_projects_model_ix)
+            _filter_str = f'"catch_display_name":"{self._cur_catch_display}","project_name":"{self._cur_project_name}"'
+            _projects_model_ix = self._projects_model.getRowIndexByValue('bio_filter_str', _filter_str)
+            self._logger.debug(f"Setting initial ProjectsModel row to {_projects_model_ix}, catch/proj {_filter_str}")
+            self._projects_model.selectedIndex = _projects_model_ix
 
-        if self._app.state.cur_bio_label:
+        if self._cur_bio_label:
             _bios_model_ix = self._bios_model.getRowIndexByValue('bio_label', self._cur_bio_label)
-            _proxy_ix = self._bios_proxy.getProxyRowFromSource(_bios_model_ix)
-            self._logger.debug(f"Setting initial BiosModel row to {_bios_model_ix}, proxy {_proxy_ix} bio_label {self._cur_bio_label}")
-            self._bios_model.setIndexSilently(_bios_model_ix)
-            self._on_bio_changed(_bios_model_ix)
+            self._logger.debug(f"Setting initial BiosModel row to {_bios_model_ix}, bio_label {self._cur_bio_label}")
+            self._bios_model.selectedIndex = _bios_model_ix
 
         self._app.cam_controls.barcodeDetected.connect(self.selectBarcode)
 
@@ -306,7 +356,6 @@ class DataSelector(QObject):
         :return:
         """
         self.cur_catch_display = self._catches_model.getData(new_catch_index, 'catch_display_name')
-        #self.cur_catch_id = self._catches_model.getData(new_catch_index, 'fram_cam_catch_id')
         self._logger.info(f"Selected catch changed to {self._cur_catch_display}")
         self._projects_proxy.filterRoleWildcard('bio_filter_str', f'*"catch_display_name":"{self._cur_catch_display}"*')
         self._bios_proxy.filterRoleWildcard('bio_filter_str', f'*"catch_display_name":"{self._cur_catch_display}"*')
@@ -323,13 +372,12 @@ class DataSelector(QObject):
         self._logger.info(f"Selected bio label changed to {self._cur_bio_label}")
 
         # TODO: all of the next lines work, but tthings are pretty messy...
-        if self._projects_model.currentIndex == -1 and new_bio_index > -1:
+        if self._projects_model.selectedIndex == -1 and new_bio_index > -1:
             self._logger.info("Bio label selected before project, trying to select project menu...")
             _proj = self._bios_model.getData(new_bio_index, 'project_name')
             _proj_ix = self._projects_model.getRowIndexByValue('bio_filter_str', f'"catch_display_name":"{self._cur_catch_display}","project_name":"{_proj}"')
             _proxy_proj_ix = self._projects_proxy.getProxyRowFromSource(_proj_ix)
-            self._projects_model.setIndexSilently(_proj_ix)
-            self._on_project_changed(_proj_ix)
+            self._projects_proxy.selectIndexInUI.emit(_proxy_proj_ix)
 
 
     @Property(QObject, notify=unusedSignal)
