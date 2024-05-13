@@ -293,17 +293,17 @@ class DataSelector(QObject):
             # catch model will update when haul is selected, then we get new index and select
             _catch_ix = self._catches_model.getRowIndexByValue('catch_display_name', _orig_catch_display)
             _catch_proxy_ix = self._catches_proxy.getProxyRowFromSource(_catch_ix)
-            self._catches_proxy.selectProxyIndexInUI.emit(_catch_proxy_ix)
+            self._catches_proxy.selectIndexInUI.emit(_catch_proxy_ix)
 
             # projects reload as catch changes, find new index and select
             _project_ix = self._projects_model.getRowIndexByValue('bio_filter_str', _orig_filter_str)
             _project_proxy_ix = self._projects_proxy.getProxyRowFromSource(_project_ix)
-            self._projects_proxy.selectProxyIndexInUI.emit(_project_proxy_ix)
+            self._projects_proxy.selectIndexInUI.emit(_project_proxy_ix)
 
             # bios reload as projects change, find new index and select
             _bio_ix = self._bios_model.getRowIndexByValue('bio_label', _orig_bio)
             _bio_proxy_ix = self._bios_proxy.getProxyRowFromSource(_bio_ix)
-            self._bios_proxy.selectProxyIndexInUI.emit(_bio_proxy_ix)
+            self._bios_proxy.selectIndexInUI.emit(_bio_proxy_ix)
 
             if _orig_haul_ct != self._hauls_model.rowCount():
                 self.newDropDownRows.emit('hauls')
@@ -533,5 +533,6 @@ class DataSelector(QObject):
             'BIO_TYPE': self.cur_bio_type,
             'BIO_SUBTYPE': self.cur_bio_subtype,
             'BACKDECK_SPECIMEN_ID': self.cur_backdeck_specimen_id,
-            'BACKDECK_SPECIMEN_ATTR_ID': self.cur_backdeck_specimen_attr_id
+            'BACKDECK_SPECIMEN_ATTR_ID': self.cur_backdeck_specimen_attr_id,
+            'IS_BACKED_UP': 0  # for some reason defining a default val of 0 in the db isnt taking... hence this
         }
