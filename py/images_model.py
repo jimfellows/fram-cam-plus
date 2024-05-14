@@ -56,7 +56,6 @@ class ImagesModel(FramCamSqlListModel):
 
         # anytime notes change on image, flag image for re-backup
         self.curImageNotesChanged.connect(self._unbackup_image)
-        self.currentImageChanged.connect(self.print_model)
         super().selectedIndexChanged.connect(self._set_cur_image)
 
     def _set_cur_image(self):
@@ -121,7 +120,7 @@ class ImagesModel(FramCamSqlListModel):
             return
 
         self._logger.debug(f"SETTING {role_name}={value} for image {self.curImgId}")
-        self.setData(self._selected_index, value, role_name=role_name)
+        self.setData(self._selected_index, value, role_name)
         self._logger.error(f"Our imageid = {self.curImgId}")
         for _i in range(self._table_model.rowCount()):  # todo: is this iteration the best way to do this?
             if self._table_model.record(_i).value('image_id') == self.curImgId:
@@ -130,7 +129,6 @@ class ImagesModel(FramCamSqlListModel):
                 _r.setValue(self._table_model.fieldIndex(role_name.upper()), value)
                 self._table_model.setRecord(_i, _r)
                 self._table_model.submitAll()
-
 
         self.currentImageValChanged.emit(role_name.lower(), value)  # TODO: emit kv pair?
 
@@ -162,13 +160,7 @@ class ImagesModel(FramCamSqlListModel):
         if self.isImgBackedUp != new_status:
             self._set_cur_value('is_backed_up', new_status)
 
-    def print_model(self):
-        for x in range(self.rowCount()):
-            print(x)
-            print(self.getItem(x))
-
     def _unbackup_image(self):
-        self._logger.error("UNBACKING UP IMAGE")
         self.isImgBackedUp = 0
 
     def setImageSyncPath(self, local_path, sync_path, is_successful):
@@ -186,7 +178,8 @@ class ImagesModel(FramCamSqlListModel):
                     self._table_model.setRecord(_i, _r)
                     self._table_model.submitAll()
 
-            self.setData(_model_row, sync_path)
+            self.setData(_model_row, sync_path, 'backup_path')
+            self.setData(_model_row, 1, 'is_backed_up')
 
     def insert_to_db(self, image_path: str, image_data: dict):
         """
