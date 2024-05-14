@@ -13,7 +13,7 @@ Dialog {
     id: dlg
 
     implicitWidth: 700
-    implicitHeight: 600
+    implicitHeight: 500
     Material.theme: settings.curUiMode === 'Wheelhouse' ? Material.Dark : Material.Light
     title: "Enter your credentials..."
 
@@ -76,21 +76,21 @@ Dialog {
                 id: tfUsername
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignHCenter
-                Layout.preferredHeight: 65
+                Layout.preferredHeight: 50
                 placeholderText: "Enter Username..."
             }
             FramCamTextField {
                 id: tfPassword
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignHCenter
-                Layout.preferredHeight: 65
+                Layout.preferredHeight: 50
                 placeholderText: "Enter password..."
                 passwordCharacter: "*"
                 echoMode: TextInput.Password
             }
             InputPanel  {
                 id: keyboard
-                opacity: 0.7
+                //opacity: 0.7
                 visible: true
                 implicitWidth: dlg.width * 0.90
                 Layout.alignment: Qt.AlginHCenter
@@ -101,7 +101,7 @@ Dialog {
                 FramCamButton {
                     id: btnLogin
                     text: dlg.loginButtonText
-                    Layout.preferredHeight: 75
+                    Layout.preferredHeight: 65
                     Layout.preferredWidth: 150
                     onClicked: {
                         if (!tfUsername.text | !tfPassword.text) {
@@ -114,7 +114,7 @@ Dialog {
                 }
                 FramCamButton {
                     text: "Cancel"
-                    Layout.preferredHeight: 75
+                    Layout.preferredHeight: 65
                     Layout.preferredWidth: 150
                     pressedColor: appStyle.errorColor
                     onClicked: dlg.close()
