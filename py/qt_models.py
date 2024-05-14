@@ -69,26 +69,25 @@ class FramCamSqlListModel(QAbstractListModel):
             self._logger.error(f"Failed to retrieve data from {self.__class__.__name__}: {e}")
             return None
 
-    def setData(self, index, value, role=Qt.DisplayRole):
+    def setData(self, row: int, value: any, role_name: str):
         """
         re-implementation of virtual function to allow editable model
         set role data to value at specific index in _data list
+        https://doc.qt.io/qtforpython-6/PySide6/QtCore/QAbstractItemModel.html#PySide6.QtCore.QAbstractItemModel.setData
         """
-        if not index.isValid():
-            return
+        _index = self.index(row, 0)
+        if not _index.isValid():
+            self._logger.error(f"Invalid index used for setData, row {row} = {value}")
+            return False
         try:
-            self._data[index.row()][self.roleNames()[role].decode('utf-8')] = value
-            self.dataChanged.emit(index, index)  # emits index twice (we're only editing a single item)
+            role_num = self.getRoleByName(role_name)  # convert name of role to its integer number
+            # TODO: I'm converting to role_name to role_num back to role_num, necessary?
+            self._data[row][self.roleNames()[role_num].decode('utf-8')] = value  # use role no as key to get str
+            self.dataChanged.emit(_index, _index)  # tell model something has updated
+            return True
         except Exception as e:
-            self._logger.error(f"Error in {self.__class__.__name__}.setData: {e}")
-
-    def setRoleData(self, row, role_name, value):
-        """
-        wrapper for set data to allow developer to just specify the row num, field/role name, and value to set
-        """
-        _role_int = self.getRoleByName(role_name)
-        _ix = QModelIndex(self.index(row, 0))  # assumes 2-d data structure, so col = 0, is this right?
-        self.setData(_ix, value, role=_role_int)
+            self._logger.error(f"Error in {self.__class__.__name__}.setData: {e.__name__} {e}")
+            return False
 
     def flags(self, index):
         return Qt.ItemIsEditable
@@ -294,7 +293,7 @@ class FramCamFilterProxyModel(QSortFilterProxyModel):
         """
         _proxy_index = self.index(i, 0, QModelIndex())
         _source_index = self.mapToSource(_proxy_index)
-        self._logger.debug(f"Setting source model index to {_source_index} from proxy model {self._name}")
+        self._logger.debug(f"Setting source model index to {_source_index.row()} from proxy model {self._name}")
         try:
             self.sourceModel().selectedIndex = _source_index.row()
         except AttributeError:
