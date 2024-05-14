@@ -58,7 +58,7 @@ ComboBox {
 
 function startGlow(color) {
         if (color === undefined) color = appStyle.accentColor
-        rectButton.color = color;
+        rectGlow.color = color;
         glow.running = true;
     }
 

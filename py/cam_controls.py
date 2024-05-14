@@ -11,7 +11,6 @@ import re
 from py.logger import Logger
 from py.utils import Utils
 from py.config import IMAGES_DIR
-from py.qt_models import ImagesModel, FramCamFilterProxyModel
 
 # 3rd party imports
 from araviq6 import VideoFrameWorker, VideoFrameProcessor

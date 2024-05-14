@@ -2,16 +2,13 @@
 
 # standard imports
 import os
-from pathlib import Path
-import re
 import shutil
 import json
 
 # local imports
 from py.logger import Logger
-from py.utils import Utils
-from py.config import IMAGES_DIR
-from py.qt_models import ImagesModel, FramCamFilterProxyModel
+from py.qt_models import FramCamFilterProxyModel
+from py.images_model import ImagesModel
 
 # 3rd party imports
 from PySide6.QtCore import (
@@ -19,16 +16,13 @@ from PySide6.QtCore import (
     Slot,
     Property,
     Signal,
-    Qt,
-    QAbstractListModel,
-    QModelIndex,
     QThread,
     QRegularExpression
 )
-import pyzbar.pyzbar
-# import tensorflow as tf
+
 from PIL import Image
 import piexif
+
 
 
 class CopyFilesWorker(QObject):
@@ -129,6 +123,7 @@ class ImageManager(QObject):
     """
     imagesViewChanged = Signal()
     imagesModelChanged = Signal()
+    currentImageChanged = Signal()
     copyStarted = Signal(int, arguments=['no_of_files'])
     fileCopied = Signal(str, str, bool, arguments=['path', 'new_path', 'success'])
     copyEnded = Signal(int, int, arguments=['files_copied', 'files_failed'])
@@ -142,7 +137,7 @@ class ImageManager(QObject):
 
         # our models
         self._images_model = ImagesModel(self._db)  # stores underlying images
-        self._images_proxy = FramCamFilterProxyModel(self._images_model)  # allows filtering by haul/catch/proj/bio
+        self._images_proxy = FramCamFilterProxyModel(self._images_model, name='images_proxy')  # allows filtering by haul/catch/proj/bio
 
         # filter proxy model as any of the data selections change
         self._app.data_selector.curHaulChanged.connect(self._filter_images_model)
@@ -160,6 +155,8 @@ class ImageManager(QObject):
         # # threading stuff to copy image files
         self._file_copy_thread = None
         self._file_copy_worker = None
+
+        self._images_model.currentImageChanged.connect(self.currentImageChanged.emit)
 
     def get_exif_dict(self, file_path):
         _ix = self._images_model.getRowIndexByValue('full_path', file_path)
@@ -224,6 +221,8 @@ class ImageManager(QObject):
         search_str = QRegularExpression.wildcardToRegularExpression(search_str)  # convert our "*" chars to regex
         self._logger.debug(f"Filtering images based on filter string: {search_str}")
         self._images_proxy.filterRoleOnRegex('image_filter_str', search_str)
+        self._logger.error(f"Filtering images on {search_str}, proxy index = {self._images_proxy.proxyIndex}")
+        self._logger.error(f"Filtering images on {search_str}, model index = {self._images_model.selectedIndex}")
 
     @Property(QObject, constant=True)
     def imagesModel(self) -> ImagesModel:
@@ -232,6 +231,10 @@ class ImageManager(QObject):
     @Property(QObject, constant=True)
     def imagesProxy(self) -> FramCamFilterProxyModel:
         return self._images_proxy
+
+    @Slot(int)
+    def selectProxyWithProxyIndex(self, proxy_index):
+        self._images_proxy.selectIndexInUI.emit(proxy_index)
 
     def _load_images_model(self):
         """

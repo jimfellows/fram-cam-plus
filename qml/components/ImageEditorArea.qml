@@ -197,7 +197,7 @@ Rectangle {
             }
             FramCamProgressBar {
                 id: progressCopy
-                value: imageManager.imagesModel.isImgBackedUp ? to : 0
+                value: 0  // start at 0
                 runningColor: appStyle.accentColor
                 indeterminate: false
                 height: 8
@@ -218,11 +218,10 @@ Rectangle {
                 Connections {
                     target: imageManager.imagesModel
                     function onCurrentImageValChanged(role_name, value) {
-                        if (role_name === 'is_backed_up') {
-                            if (value == 0) {
-                                animateProgressUndo.running = true
-                            }
-                        }
+                        if (role_name === 'is_backed_up' && value === 0) animateProgressUndo.running = true
+                    }
+                    function onCurrentImageChanged() {  // TODO: could probably bind this value?
+                        progressCopy.value = imageManager.imagesModel.isImgBackedUp
                     }
                 }
                 PropertyAnimation{

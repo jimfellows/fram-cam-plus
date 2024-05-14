@@ -23,7 +23,6 @@
     </qresource>
     <qresource prefix="/components">
         <file alias="DataSelectorBar.qml">../qml/components/DataSelectorBar.qml</file>
-        <file alias="ImageEditorBar.qml">../qml/components/ImageEditorBar.qml</file>
         <file alias="ImageEditorArea.qml">../qml/components/ImageEditorArea.qml</file>
         <file alias="CredentialsDialog.qml">../qml/components/CredentialsDialog.qml</file>
         <file alias="YesNoDialog.qml">../qml/components/YesNoDialog.qml</file>

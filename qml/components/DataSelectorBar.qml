@@ -55,16 +55,13 @@ Rectangle {
             textRole: "haul_number"
             placeholderText: dataSelector.hauls_model.row_count === 0 ? 'N/A' : 'Select Haul...'
             onCurrentIndexChanged: {
-                model.currentIndex = currentIndex
+                model.selectedIndex = currentIndex
             }
             Component.onCompleted: {  // set ix based on settings saved value
-                comboHauls.currentIndex = model.currentIndex
+                comboHauls.currentIndex = model.selectedIndex
             }
             Connections {
                 target: dataSelector.hauls_model
-                function onIndexSetSilently(new_index) {
-                    comboHauls.currentIndex = new_index
-                }
                 function onSelectIndexInUI(index) {
                     comboHauls.currentIndex = index
                 }
@@ -87,20 +84,11 @@ Rectangle {
                 model.proxyIndex = currentIndex
             }
             Component.onCompleted: {  // set ix based on settings saved value
-                comboCatch.currentIndex = model.getProxyRowFromSource(dataSelector.catches_model.currentIndex)
-            }
-            Connections {
-                target: dataSelector.catches_model
-                function onIndexSetSilently(new_index) {
-                    comboCatch.currentIndex = model.getProxyRowFromSource(new_index)
-                }
-                function onSelectIndexInUI(index) {
-                    comboCatch.currentIndex = index
-                }
+                comboCatch.currentIndex = model.getProxyRowFromSource(dataSelector.catches_model.selectedIndex)
             }
             Connections {
                 target: dataSelector.catches_proxy
-                function onSelectProxyIndexInUI(index) {
+                function onSelectIndexInUI(index) {
                     comboCatch.currentIndex = index
                 }
             }
@@ -121,17 +109,11 @@ Rectangle {
                 model.proxyIndex = currentIndex
             }
             Component.onCompleted: {  // set ix based on settings saved value
-                comboProject.currentIndex = model.getProxyRowFromSource(dataSelector.projects_model.currentIndex)
-            }
-            Connections {
-                target: dataSelector.projects_model
-                function onIndexSetSilently(new_index) {
-                    comboProject.currentIndex = dataSelector.projects_proxy.getProxyRowFromSource(new_index)
-                }
+                comboProject.currentIndex = model.getProxyRowFromSource(dataSelector.projects_model.selectedIndex)
             }
             Connections {
                 target: dataSelector.projects_proxy
-                function onSelectProxyIndexInUI(index) {
+                function onSelectIndexInUI(index) {
                     comboProject.currentIndex = index
                 }
             }
@@ -152,17 +134,11 @@ Rectangle {
                 model.proxyIndex = currentIndex
             }
             Component.onCompleted: {  // set ix based on settings saved value
-                comboBiolabel.currentIndex = model.getProxyRowFromSource(dataSelector.bios_model.currentIndex)
-            }
-            Connections {
-                target: dataSelector.bios_model
-                function onIndexSetSilently(new_index) {
-                    comboBiolabel.currentIndex = model.getProxyRowFromSource(new_index)
-                }
+                comboBiolabel.currentIndex = model.getProxyRowFromSource(dataSelector.bios_model.selectedIndex)
             }
             Connections {
                 target: dataSelector.bios_proxy
-                function onSelectProxyIndexInUI(index) {
+                function onSelectIndexInUI(index) {
                     comboBiolabel.currentIndex = index
                 }
             }

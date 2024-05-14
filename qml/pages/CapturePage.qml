@@ -422,15 +422,13 @@ Item {
                     }
                     Connections {
                         target: imageManager.imagesProxy
-                        function onSelectProxyIndexInUI(proxy_index) {
-                            console.info("onSelectProxyIndexInUI received: " + proxy_index)
+                        function onSelectIndexInUI(proxy_index) {
                             lvThumbnails.currentIndex = proxy_index
                         }
                     }
                     Connections {
                         target: imageManager.imagesModel
-                        function onSendIndexToProxy(new_index) {
-                            console.info("onSendIndexToProxy index received: " + new_index)
+                        function onSelectIndexInUI(new_index) {
                             var proxyRow = imageManager.imagesProxy.getProxyRowFromSource(new_index)
                             lvThumbnails.currentIndex = proxyRow
                         }
@@ -440,27 +438,19 @@ Item {
                             id: imgThumbnail
                             source: "file:///" + model.full_path
                             width: lvThumbnails.width - 30
-                            anchors.right: parent.right
-                            //width: imageManager.imagesProxy.proxyIndex === index ? lvThumbnails.width : lvThumbnails.width - 30
-                            fillMode: Image.PreserveAspectFit
-                            //Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                            layer.effect: DropShadow {
-                                verticalOffset: 0
-                                horizontalOffset: 0
-                                radius: 20
-                                color: "lightgray"
+                            anchors {
+                                right: parent.right
+                                rightMargin: index === imageManager.imagesProxy.proxyIndex ? 0 : -15
                             }
+                            fillMode: Image.PreserveAspectFit
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
-                                    console.info("Image clicked at index " + index)
                                     // clicking an already active image clears selection
                                     if (index === imageManager.imagesProxy.proxyIndex) {
-                                        console.info("CLICK: Clicked image already selected, deselecting...")
                                         lvThumbnails.currentIndex = -1
                                     } else {
                                         clack.play()
-                                        console.info("CLICK: Selecting new image at index " + index)
                                         lvThumbnails.currentIndex = index
                                     }
                                 }
