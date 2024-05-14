@@ -232,6 +232,10 @@ class ImageManager(QObject):
     def imagesProxy(self) -> FramCamFilterProxyModel:
         return self._images_proxy
 
+    @Slot(int)
+    def selectProxyWithProxyIndex(self, proxy_index):
+        self._images_proxy.selectIndexInUI.emit(proxy_index)
+
     def _load_images_model(self):
         """
         using selected vals, load the images associated.

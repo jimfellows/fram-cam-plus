@@ -136,7 +136,7 @@ Item {
                                     }
                                     FramCamProgressBar {
                                         id: progressCopy
-                                        value: model.backup_path ? 1 : 0
+                                        value: model.is_backed_up ? 1 : 0
                                         runningColor: appStyle.accentColor
                                         Layout.fillWidth:true
                                         //Layout.preferredWidth: lblFileName.width
@@ -151,11 +151,6 @@ Item {
                                                     animateProgress.running = true
                                                 }
                                             }
-                                            /*
-                                            function onCurrentImageChanged() {
-                                                console.info("IMAGE CHANGED, is it backed up? " + imageManager.imagesModel.isImgBackedUp)
-                                            }
-                                            */
                                         }
                                         PropertyAnimation{
                                             id: animateProgress
@@ -225,8 +220,7 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 onClicked: {
                                     windowMain.navigateToPage('capture')
-                                    imageManager.imagesProxy.selectProxyIndexInUI(index)
-                                    //imageManager.imagesProxy.proxyIndex = index
+                                    imageManager.selectProxyWithProxyIndex(index)
                                 }
                             }
                             }
