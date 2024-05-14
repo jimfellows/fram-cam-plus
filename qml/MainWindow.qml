@@ -497,7 +497,8 @@ Window {
                         color: appStyle.errorColor
                         font.family: appStyle.fontFamily
                         font.pixelSize: 12
-                        font.bold: true
+                        font.bold: color === appStyle.errorColor
+                        font.italic: color !== appStyle.errorColor
                         Connections {
                             target: imageManager
                             function onBadDestinationPath(path) {
@@ -507,11 +508,15 @@ Window {
                             function onCopyStarted(no_of_files) {
                                 lblWarning.text = ''
                             }
+                            function onCopyEnded(good, bad) {
+                                lblWarning.color = appStyle.secondaryFontColor
+                                lblWarning.text = "Copy to WH complete: " + good + " files copied, " + bad + " failed."
+                            }
                         }
                         Connections {
-                            target: dataSelector.backdeckBiosWorker
-                            function onBackdeckResults(status, msg, rows) {
-                                console.info("FOUND ONE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                            target: dataSelector
+                            function onBackdeckPullResults(status, msg, rows) {
+                                //TODO: Clip this?
                                 lblWarning.color = status ? appStyle.secondaryFontColor : appStyle.errorColor
                                 lblWarning.text = msg
                                 lblWarning.visible = true
