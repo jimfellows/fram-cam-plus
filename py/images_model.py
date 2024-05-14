@@ -63,6 +63,10 @@ class ImagesModel(FramCamSqlListModel):
         self.currentImageChanged.emit()
 
     @Property("QVariant", notify=currentImageChanged)
+    def curImgData(self):
+        return self._cur_image
+
+    @Property("QVariant", notify=currentImageChanged)
     def curImgId(self):
         return self.getData(self._selected_index, 'image_id')
 
