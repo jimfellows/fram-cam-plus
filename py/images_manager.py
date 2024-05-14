@@ -170,7 +170,7 @@ class ImageManager(QObject):
         """
         wrap our threaded method, but only send off our currently selected image
         """
-        self._copy_images_to_wheelhouse([self.imagesModel.curImgData])
+        self.copyImagesToWheelhouse([self.imagesModel.curImgData])
 
     @Slot("QVariantList")
     def copyImagesToWheelhouse(self, image_items: list[any]):
