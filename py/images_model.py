@@ -63,6 +63,10 @@ class ImagesModel(FramCamSqlListModel):
         self.currentImageChanged.emit()
 
     @Property("QVariant", notify=currentImageChanged)
+    def curImgData(self):
+        return self._cur_image
+
+    @Property("QVariant", notify=currentImageChanged)
     def curImgId(self):
         return self.getData(self._selected_index, 'image_id')
 
@@ -121,10 +125,8 @@ class ImagesModel(FramCamSqlListModel):
 
         self._logger.debug(f"SETTING {role_name}={value} for image {self.curImgId}")
         self.setData(self._selected_index, value, role_name)
-        self._logger.error(f"Our imageid = {self.curImgId}")
         for _i in range(self._table_model.rowCount()):  # todo: is this iteration the best way to do this?
             if self._table_model.record(_i).value('image_id') == self.curImgId:
-                print(f"UPDATING RECORD with image id: {self.curImgId}")
                 _r = self._table_model.record(_i)
                 _r.setValue(self._table_model.fieldIndex(role_name.upper()), value)
                 self._table_model.setRecord(_i, _r)

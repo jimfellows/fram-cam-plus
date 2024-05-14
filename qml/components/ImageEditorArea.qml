@@ -1,9 +1,9 @@
 
 
-import QtQuick 2.0
+import QtQuick 2.15
 import QtQuick.Layouts 6.3
 import QtQuick.Controls 2.15
-//import QtQuick.Controls.Material
+import QtMultimedia 6.3
 
 import 'qrc:/controls'
 import QtQuick.VirtualKeyboard 2.1
@@ -20,6 +20,16 @@ Rectangle {
     clip: true
 
     property string imageSource: imageManager.imagesModel.curImgFilePath ? "file:///" + imageManager.imagesModel.curImgFilePath : null;
+
+    SoundEffect {
+        id: syncChime
+        source: "qrc:/sounds/forward_chime.wav"
+    }
+
+    SoundEffect {
+        id: deleteTone
+        source: "qrc:/sounds/negative_tone.wav"
+    }
 
     Image {
         id: img
@@ -212,7 +222,11 @@ Rectangle {
                         animateProgress.running = true
                     }
                     function onFileCopied(path, new_path, success) {
-                        if (!success) progressCopy.runningColor = appStyle.errorColor
+                        if (!success) {
+                            progressCopy.runningColor = appStyle.errorColor
+                        } else {
+                            syncChime.play()
+                        }
                     }
                 }
                 Connections {
@@ -298,6 +312,7 @@ Rectangle {
                 pressedColor: appStyle.errorColor
                 onClicked: {
                     imageManager.imagesModel.removeImage(imageManager.imagesModel.currentIndex)
+                    deleteTone.play()
                 }
             }
             FramCamButton {

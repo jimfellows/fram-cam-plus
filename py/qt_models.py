@@ -185,6 +185,7 @@ class FramCamSqlListModel(QAbstractListModel):
     def getCurrentData(self, prop_name):
         return self.getData(self._selected_index, prop_name)
 
+    @Slot(int, result="QVariant")
     def getItem(self, index):
         if index == -1:
             return None
