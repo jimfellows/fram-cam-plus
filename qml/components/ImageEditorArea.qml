@@ -73,7 +73,7 @@ Rectangle {
         color: appStyle.surfaceColor
         height: parent.height * 0.4
         width: parent.width * 0.4
-
+        clip: true
         anchors {
             top: rectImgName.bottom
             left: rectImgName.left
@@ -194,12 +194,15 @@ Rectangle {
                 text: imageManager.imagesModel.curImgNotes ? imageManager.imagesModel.curImgNotes : ""
                 wrapMode: Text.WrapAnywhere
                 background: Rectangle {
-                    color: appStyle.secondaryFontColor
+                    color: "#eeeeee"  // almost white, no matter what
                     anchors.fill: taNotes
                     radius: 8
                 }
                 Layout.fillHeight: true
-                Layout.fillWidth: true
+                Layout.fillWidth: false
+                Layout.preferredWidth: parent.width - 8
+                Layout.leftMargin: 4
+                Layout.rightMargin: 4
 
                 placeholderText: "Take notes record notes here.\nTouch here to activate keyboard..."
                 color: appStyle.surfaceColor
@@ -211,7 +214,10 @@ Rectangle {
                 runningColor: appStyle.accentColor
                 indeterminate: false
                 height: 8
-                Layout.fillWidth: true
+                Layout.fillWidth: false
+                Layout.preferredWidth: parent.width - 8
+                Layout.leftMargin: 4
+                Layout.rightMargin: 4
                 Layout.fillHeight: true
                 Connections {
                     target: imageManager
@@ -279,7 +285,7 @@ Rectangle {
     }
     Rectangle {
         id: rectButtons
-        width: 260
+        width: 280
         height: 90
         anchors {
             right: rectImgName.right
@@ -296,9 +302,9 @@ Rectangle {
             anchors.rightMargin: 9
             anchors.horizontalCenter: parent.horizontalCenter
             FramCamButton {
-                text: 'Save'
+                text: 'Save / \nRetake'
                 Layout.preferredHeight: 75
-                Layout.preferredWidth: 70
+                Layout.preferredWidth: 80
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 onClicked: {
                     capturePage.lvThumbnails.currentIndex = -1
@@ -307,7 +313,7 @@ Rectangle {
             FramCamButton {
                 text: 'Delete'
                 Layout.preferredHeight: 75
-                Layout.preferredWidth: 70
+                Layout.preferredWidth: 80
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 pressedColor: appStyle.errorColor
                 onClicked: {
@@ -316,9 +322,9 @@ Rectangle {
                 }
             }
             FramCamButton {
-                text: 'Sync'
+                text: 'Sync to\nWH'
                 Layout.preferredHeight: 75
-                Layout.preferredWidth: 70
+                Layout.preferredWidth: 80
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 onClicked: {
                     imageManager.copyCurImageToWheelhouse()
