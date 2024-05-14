@@ -111,5 +111,7 @@
         <file alias="clack.wav">../resources/sounds/clack.wav</file>
         <file alias="shutter.wav">../resources/sounds/shutter.wav</file>
         <file alias="shotgun.wav">../resources/sounds/shotgun.wav</file>
+        <file alias="forward_chime.wav">../resources/sounds/forward_chime.wav</file>
+        <file alias="negative_tone.wav">../resources/sounds/negative_tone.wav</file>
     </qresource>
 </RCC>
