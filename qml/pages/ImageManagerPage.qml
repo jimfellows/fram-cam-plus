@@ -55,7 +55,7 @@ Item {
                 for (var i = 0; i < lvImages.model.rowCount(); i++) {
                     if (lvImages.itemAtIndex(i).isChecked) {
                         var sourceIndex = imageManager.imagesProxy.getSourceRowFromProxy(i)
-                        pathsToSync.push(imageManager.imagesModel.getData(sourceIndex, 'full_path'))
+                        pathsToSync.push(imageManager.imagesModel.getItem(sourceIndex))
                     }
                 }
                 imageManager.copyImagesToWheelhouse(pathsToSync);

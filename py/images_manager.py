@@ -42,21 +42,23 @@ class CopyFilesWorker(QObject):
         self._images_subdir = None
         self._is_running = False
 
-    @staticmethod
-    def tag_jpg_w_json_exif(img_path, tag_dict):
+    def tag_jpg_w_json_exif(self, src_img_path: str, dest_img_path: str, image_data: dict):
         """
         convert python dict to json, then insert into an image's UserComments exif tag
-        :param img_path: str, full path to image
-        :param tag_dict: dict
+        :param src_img_path: str, full path to image
+        :param dest_img_path: str, full path to copy location
+        :param image_data: dict
         """
         try:
-            img = Image.open(img_path)
-            exif_dict = piexif.load(img.info["exif"])
-            exif_dict['Exif'] = {piexif.ExifIFD.UserComment: json.dumps(tag_dict).encode('utf-8')}
-            exif_bytes = piexif.dump(exif_dict)
-            img.save(img_path, "jpeg", exif=exif_bytes)
+            _img = Image.open(src_img_path)
+            _exif_dict = piexif.load(_img.info.get("exif")) if 'exif' in _img.info else {}  # not all images have existing exif, so handle missing key
+            _exif_dict['Exif'] = {piexif.ExifIFD.UserComment: json.dumps(image_data).encode('utf-8')}
+            exif_bytes = piexif.dump(_exif_dict)
+            _img.save(dest_img_path, "jpeg", exif=exif_bytes)
+
         except Exception as e:
-            pass
+            self._logger.error(f"Problem tagging image with exif data: {e}")
+            raise e  # catch this in outer scope
 
     @property
     def destination_folder(self) -> str:
@@ -71,15 +73,15 @@ class CopyFilesWorker(QObject):
         self._images_subdir = os.path.join(self._destination_folder, 'images')
 
     @property
-    def files_to_copy(self) -> list[str]:
+    def files_to_copy(self) -> list[dict]:
         """
         set before running, list of full paths to files we want to send to destination
         """
         return self._files_to_copy
 
     @files_to_copy.setter
-    def files_to_copy(self, file_paths: list[str]):
-        self._files_to_copy = file_paths
+    def files_to_copy(self, file_items: list[dict]):
+        self._files_to_copy = file_items
 
     def run(self):
         """
@@ -102,15 +104,16 @@ class CopyFilesWorker(QObject):
 
         for f in self._files_to_copy:
             try:
-                _new_path = os.path.join(self._images_subdir, os.path.basename(f))
-                shutil.copyfile(f, _new_path)
-                self._logger.info(f"File copied: {f} --> {_new_path}")
+                _orig_path = f['full_path']
+                _new_path = os.path.join(self._images_subdir, os.path.basename(f['file_name']))
+                self.tag_jpg_w_json_exif(_orig_path, _new_path, f)
+                self._logger.info(f"File copied: {_orig_path} --> {_new_path}")
                 _successes += 1
-                self.fileCopied.emit(f, _new_path, True)
+                self.fileCopied.emit(_orig_path, _new_path, True)
             except Exception as e:
                 self._logger.error(f"Error while copying {f}: {e}")
                 _fails += 1
-                self.fileCopied.emit(f, '', False)
+                self.fileCopied.emit(_orig_path, '', False)
 
         self._is_running = False
         self.copyEnded.emit(_successes, _fails)
@@ -167,14 +170,12 @@ class ImageManager(QObject):
         """
         wrap our threaded method, but only send off our currently selected image
         """
-        self._copy_images_to_wheelhouse([self._images_model.curImgFilePath])
+        self._copy_images_to_wheelhouse([self.imagesModel.curImgData])
 
     @Slot("QVariantList")
-    def copyImagesToWheelhouse(self, images: list[any]):
-        self._copy_images_to_wheelhouse(images)
-
-    def _copy_images_to_wheelhouse(self, images: list[any]):
+    def copyImagesToWheelhouse(self, image_items: list[any]):
         """
+        bulk copy files to wheelhouse dir
         create thread and worker each time we run.
         could use a runnable if its too many, but should be fine
         :param images: list of full paths to the images we want to copy to WH dest
@@ -195,7 +196,7 @@ class ImageManager(QObject):
 
         # set props we need to run, then run
         self._copy_files_worker.destination_folder = self._app.settings.curWheelhouseDataDir
-        self._copy_files_worker.files_to_copy = images
+        self._copy_files_worker.files_to_copy = image_items
         self._copy_files_thread.start()
 
     def _filter_images_model(self):
