@@ -438,14 +438,11 @@ Item {
                             id: imgThumbnail
                             source: "file:///" + model.full_path
                             width: lvThumbnails.width - 30
-                            anchors.right: parent.right
-                            fillMode: Image.PreserveAspectFit
-                            layer.effect: DropShadow {
-                                verticalOffset: 0
-                                horizontalOffset: 0
-                                radius: 20
-                                color: "lightgray"
+                            anchors {
+                                right: parent.right
+                                rightMargin: index === imageManager.imagesProxy.proxyIndex ? 0 : -15
                             }
+                            fillMode: Image.PreserveAspectFit
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
