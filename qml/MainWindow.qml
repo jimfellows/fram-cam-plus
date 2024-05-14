@@ -491,7 +491,8 @@ Window {
                     }
                     Label {
                         id: lblWarning
-                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.left: lblActiveCamera.right
+                        anchors.leftMargin: 25
                         anchors.verticalCenter: parent.verticalCenter
                         text: ''
                         color: appStyle.errorColor
