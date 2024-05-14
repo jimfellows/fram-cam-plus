@@ -84,6 +84,7 @@ class FramCamSqlListModel(QAbstractListModel):
             # TODO: I'm converting to role_name to role_num back to role_num, necessary?
             self._data[row][self.roleNames()[role_num].decode('utf-8')] = value  # use role no as key to get str
             self.dataChanged.emit(_index, _index)  # tell model something has updated
+            self._logger.debug(f"Set {role_name}={value} for row {row}")
             return True
         except Exception as e:
             self._logger.error(f"Error in {self.__class__.__name__}.setData: {e.__name__} {e}")
