@@ -58,6 +58,7 @@ class LiteMode:
     primary_font_color = "#000000"  # black
     secondary_font_color = '#111111'  # tinted black
     icon_color = '#111111'  # light black
+    error_color = "#d32f2f"  # material UI default err
 
 class GrayMode:
     # https://calcolor.co/palette/942409461
@@ -71,7 +72,7 @@ class GrayMode:
 
     # accent_cyan = '#00e5ff'  #
     accent_color = '#ff00ff'
-    error_color = '#d32f2f'
+    error_color = "#d32f2f"  # material UI default err
     black = "#000000"
     primary_font_color = "#000000"  # black
     secondary_font_color = '#111111'  # tinted black
@@ -287,6 +288,13 @@ class Style(QObject):
 
     @Property(QColor, notify=modeChanged)
     def errorColor(self):
+        if self._ui_mode.lower() == 'dark':
+            return QColor(DarkMode.error_color)
+        if self._ui_mode.lower() == 'gray':
+            return QColor(GrayMode.error_color)
+        if self._ui_mode == 'lite':
+            return QColor(LiteMode.error_color)
+
         return QColor('#CF6679')
 
 

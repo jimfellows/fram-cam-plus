@@ -504,7 +504,7 @@ Window {
                             target: imageManager
                             function onBadDestinationPath(path) {
                                 lblWarning.color = appStyle.errorColor
-                                lblWarning.text = "Bad Sync Path: " + path
+                                lblWarning.text = "Bad WH Sync Path: " + path
                             }
                             function onCopyStarted(no_of_files) {
                                 lblWarning.text = ''
