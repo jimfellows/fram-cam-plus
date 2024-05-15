@@ -535,12 +535,16 @@ Window {
                         Connections {
                             target: dataSelector
                             function onBarcodeSearched(success, barcode) {
-                                if (success) {
-                                    lblBarcode.text = "Barcode: " + barcode
-                                    lblBarcode.color = appStyle.accentColor
+                                lblBarcode.color = success ? appStyle.accentColor : appStyle.errorColor
+                            }
+                        }
+                        Connections {
+                            target: camControls
+                            function onBarcodeDetected(bc) {
+                                if (bc) {
+                                    lblBarcode.text = "Barcode: " + bc
                                 } else {
-                                    lblBarcode.text = "Barcode missing: " + barcode
-                                    lblBarcode.color = appStyle.errorColor
+                                    lblBarcode.text = ''
                                 }
                             }
                         }

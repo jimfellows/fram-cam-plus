@@ -57,7 +57,7 @@ class CVFrameWorker(VideoFrameWorker):
 
     TODO: extract code from araviq6 package to eliminate dependency??
     """
-    barcodeDetected = Signal(str, arguments=['barcode'])  # a barcode was detected, notify others
+    barcodeDetected = Signal("QVariant", arguments=['barcode'])  # a barcode was detected, notify others
     taxonDetected = Signal(str, arguments=['taxon_name'])  # a taxon class was detected
     feedFrozen = Signal()  # frame feed was stopped (setting pencil sketch effect)
     feedUnfrozen = Signal()  # frame feed resumed (unset pencil sketch effect)
@@ -335,7 +335,7 @@ class CamControls(QObject):
         self.curFlashMode = self._app.state.get_state_value('Flash Mode')
         self._cur_focus_mode = None
         self.curFocusMode = self._app.state.get_state_value('Focus Mode')
-        self._detected_barcode = self._app.state.get_state_value('Last Barcode Detected')
+        self._detected_barcode = None
 
     def _toggle_frame_processor(self, turn_on):
         """
@@ -536,9 +536,10 @@ class CamControls(QObject):
         :return: str, formatted with dashes if necessary
         """
         bc = self.transform_barcode_tag(new_barcode) if new_barcode else new_barcode
+        self._logger.debug(f"barcode detected: {bc}")
         if self._detected_barcode != bc:
+            self._logger.debug(f"Detected barcode is new: {bc}")
             self._detected_barcode = bc
-            self._app.state.set_state_value('Last Barcode Detected', new_barcode)
             self.barcodeDetected.emit(bc)
 
     @Property("QVariant", notify=barcodeDetected)
