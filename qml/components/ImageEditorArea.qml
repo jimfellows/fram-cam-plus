@@ -40,7 +40,7 @@ Rectangle {
         anchors.topMargin: 5
         anchors.bottomMargin: 5
         fillMode: Image.PreserveAspectFit
-        cache: true
+        cache: false
     }
     Rectangle {
         id: rectImgName
