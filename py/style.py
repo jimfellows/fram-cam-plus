@@ -1,6 +1,7 @@
 
 from PySide6.QtCore import QObject, Property, Slot, Signal
 from PySide6.QtGui import QColor
+from py.logger import Logger
 
 
 
@@ -92,14 +93,15 @@ class Style(QObject):
 
     def __init__(self, app=None, parent=None):
         super().__init__(parent)
+        self._logger = Logger.get_root()
         self._app = app
-        self._ui_mode = None
+        self._ui_mode = 'Wheelhouse'
         self._set_ui_mode(self._app.settings.curUiMode)
         self._app.settings.uiModeChanged.connect(self._set_ui_mode)
 
     def _set_ui_mode(self, new_mode):
-        print(f"UI MODE CHANGED TO {new_mode}")
-        if new_mode.lower() == 'wheelhouse':
+        self._logger.debug(f'Color mode changed to {new_mode}')
+        if not new_mode or new_mode.lower() == 'wheelhouse':
             new_mode = 'dark'
 
         if new_mode.lower() == 'backdeck':
