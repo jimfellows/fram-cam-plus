@@ -11,6 +11,7 @@ __pycache__/
 build/*
 !build/build_utils.py
 !build/fram_cam_setup.nsi
+!build/build_fram_cam.py
 develop-eggs/
 dist/
 downloads/
