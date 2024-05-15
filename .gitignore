@@ -168,7 +168,7 @@ logs/
 data/fram_cam.db
 data/images/*
 *.db
-!data/fram_cam_test_copy.db
+!data/fram_cam_clean.db
 
 qrc/qresources.py
 resources/models
