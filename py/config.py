@@ -29,4 +29,4 @@ QRC_DIR = os.path.join(HOME_DIR, 'qrc')  # compiled QRC resources go here
 QML_DIR = os.path.join(HOME_DIR, 'qml')  # qml
 
 
-VERSION_NUMBER = '2024.0.0+5'
+VERSION_NUMBER = '2024.0.0+6'
