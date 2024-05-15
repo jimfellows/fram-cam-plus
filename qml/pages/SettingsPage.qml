@@ -214,15 +214,16 @@ Item {
                     title: 'Camera'
                     RowLayout {
                         FramCamComboBox {
-                            id: cbCameraQuality
+                            id: cbCameraResolution
+                            enabled: false
                             Layout.alignment: Qt.AlignLeft
                             Layout.preferredWidth: 300
                             Layout.preferredHeight: 75
-                            titleLabelText: "Camera Image Quality"
+                            titleLabelText: "Image Resolution"
                             // https://doc.qt.io/qt-6/qimagecapture.html#Quality-enum
                             model: ["Very High", "Normal", "Low", "Very Low"]
                             backgroundColor: appStyle.elevatedSurface_L5
-                            placeholderText: 'Select Image Quality'
+                            placeholderText: 'Select Image Size'
                             Component.onCompleted: cbCameraQuality.currentIndex = cbCameraQuality.model.indexOf(settings.curImageQuality)
                             onCurrentIndexChanged: {
                                 var selected = model[currentIndex]
