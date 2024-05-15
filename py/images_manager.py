@@ -70,7 +70,8 @@ class CopyFilesWorker(QObject):
     @destination_folder.setter
     def destination_folder(self, folder_path: str):
         self._destination_folder = folder_path
-        self._images_subdir = os.path.join(self._destination_folder, 'images')
+        if isinstance(self._destination_folder, str) and os.path.exists(self._destination_folder):
+            self._images_subdir = os.path.join(self._destination_folder, 'images')
 
     @property
     def files_to_copy(self) -> list[dict]:
