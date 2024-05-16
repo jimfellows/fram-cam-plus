@@ -52,6 +52,7 @@ class LiteMode:
     accent_color = '#ff00ff'
     banner_color = Noaa.light_blue
     secondary_banner_color = Noaa.light_blue_alt_lite
+    primary_color_alt_lite = Noaa.dark_blue_alt_lite
 
     primary_color = Noaa.dark_blue
     surface_color_all = '#FFFFFFFF'
@@ -59,6 +60,14 @@ class LiteMode:
     secondary_font_color = '#111111'  # tinted black
     icon_color = '#111111'  # light black
     error_color = "#d32f2f"  # material UI default err
+    base_surface_color = '#aaaaaa'  # pale gray
+    surface_color_l1 = '#aaaaaa'  # pale gray
+    surface_color_l2 = '#aaaaaa'  # pale gray
+    surface_color_l3 = '#aaaaaa'  # pale gray
+    surface_color_l4 = '#bbbbbb' # silver gray
+    surface_color_l5 = '#cccccc'  # dark white
+    surface_color_l6 = '#dddddd'  # shaded white
+    surface_color_l7 = '#eeeeee'  # almost white
 
 class GrayMode:
     # https://calcolor.co/palette/942409461
@@ -76,8 +85,8 @@ class GrayMode:
     black = "#000000"
     primary_font_color = "#000000"  # black
     secondary_font_color = '#111111'  # tinted black
-    base_surface_color = '#777777'  # medium gray
-    surface_color_l1 = '#888888'  # tinted gray
+    base_surface_color = '#999999'  # medium gray
+    surface_color_l1 = '#999999'  # tinted gray
     surface_color_l2 = '#999999'  # light gray
     surface_color_l3 = '#aaaaaa'  # pale gray
     surface_color_l4 = '#bbbbbb' # silver gray
@@ -122,7 +131,7 @@ class Style(QObject):
         if self._ui_mode.lower() == 'gray':
             return QColor(GrayMode.primary_color)
         if self._ui_mode.lower() == 'lite':
-            return QColor(LiteMode.primary_color)
+            return QColor(LiteMode.primary_color_alt_lite)
 
         return QColor("white")
 
@@ -172,7 +181,7 @@ class Style(QObject):
         if self._ui_mode.lower() == 'gray':
             return QColor(GrayMode.surface_color_l1)
         if self._ui_mode.lower() == 'lite':
-            return QColor(LiteMode.surface_color_all)
+            return QColor(LiteMode.surface_color_l1)
 
     @Property(QColor, notify=modeChanged)
     def elevatedSurface_L2(self):
@@ -181,7 +190,7 @@ class Style(QObject):
         if self._ui_mode.lower() == 'gray':
             return QColor(GrayMode.surface_color_l2)
         if self._ui_mode.lower() == 'lite':
-            return QColor(LiteMode.surface_color_all)
+            return QColor(LiteMode.surface_color_l2)
 
     @Property(QColor, notify=modeChanged)
     def elevatedSurface_L3(self):
@@ -190,7 +199,7 @@ class Style(QObject):
         if self._ui_mode.lower() == 'gray':
             return QColor(GrayMode.surface_color_l3)
         if self._ui_mode.lower() == 'lite':
-            return QColor(LiteMode.surface_color_all)
+            return QColor(LiteMode.surface_color_l3)
 
     @Property(QColor, notify=modeChanged)
     def elevatedSurface_L4(self):
@@ -199,7 +208,7 @@ class Style(QObject):
         if self._ui_mode.lower() == 'gray':
             return QColor(GrayMode.surface_color_l4)
         if self._ui_mode.lower() == 'lite':
-            return QColor(LiteMode.surface_color_all)
+            return QColor(LiteMode.surface_color_l4)
 
     @Property(QColor, notify=modeChanged)
     def elevatedSurface_L5(self):
@@ -208,7 +217,7 @@ class Style(QObject):
         if self._ui_mode.lower() == 'gray':
             return QColor(GrayMode.surface_color_l5)
         if self._ui_mode.lower() == 'lite':
-            return QColor(LiteMode.surface_color_all)
+            return QColor(LiteMode.surface_color_l5)
 
     @Property(QColor, notify=modeChanged)
     def elevatedSurface_L6(self):
@@ -217,7 +226,7 @@ class Style(QObject):
         if self._ui_mode.lower() == 'gray':
             return QColor(GrayMode.surface_color_l6)
         if self._ui_mode.lower() == 'lite':
-            return QColor(LiteMode.surface_color_all)
+            return QColor(LiteMode.surface_color_l6)
 
     @Property(QColor, notify=modeChanged)
     def elevatedSurface_L7(self):
@@ -226,7 +235,7 @@ class Style(QObject):
         if self._ui_mode.lower() == 'gray':
             return QColor(GrayMode.surface_color_l7)
         if self._ui_mode.lower() == 'lite':
-            return QColor(LiteMode.surface_color_all)
+            return QColor(LiteMode.surface_color_l7)
 
     @Property(QColor, notify=modeChanged)
     def elevatedSurface_L8(self):
@@ -235,7 +244,7 @@ class Style(QObject):
         if self._ui_mode.lower() == 'gray':
             return QColor(GrayMode.surface_color_l7)
         if self._ui_mode.lower() == 'lite':
-            return QColor(LiteMode.surface_color_all)
+            return QColor(LiteMode.surface_color_l7)
 
     @Property(QColor, notify=modeChanged)
     def elevatedSurface_L9(self):
@@ -244,7 +253,7 @@ class Style(QObject):
         if self._ui_mode.lower() == 'gray':
             return QColor(GrayMode.surface_color_l7)
         if self._ui_mode.lower() == 'lite':
-            return QColor(LiteMode.surface_color_all)
+            return QColor(LiteMode.surface_color_l7)
 
 
     @Property(QColor, notify=modeChanged)

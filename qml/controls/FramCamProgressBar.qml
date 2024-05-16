@@ -17,7 +17,7 @@ ProgressBar {
     background: Rectangle {
         implicitWidth: control.width
         implicitHeight: control.height
-        color: appStyle.iconColor
+        color: QColor("white").darker(1.2)
         radius: 3
     }
 

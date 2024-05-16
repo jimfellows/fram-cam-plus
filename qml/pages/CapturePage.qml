@@ -112,7 +112,7 @@ Item {
             FramCamButton {
                 id: btnCapture
                 iconSource: 'qrc:/svgs/box_target.svg'
-                iconColor: appStyle.elevatedSurface_L2
+                iconColor: enabled ? appStyle.accentColor : "gray"
                 backgroundColor: "#eeeeee"  // almost white regardless of color scheme
                 borderColor: appStyle.iconColor
                 disabledBackgroundColor: appStyle.elevatedSurface_L9

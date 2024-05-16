@@ -47,7 +47,6 @@ Rectangle {
         anchors.rightMargin: 50
         FramCamComboBox {
             id: comboHauls
-            backgroundColor: appStyle.elevatedSurface_L5
             fontColor: appStyle.secondaryFontColor
             borderColor: appStyle.iconColor
             height: parent.height
@@ -73,7 +72,6 @@ Rectangle {
 
         FramCamComboBox {
             id: comboCatch
-            backgroundColor: appStyle.elevatedSurface_L5
             fontColor: appStyle.secondaryFontColor
             borderColor: appStyle.iconColor
             height: parent.height
@@ -98,7 +96,6 @@ Rectangle {
         }
         FramCamComboBox {
             id: comboProject
-            backgroundColor: appStyle.elevatedSurface_L5
             fontColor: appStyle.secondaryFontColor
             borderColor: appStyle.iconColor
             height: parent.height
@@ -123,7 +120,6 @@ Rectangle {
         }
         FramCamComboBox {
             id: comboBiolabel
-            backgroundColor: appStyle.elevatedSurface_L5
             fontColor: appStyle.secondaryFontColor
             borderColor: appStyle.iconColor
             height: parent.height
