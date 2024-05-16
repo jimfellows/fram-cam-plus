@@ -64,10 +64,13 @@ class CVFrameWorker(VideoFrameWorker):
     processingChanged = Signal()  # check if we actually need to pipe frame to CV worker
     isProcessingNecessary = Signal(bool, arguments=['status'])  # just go direct to UI? false means no processing
 
+    BARCODE_THROTTLE_COUNT = 10000
+
     def __init__(self):
         VideoFrameWorker.__init__(self)
         self._logger = Logger.get_root()
         self._barcode_polys = None  # array of coordinates defining bounding polygons for barcode detected
+        self._last_barcode_scanned = None  # hold latest barcode scan here
         self._barcode_frames_scanned = 0  # use to count/limit frames scanned to boost performance, if needed
         self._taxon_frames_scanned = 0  # use to count/limit frames scanned to boost performance, if needed
         self._do_scan_barcode = False  # if true, scan image for barcode
@@ -220,20 +223,26 @@ class CVFrameWorker(VideoFrameWorker):
         :return: same array but with bounding poly drawn
         """
         _redraw_every_n = 1  # adjust higher if you want to not process each...
-        _throttle_scan_for_n = 2
-        _throttle_count = -1
+        _throttle_scan_for_n = 10
         try:
             if self._barcode_frames_scanned % _redraw_every_n == 0:
                 _binary = self._apply_threshold(array)
                 r = pyzbar.pyzbar.decode(_binary, symbols=[128, 39])  #symbols = ['128'] for now just code 128, are vials this version too?
                 if r:
+                    self._logger.debug(f"Barcode detected by CVFrameProcessor!")
                     # https://docs.opencv.org/3.4/dc/da5/tutorial_py_drawing_functions.html
                     self._barcode_polys = np.array([[p.x, p.y] for p in r[0][3]], np.int32)
                     self._barcode_polys = [self._barcode_polys.reshape((len(self._barcode_polys), 1, 2))]
-                    _throttle_count -= 1
-                    if _throttle_count < 0:
-                        self.barcodeDetected.emit(r[0][0].decode('utf-8'))  # notify UI that we scanned a barcode
-                        _throttle_count = _throttle_scan_for_n
+                    _barcode = r[0][0].decode('utf-8')
+                    self.BARCODE_THROTTLE_COUNT += 1
+                    if self.BARCODE_THROTTLE_COUNT > _throttle_scan_for_n or _barcode != self._last_barcode_scanned:
+                        self.barcodeDetected.emit(_barcode)  # notify UI that we scanned a barcode
+                        self.BARCODE_THROTTLE_COUNT = 0  # reset throttle when we emit a barcode
+                        self._logger.debug(f"Barcode {_barcode} detected by CVFrameProcessor and emitted unthrottled!")
+                    else:
+                        self._logger.debug(f"Barcode detection not emitted due to throttle.")
+
+                    self._last_barcode_scanned = _barcode
 
                 else:
                     self._barcode_polys = None
@@ -554,8 +563,7 @@ class CamControls(QObject):
     def targetSink(self, new_video_sink: QVideoSink):
         self._target_sink = new_video_sink
 
-    @staticmethod
-    def transform_barcode_tag(barcode_str: str) -> str:
+    def transform_barcode_tag(self, barcode_str: str) -> str:
         """
         since barcode doesn't store hyphens from whole specimen tags, we add them back in:
         2022008900067006 --> 2022-008-900-067-006
@@ -565,7 +573,9 @@ class CamControls(QObject):
         if len(barcode_str) == 16 and barcode_str[:2] == '20':  # loosely make sure its a whole specimen tag...
             _yr = barcode_str[:4]
             _other = barcode_str[4:]
+            self._logger.debug(f"Barcode transformed, before = {barcode_str}")
             barcode_str = _yr + '-' + '-'.join(f'{_other[i:i + 3]}' for i in range(0, len(_other), 3))
+            self._logger.debug(f"Barcode transformed, after = {barcode_str}")
 
         return barcode_str
 
