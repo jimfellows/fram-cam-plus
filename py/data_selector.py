@@ -174,6 +174,7 @@ class DataSelector(QObject):
     backdeckPullResults = Signal(bool, str, int, arguments=['status', 'msg', 'rowsRetrieved'])  # pass worker signal to this
     newDropDownRows = Signal(str, arguments=['dropdown'])
     barcodeSearched = Signal(bool, str, arguments=['success', 'barcode'])
+    haulSelectionRequired = Signal()
 
     def __init__(self, db, app=None):
         super().__init__()
@@ -445,6 +446,10 @@ class DataSelector(QObject):
     @Property(str, notify=curHaulChanged)
     def cur_backdeck_haul_id(self):
         return self._catches_model.getCurrentData('backdeck_haul_id')
+
+    @Slot()
+    def requireHaulSelection(self):
+        self.haulSelectionRequired.emit()
 
     @Property(str, notify=curCatchChanged)
     def cur_catch_display(self):

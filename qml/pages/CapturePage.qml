@@ -129,6 +129,10 @@ Item {
                     rightMargin: 15
                 }
                 onClicked: {
+                    if (!dataSelector.cur_haul_num) {
+                        dataSelector.requireHaulSelection()
+                        return;
+                    }
                     camControls.captureImage()
                     shutter.play()
                 }

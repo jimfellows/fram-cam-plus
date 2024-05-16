@@ -33,6 +33,9 @@ Rectangle {
             if (dropdown === 'projects') comboProject.startGlow();
             if (dropdown === 'bios') comboBiolabel.startGlow();
         }
+        function onHaulSelectionRequired() {
+            comboHauls.startGlow(appStyle.errorColor)
+        }
     }
 
     Row {
