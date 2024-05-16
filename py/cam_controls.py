@@ -225,7 +225,7 @@ class CVFrameWorker(VideoFrameWorker):
         try:
             if self._barcode_frames_scanned % _redraw_every_n == 0:
                 _binary = self._apply_threshold(array)
-                r = pyzbar.pyzbar.decode(_binary, symbols=[128])  #symbols = ['128'] for now just code 128, are vials this version too?
+                r = pyzbar.pyzbar.decode(_binary, symbols=[128, 39])  #symbols = ['128'] for now just code 128, are vials this version too?
                 if r:
                     # https://docs.opencv.org/3.4/dc/da5/tutorial_py_drawing_functions.html
                     self._barcode_polys = np.array([[p.x, p.y] for p in r[0][3]], np.int32)
