@@ -245,7 +245,8 @@ class DataSelector(QObject):
         find barcode in bios_model, and select the relevant combobox rows if successful
         :param barcode: str
         """
-        if not barcode:
+        if not barcode or not isinstance(barcode, str):
+            self._logger.debug(f"Barcode = {barcode}, not searching in DataSelectorBar.")
             return
 
         _sql = '''
@@ -255,22 +256,28 @@ class DataSelector(QObject):
                         ,project_name
                         ,bio_label
             from        backdeck_bios_vw
-            where       bio_label = :bio_label
+            where       bio_label like :bio_label
         '''
-        results = self._app.sqlite.execute_query(_sql, params={':bio_label': barcode})
+        results = self._app.sqlite.execute_query(_sql, params={':bio_label': barcode + '%'})
         _d = None
         for r in results:
             _d = self._app.sqlite.record_to_dict(r)
 
-        self._logger.debug(f"Barcode data found: {_d}")
-
         if _d:
+            self._logger.debug(f'''
+                trying to select barcode {barcode} the following menu options:
+                    haul: {_d['HAUL_NUMBER']}
+                    catch: {_d['CATCH_DISPLAY_NAME']}
+                    PROJECT_NAME: {_d['PROJECT_NAME']}
+                    TAG/BARCODE: {_d['BIO_LABEL']}
+            ''')
             self.set_combo_box_haul(_d['HAUL_NUMBER'])
             self.set_combo_box_catch(_d['CATCH_DISPLAY_NAME'])
             self.set_combo_box_proj(_d['PROJECT_NAME'], _d['CATCH_DISPLAY_NAME'])
             self.set_combo_box_bio(_d['BIO_LABEL'])
             self.barcodeSearched.emit(True, barcode)
         else:
+            self._logger.debug(f"Barcode {barcode} searched but not found!")
             self.barcodeSearched.emit(False, barcode)
 
     def _refresh_after_backdeck_pull(self, status, msg, rows_retrieved):
@@ -416,20 +423,21 @@ class DataSelector(QObject):
 
     def set_combo_box_catch(self, display_name):
         _catch_model_ix = self._catches_model.getRowIndexByValue('catch_display_name', display_name)
-        self._catches_model.selectIndexInUI.emit(_catch_model_ix)
+        _catch_proxy_ix = self._catches_proxy.getProxyRowFromSource(_catch_model_ix)
+        self._catches_proxy.selectIndexInUI.emit(_catch_proxy_ix)
         self._logger.debug(f"Catch combobox set to index {_catch_model_ix} for catch {display_name}")
 
     def set_combo_box_proj(self, proj, display):
         _filter_str = f'"catch_display_name":"{display}","project_name":"{proj}"'
         _projects_model_ix = self._projects_model.getRowIndexByValue('bio_filter_str', _filter_str)
         _proxy_ix = self._projects_proxy.getProxyRowFromSource(_projects_model_ix)
-        self._projects_proxy.selectProxyIndexInUI.emit(_proxy_ix)
+        self._projects_proxy.selectIndexInUI.emit(_proxy_ix)
         self._logger.debug(f"Project combobox set to index {_proxy_ix} for catch/proj: {_filter_str}")
 
     def set_combo_box_bio(self, bio):
         _bios_model_ix = self._bios_model.getRowIndexByValue('bio_label', bio)
         _proxy_ix = self._bios_proxy.getProxyRowFromSource(_bios_model_ix)
-        self._bios_proxy.selectProxyIndexInUI.emit(_proxy_ix)
+        self._bios_proxy.selectIndexInUI.emit(_proxy_ix)
         self._logger.debug(f"Bios combobox set to index {_proxy_ix} for bio label {bio}")
 
     @Property(str, notify=curHaulChanged)
