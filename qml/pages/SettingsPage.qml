@@ -88,7 +88,7 @@ Item {
                                 Layout.preferredWidth: 200
                                 Layout.preferredHeight: root.widgetHeight
                                 backgroundColor: appStyle.elevatedSurface_L5
-                                model: ['192.254.253', '192.254.252', '127.0.0.1']
+                                model: ['192.254.253', '192.254.254', '127.0.0.1']
                                 placeholderText: 'Select a vessel subnet...'
                                 onCurrentIndexChanged: settings.curVesselSubnet = model[currentIndex]
                                 Component.onCompleted: cbSubnet.currentIndex = cbSubnet.model.indexOf(settings.curVesselSubnet)
