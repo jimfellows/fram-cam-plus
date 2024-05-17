@@ -210,6 +210,12 @@ class CVFrameWorker(VideoFrameWorker):
         ret, thresh1 = cv2.threshold(cv2.cvtColor(array, cv2.COLOR_BGR2GRAY), 127, 255, cv2.THRESH_BINARY)
         return thresh1
 
+    def _apply_adaptive_threshold(self, array: np.ndarray) -> np.ndarray:
+        return cv2.adaptiveThreshold(cv2.cvtColor(array, cv2.COLOR_BGR2GRAY), 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+
+    def _apply_adaptive_gaussian_threshold(self, array: np.ndarray) -> np.ndarray:
+        return cv2.adaptiveThreshold(cv2.cvtColor(array, cv2.COLOR_BGR2GRAY), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+
     def _apply_otsus_binarization(self, array: np.ndarray) -> np.ndarray:
         ret, thresh = cv2.threshold(cv2.cvtColor(array, cv2.COLOR_BGR2GRAY), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
         return thresh
@@ -229,7 +235,9 @@ class CVFrameWorker(VideoFrameWorker):
         _throttle_scan_for_n = 10
         try:
             if self._barcode_frames_scanned % _redraw_every_n == 0:
-                _binary = self._apply_threshold(array)
+                #_binary = self._apply_threshold(array)
+                _binary = self._apply_adaptive_threshold(array)
+                # _binary = self._apply_adaptive_gaussian_threshold(array)
                 r = pyzbar.pyzbar.decode(_binary, symbols=[128, 39])  #symbols = ['128'] for now just code 128, are vials this version too?
                 if r:
                     self._logger.debug(f"Barcode detected by CVFrameProcessor!")
