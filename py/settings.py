@@ -41,11 +41,13 @@ class PingWorker(QObject):
         command = ['ping', param, '1', self._ip_address]
         self._logger.debug(f"Pinging subnet: {command}")
 
-        result = subprocess.run(command, stdout=subprocess.PIPE)
-        output = result.stdout.decode('utf8')
-        if "Request timed out." in output or "100% packet loss" in output or 'Destination host unreachable' in output:
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        try:
+            subprocess.check_output(command, startupinfo=startupinfo, shell=False)
+            return True
+        except:
             return False
-        return True
 
 
 class MapDriveWorker(QObject):
@@ -73,8 +75,9 @@ class MapDriveWorker(QObject):
         # Disconnect anything existing
         try:
             try:
-                subprocess.check_output(f'net use {self._letter}: /del', shell=True, timeout=self._timeout_s)
-            except subprocess.CalledProcessError:
+                subprocess.check_output(f'net use {self._letter}: /del /yes', shell=False, timeout=self._timeout_s)
+            except subprocess.CalledProcessError as e:
+                print(str(e))
                 pass
 
             # Connect to shared drive, use drive letter M
@@ -84,7 +87,7 @@ class MapDriveWorker(QObject):
                 _command = f"net use {self._letter}: \\\\{self._ip}\\C$ /user:{self._user} {self._pw}"
 
             self._logger.info(f"Trying to map drive with command: {_command}")
-            subprocess.check_output(_command, shell=True, timeout=self._timeout_s)
+            subprocess.check_output(_command, shell=False, timeout=self._timeout_s)
 
             _msg = f"Drive {self._letter} mapped successfully"
             _success = True
