@@ -13,7 +13,7 @@ from py.utils import Utils
 from py.config import IMAGES_DIR
 
 # 3rd party imports
-from araviq6 import VideoFrameWorker, VideoFrameProcessor
+from araviq6 import VideoFrameWorker, VideoFrameProcessor, array2qvideoframe
 import cv2
 from PySide6.QtQml import QJSValue
 from PySide6.QtCore import (
@@ -57,14 +57,15 @@ class CVFrameWorker(VideoFrameWorker):
 
     TODO: extract code from araviq6 package to eliminate dependency??
     """
-    barcodeDetected = Signal("QVariant", arguments=['barcode'])  # a barcode was detected, notify others
+    barcodeDetected = Signal("QVariant", "QVariant", arguments=['barcode', "barcode_coords"])  # a barcode was detected, notify others
     taxonDetected = Signal(str, arguments=['taxon_name'])  # a taxon class was detected
     feedFrozen = Signal()  # frame feed was stopped (setting pencil sketch effect)
     feedUnfrozen = Signal()  # frame feed resumed (unset pencil sketch effect)
     processingChanged = Signal()  # check if we actually need to pipe frame to CV worker
     isProcessingNecessary = Signal(bool, arguments=['status'])  # just go direct to UI? false means no processing
 
-    BARCODE_THROTTLE_COUNT = 10000
+
+    BARCODE_THROTTLE_COUNT = 10000  # use me to slow down emit sequence when we get a burst of detections
 
     def __init__(self):
         VideoFrameWorker.__init__(self)
@@ -80,6 +81,7 @@ class CVFrameWorker(VideoFrameWorker):
         self._freeze_requested = False  # if true, apply pencil sketch and emit
         self._do_process = None  # if false, send frames direct to UI
         self.processingChanged.connect(self.check_processor_status)  # whenever a config changes, this emits
+        self.cv_barcode_detector = cv2.barcode.BarcodeDetector()
 
     @property
     def do_process(self) -> bool:
@@ -177,6 +179,7 @@ class CVFrameWorker(VideoFrameWorker):
 
         if self._do_scan_barcode:
             array = self._scan_barcode(array)
+            array = self._scan_barcode_cv(array)
 
         if self._do_scan_taxon:
             array = self._scan_taxon(array)
@@ -233,6 +236,7 @@ class CVFrameWorker(VideoFrameWorker):
         """
         _redraw_every_n = 1  # adjust higher if you want to not process each...
         _throttle_scan_for_n = 10
+        # print("Scanning...")
         try:
             if self._barcode_frames_scanned % _redraw_every_n == 0:
                 #_binary = self._apply_threshold(array)
@@ -244,10 +248,22 @@ class CVFrameWorker(VideoFrameWorker):
                     # https://docs.opencv.org/3.4/dc/da5/tutorial_py_drawing_functions.html
                     self._barcode_polys = np.array([[p.x, p.y] for p in r[0][3]], np.int32)
                     self._barcode_polys = [self._barcode_polys.reshape((len(self._barcode_polys), 1, 2))]
+
+
                     _barcode = r[0][0].decode('utf-8')
                     self.BARCODE_THROTTLE_COUNT += 1
                     if self.BARCODE_THROTTLE_COUNT > _throttle_scan_for_n or _barcode != self._last_barcode_scanned:
-                        self.barcodeDetected.emit(_barcode)  # notify UI that we scanned a barcode
+
+                        _poly_frame = cv2.polylines(
+                            np.array(array),
+                            self._barcode_polys,
+                            True,
+                            (118, 230, 0),  # accent green
+                            # (205, 90, 106),  # red
+                            50  # nice and thick line that kind of looks like a barcode scanner
+                        )
+
+                        self.barcodeDetected.emit(_barcode, _poly_frame)  # notify UI that we scanned a barcode
                         self.BARCODE_THROTTLE_COUNT = 0  # reset throttle when we emit a barcode
                         self._logger.debug(f"Barcode {_barcode} detected by CVFrameProcessor and emitted unthrottled!")
                     else:
@@ -268,10 +284,36 @@ class CVFrameWorker(VideoFrameWorker):
                 50  # nice and thick line that kind of looks like a barcode scanner
             )
         except Exception as e:
+            print(str(e))
             return array
 
         finally:
             self._barcode_frames_scanned += 1
+
+    def _scan_barcode_cv(self, array: np.ndarray):
+        # print('Detecting')
+        # retval, decoded_info, decoded_type, points = self.cv_barcode_detector.detectAndDecodeWithType(array)
+        arrx = self._apply_adaptive_threshold(array)
+        result, x, y, arr = self.cv_barcode_detector.detectAndDecodeWithType(arrx)
+        if result:
+            print(x, y, arr)
+            print("FOUND")
+            print("FOUND")
+            print("FOUND")
+            print("FOUND")
+            print("FOUND")
+            print("FOUND")
+            print("FOUND")
+            # xarray = cv2.polylines(
+            #     np.array(array),
+            #     self._barcode_polys,
+            #     True,
+            #     (118, 230, 0),  # accent green
+            #     # (205, 90, 106),  # red
+            #     50  # nice and thick line that kind of looks like a barcode scanner
+            # )
+            # self.barcodeDetected.emit(ok, [])
+        return array
 
     def _gaussian_blur(self, array: np.ndarray) -> np.ndarray:
         """
@@ -336,12 +378,14 @@ class CamControls(QObject):
         self._frame_processor.setWorker(self._cv_frame_worker)  # connect processor and worker
 
         # by default, hook up frame processor: sourceSink --> processor --> targetSink
-        self.connectFrameProcessor()
+        # self.connectFrameProcessor()
+        # self.disconnectFrameProcessor()  # trying this for now
+        self._capture_session.videoSink().videoFrameChanged.connect(self._display_frame)  # pipe frame from source to target
 
         # for some reason when I call self._camera.start / stop directly, this doesnt work
         self._cv_frame_worker.feedFrozen.connect(self.stopCamera)
         self._cv_frame_worker.feedUnfrozen.connect(self.startCamera)
-        self._cv_frame_worker.barcodeDetected.connect(lambda bc: self._set_detected_barcode(bc))
+        self._cv_frame_worker.barcodeDetected.connect(lambda bc, frame: self._set_detected_barcode(bc, frame))
         self._camera.activeChanged.connect(self._set_camera_status)
 
         # custom control variables, store them in state table and load on start
@@ -376,10 +420,10 @@ class CamControls(QObject):
         make connection direct from sourceSink --> targetSink
         """
         self._logger.debug("Disconnecting frame processor, piping frames direct to UI sink...")
-        self._capture_session.videoSink().videoFrameChanged.connect(self._display_frame)
+        # self._capture_session.videoSink().videoFrameChanged.connect(self._display_frame)
         try:
             self._capture_session.videoSink().videoFrameChanged.disconnect(self._frame_processor.processVideoFrame)
-            self._frame_processor.videoFrameProcessed.disconnect(self._display_frame)  # pass frame back to target sink
+            # self._frame_processor.videoFrameProcessed.disconnect(self._display_frame)  # pass frame back to target sink
         except RuntimeError: # if not yet connected, thats ok
             self._logger.debug(f"frameProcessor not yet connected, unable to disconnect.")
 
@@ -390,12 +434,12 @@ class CamControls(QObject):
         disconnect direct connection from sourceSink --> targetSink
         """
         self._logger.debug("Disconnecting frame processor, piping frames direct to UI sink...")
-        self._frame_processor.videoFrameProcessed.connect(self._display_frame)  # pass frame back to target sink
+        # self._frame_processor.videoFrameProcessed.connect(self._display_frame)  # pass frame back to target sink
         self._capture_session.videoSink().videoFrameChanged.connect(self._frame_processor.processVideoFrame)  # pass frame from session to processor
-        try:
-            self._capture_session.videoSink().videoFrameChanged.disconnect(self._display_frame)
-        except RuntimeError as e:  # if not yet connected, thats ok
-            self._logger.debug(f"sourceSink --> targetSink not yet connected, unable to disconnect.")
+        # try:
+        #     self._capture_session.videoSink().videoFrameChanged.disconnect(self._display_frame)
+        # except RuntimeError as e:  # if not yet connected, thats ok
+        #     self._logger.debug(f"sourceSink --> targetSink not yet connected, unable to disconnect.")
 
     def startCamera(self):
         self._camera.start()
@@ -550,12 +594,16 @@ class CamControls(QObject):
         """
         self._target_sink.setVideoFrame(frame)
 
-    def _set_detected_barcode(self, new_barcode: str):
+    def _set_detected_barcode(self, new_barcode: str, barcode_polys=[]):
         """
         hook this up to barcodeDetected signal, transform, then emit if different
         :param new_barcode: str, unformatted barcode str read from image
         :return: str, formatted with dashes if necessary
         """
+        if len(barcode_polys):
+
+            self._display_frame(array2qvideoframe(barcode_polys))
+
         bc = self.transform_barcode_tag(new_barcode) if new_barcode else new_barcode
         self._logger.debug(f"barcode detected: {bc}")
         if self._detected_barcode != bc:
