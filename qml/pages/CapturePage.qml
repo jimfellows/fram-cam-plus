@@ -347,6 +347,7 @@ Item {
                             implicitWidth: rowControls.buttonWidth
                             implicitHeight: rowControls.buttonHeight
                             radius: 20
+                            visible: false
                             iconSource: 'qrc:/svgs/kraken.svg'
                             checkable: true
                             onClicked: {
