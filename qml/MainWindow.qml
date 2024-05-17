@@ -528,16 +528,11 @@ Window {
                         id: lblBarcode
                         font.bold: true
                         font.family: appStyle.fontFamily
+                        color: appStyle.primaryFontColor
                         anchors.right: parent.right
                         anchors.rightMargin: 5
                         anchors.verticalCenter: parent.verticalCenter
-                        font.pixelSize: 12
-                        Connections {
-                            target: dataSelector
-                            function onBarcodeSearched(success, barcode) {
-                                lblBarcode.color = success ? appStyle.accentColor : appStyle.errorColor
-                            }
-                        }
+                        font.pixelSize: 14
                         Connections {
                             target: camControls
                             function onBarcodeDetected(bc) {

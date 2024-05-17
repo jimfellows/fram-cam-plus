@@ -400,7 +400,7 @@ Item {
             Rectangle {
                 id: rectThumbnails
                 y: 0
-                color: appStyle.elevatedSurface_L5.darker(1.2)
+                color: appStyle.elevatedSurface_L5
                 anchors.left: rectImgPreview.right
                 anchors.right: parent.right
                 anchors.top: parent.top

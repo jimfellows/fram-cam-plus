@@ -49,7 +49,7 @@ ComboBox {
         PropertyAnimation { target: rectButton; property: "color"; to: root.fontColor; duration: 50 }
         PropertyAnimation { target: rectButton; property: "color"; to: root.backgroundColor; duration: 100 }
         PropertyAnimation { target: rectButton; property: "color"; to: root.fontColor; duration: 50 }
-        PropertyAnimation { target: rectButton; property: "color"; to: root.backgroundColor; duration: 1000}
+        PropertyAnimation { target: rectButton; property: "color"; to: root.backgroundColor; duration: 3000}
     }
 
     function startFlash() {
