@@ -214,6 +214,9 @@ class CVFrameWorker(VideoFrameWorker):
         ret, thresh = cv2.threshold(cv2.cvtColor(array, cv2.COLOR_BGR2GRAY), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
         return thresh
 
+    def reset_last_barcode(self):
+        self._last_barcode_scanned = None
+
     def _scan_barcode(self, array):
         """
         use zbar algorithm to identify barcode in cv array.
@@ -404,6 +407,7 @@ class CamControls(QObject):
     @Slot()
     def clearBarcode(self):
         self._set_detected_barcode(None)
+        self._cv_frame_worker.reset_last_barcode()
 
     @Property(QObject)
     def camera(self) -> QCamera:
