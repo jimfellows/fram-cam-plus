@@ -8,7 +8,10 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+build/*
+!build/build_utils.py
+!build/fram_cam_setup.nsi
+!build/build_fram_cam.py
 develop-eggs/
 dist/
 downloads/
@@ -162,9 +165,10 @@ cython_debug/
 
 # data stuff
 logs/
-data/trawl_backdeck.db
+data/fram_cam.db
 data/images/*
 *.db
+!data/fram_cam_clean.db
 
 qrc/qresources.py
 resources/models

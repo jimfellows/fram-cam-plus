@@ -7,6 +7,7 @@
         <file alias="SettingsPage.qml">../qml/pages/SettingsPage.qml</file>
         <file alias="ImageManagerPage.qml">../qml/pages/ImageManagerPage.qml</file>
         <file alias="SpeciesPage.qml">../qml/pages/SpeciesPage.qml</file>
+        <file alias="UploadPage.qml">../qml/pages/UploadPage.qml</file>
     </qresource>
     <qresource prefix="/controls">
         <file alias="FramCamGroupBox.qml">../qml/controls/FramCamGroupBox.qml</file>
@@ -18,13 +19,18 @@
         <file alias="FramCamSwitch.qml">../qml/controls/FramCamSwitch.qml</file>
         <file alias="FramCamWindowButton.qml">../qml/controls/FramCamWindowButton.qml</file>
         <file alias="FramCamCheckBox.qml">../qml/controls/FramCamCheckBox.qml</file>
+        <file alias="FramCamProgressBar.qml">../qml/controls/FramCamProgressBar.qml</file>
     </qresource>
     <qresource prefix="/components">
         <file alias="DataSelectorBar.qml">../qml/components/DataSelectorBar.qml</file>
-        <file alias="ImageEditorBar.qml">../qml/components/ImageEditorBar.qml</file>
+        <file alias="ImageEditorArea.qml">../qml/components/ImageEditorArea.qml</file>
+        <file alias="CredentialsDialog.qml">../qml/components/CredentialsDialog.qml</file>
+        <file alias="YesNoDialog.qml">../qml/components/YesNoDialog.qml</file>
+        <file alias="LoggingDialog.qml">../qml/components/LoggingDialog.qml</file>
     </qresource>
     <qresource prefix="/svgs">
         <file alias="aperture.svg">../resources/svgs/aperture_1.svg</file>
+        <file alias="cloud_upload.svg">../resources/svgs/cloud_upload.svg</file>
         <file alias="barcode.svg">../resources/svgs/barcode.svg</file>
         <file>../resources/svgs/boat-icon.svg</file>
         <file alias="cam_scope.svg">../resources/svgs/cam_scope.svg</file>
@@ -91,13 +97,21 @@
         <file alias="up_arrow.svg">../resources/svgs/up_arrow.svg</file>
         <file alias="video_on.svg">../resources/svgs/video_on.svg</file>
         <file alias="video_off.svg">../resources/svgs/video_off.svg</file>
+        <file alias="collapse_down.svg">../resources/svgs/collapse_down.svg</file>
+        <file alias="expand_up.svg">../resources/svgs/expand_up.svg</file>
+    </qresource>
+    <qresource prefix="/pngs">
+        <file alias="noaa_fisheries_small.png">../resources/pngs/noaa_fisheries_small.png</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="nautilus_colored.png">../resources/icons/nautilus_colored.png</file>
+        <file alias="black_nautilus.ico">../resources/icons/black_nautilus.ico</file>
+        <file alias="blue_nautilus.png">../resources/icons/blue_nautilus.ico</file>
     </qresource>
     <qresource prefix="/sounds">
         <file alias="clack.wav">../resources/sounds/clack.wav</file>
         <file alias="shutter.wav">../resources/sounds/shutter.wav</file>
         <file alias="shotgun.wav">../resources/sounds/shotgun.wav</file>
+        <file alias="forward_chime.wav">../resources/sounds/forward_chime.wav</file>
+        <file alias="negative_tone.wav">../resources/sounds/negative_tone.wav</file>
     </qresource>
 </RCC>
