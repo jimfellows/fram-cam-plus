@@ -63,7 +63,7 @@ class CVFrameWorker(VideoFrameWorker):
     feedUnfrozen = Signal()  # frame feed resumed (unset pencil sketch effect)
     processingChanged = Signal()  # check if we actually need to pipe frame to CV worker
     isProcessingNecessary = Signal(bool, arguments=['status'])  # just go direct to UI? false means no processing
-
+    sendFrameToDisplay = Signal("QVariant", arguments=['frame'])
 
     BARCODE_THROTTLE_COUNT = 10000  # use me to slow down emit sequence when we get a burst of detections
 
@@ -185,9 +185,11 @@ class CVFrameWorker(VideoFrameWorker):
 
         if self._do_gaussian_blur:
             array = self._gaussian_blur(array)
+            self.sendFrameToDisplay.emit(array)
 
         if self._do_pencil_sketch:
             array = self._pencil_sketch(array)
+            self.sendFrameToDisplay.emit(array)
 
         if self._freeze_requested:
             self.feedFrozen.emit()
@@ -349,6 +351,7 @@ class CamControls(QObject):
         self._cv_frame_worker.feedFrozen.connect(self.stopCamera)
         self._cv_frame_worker.feedUnfrozen.connect(self.startCamera)
         self._cv_frame_worker.barcodeDetected.connect(lambda bc, frame: self._set_detected_barcode(bc, frame))
+        self._cv_frame_worker.sendFrameToDisplay.connect(lambda frame: self._display_frame(array2qvideoframe(frame)))
         self._camera.activeChanged.connect(self._set_camera_status)
 
         # custom control variables, store them in state table and load on start
