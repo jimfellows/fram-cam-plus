@@ -7,9 +7,23 @@ import 'qrc:/controls'
 import 'qrc:/components'
 
 Item {
+
+    YesNoDialog {
+        id: dlgDeletePhotos
+        title: "Delete photos?"
+        acceptButtonText: "Delete"
+        declineButtonText: "Cancel"
+        action: "Are you sure?"
+        onDeclined: this.close()
+        onAccepted: {
+            lvImages.deleteSelected()
+            this.close()
+        }
+    }
+
     Rectangle {
         id: rectParent
-        color: appstyle.elevatedSurface_L5
+        color: appStyle.elevatedSurface_L5
         anchors.fill: parent
         anchors.rightMargin: 5
         anchors.leftMargin: 5
@@ -27,7 +41,7 @@ Item {
         ListView {
             id: lvImages
             //Layout.preferredHeight: 200
-            model: camera_manager.images_proxy
+            model: imageManager.imagesProxy
             //color: black
             clip: true
 
@@ -36,15 +50,33 @@ Item {
                     lvImages.itemAtIndex(i).isChecked = doCheck
                 }
             }
-
+            function syncSelected() {
+                var pathsToSync = []
+                for (var i = 0; i < lvImages.model.rowCount(); i++) {
+                    if (lvImages.itemAtIndex(i).isChecked) {
+                        var sourceIndex = imageManager.imagesProxy.getSourceRowFromProxy(i)
+                        pathsToSync.push(imageManager.imagesModel.getItem(sourceIndex))
+                    }
+                }
+                imageManager.copyImagesToWheelhouse(pathsToSync);
+            }
             function deleteSelected() {
                 // iterate backwards so deletions dont affect subsequent indexes
                 for (var i = lvImages.model.rowCount() - 1; i > -1; i--) {
                     if (lvImages.itemAtIndex(i).isChecked) {
-                        var sourceIndex = camera_manager.images_proxy.getSourceRowFromProxy(i)
-                        camera_manager.images_model.removeImage(sourceIndex)
+                        var sourceIndex = imageManager.imagesProxy.getSourceRowFromProxy(i)
+                        imageManager.imagesModel.removeImage(sourceIndex)
                     }
                 }
+            }
+            function countSelected() {
+                var selectedPhotos = 0;
+                for (var i = 0; i < lvImages.model.rowCount(); i++) {
+                    if (lvImages.itemAtIndex(i).isChecked) {
+                        selectedPhotos += 1
+                    }
+                }
+                return selectedPhotos;
             }
             anchors {
                 top: dataSelectorBar.bottom
@@ -65,7 +97,7 @@ Item {
                         anchors.fill: parent
                         anchors.topMargin: -2
                         anchors.bottomMargin: -2
-                        color: index % 2 ? appstyle.elevatedSurface_L6 : appstyle.elevatedSurface_L9
+                        color: index % 2 ? appStyle.elevatedSurface_L6 : appStyle.elevatedSurface_L9
                         border.color: "transparent"
                         RowLayout {
                             anchors.fill: parent
@@ -84,18 +116,51 @@ Item {
                                     fillMode: Image.PreserveAspectFit
                                     Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                     Layout.preferredWidth: 100
-                                    sourceSize.height: 45
-                                    sourceSize.width: 45
+                                    sourceSize.height: 47
+                                    sourceSize.width: 47
                                     source: "file:///" + model.full_path
                                     cache: true
                                 }
-                                Label {
-                                    text: model.file_name
-                                    font.family: appstyle.fontFamily
-                                    font.pixelSize: 10
-                                    font.bold: true
-                                    color: appstyle.secondaryFontColor
-                                    Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+                                ColumnLayout {
+                                    Layout.fillHeight: true
+                                    Layout.fillWidth: true
+                                    Label {
+                                        id: lblFileName
+                                        text: model.file_name
+                                        font.family: appStyle.fontFamily
+                                        font.pixelSize: 12
+                                        font.bold: true
+                                        color: appStyle.secondaryFontColor
+                                        Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+                                        Layout.fillWidth: true
+                                    }
+                                    FramCamProgressBar {
+                                        id: progressCopy
+                                        value: model.is_backed_up ? 1 : 0
+                                        runningColor: appStyle.accentColor
+                                        Layout.fillWidth:true
+                                        //Layout.preferredWidth: lblFileName.width
+                                        Layout.preferredHeight: 10
+                                        Connections {
+                                            target: imageManager
+                                            function onFileCopied(path, new_path, success) {
+                                                if (path === model.full_path) {
+                                                    progressCopy.visible = true
+                                                    progressCopy.value = 0
+                                                    progressCopy.runningColor = success ? appStyle.accentColor : appStyle.errorColor
+                                                    animateProgress.running = true
+                                                }
+                                            }
+                                        }
+                                        PropertyAnimation{
+                                            id: animateProgress
+                                            target: progressCopy
+                                            property: "value"
+                                            to: 1
+                                            duration: 600
+                                            easing.type: Easing.InOutQuint
+                                        }
+                                    }
                                 }
                                 ColumnLayout {
                                     Layout.fillHeight: true
@@ -103,6 +168,7 @@ Item {
                                     Layout.leftMargin: 50
                                     Image {
                                         id: imgSyncArrow
+                                        visible: false
                                         fillMode: Image.PreserveAspectFit
                                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                                         Layout.bottomMargin: -10
@@ -115,29 +181,20 @@ Item {
                                         layer {
                                             enabled: true
                                             effect: ColorOverlay {
-                                                color: appstyle.iconColor
+                                                color: appStyle.iconColor
                                             }
                                         }
                                     }
                                     Label {
                                         text: "To WH?"
+                                        visible: false
                                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                                         Layout.topMargin: -5
-                                        font.family: appstyle.fontFamily
+                                        font.family: appStyle.fontFamily
                                         font.pixelSize: 8
                                         font.bold: true
-                                        color: appstyle.secondaryFontColor
+                                        color: appStyle.secondaryFontColor
                                     }
-
-                                }
-                                FramCamCheckBox {
-                                    id: cbSynced
-                                    Layout.preferredHeight: 50
-                                    Layout.preferredWidth: 50
-                                    Layout.leftMargin: 10
-                                    Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-                                    checkColor: appstyle.accentColor
-                                    enabled: false
                                 }
                             }
                             RowLayout {
@@ -145,30 +202,45 @@ Item {
                                 id: btnDelete
                                 text: "Delete\nX"
                                 visible: false  // going to force user to select, then delete
-                                pressedColor: appstyle.errorColor
+                                pressedColor: appStyle.errorColor
                                 Layout.preferredHeight: delegate.height
                                 Layout.preferredWidth: 75
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 onClicked: {
-                                    var sourceIndex = camera_manager.images_proxy.getSourceRowFromProxy(index)
-                                    camera_manager.images_model.removeImage(sourceIndex)
+                                    var sourceIndex = imageManager.imagesProxy.getSourceRowFromProxy(index)
+                                    imageManager.imagesModel.removeImage(sourceIndex)
                                 }
                             }
                             FramCamButton {
                                 id: btnEdit
-                                text: "Edit\n>>"
-                                Layout.preferredHeight: delegate.height
-                                Layout.preferredWidth: 75
+                                text: "Edit >>"
+                                Layout.preferredHeight: delegate.height - 10
+                                Layout.preferredWidth: 100
+                                Layout.rightMargin: 20
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                 onClicked: {
                                     windowMain.navigateToPage('capture')
-                                    camera_manager.images_model.sendIndexToProxy(index)
+                                    imageManager.selectProxyWithProxyIndex(index)
                                 }
                             }
                             }
                         }
                     }
                 }
+            }
+            add: Transition {
+                PropertyAction { property: "transformOrigin"; value: Item.Left}
+                NumberAnimation { property: "opacity"; from: 0; to: 1.0; duration: 200 }
+                NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 200 }
+            }
+            displaced: Transition {
+                PropertyAction { properties: "opacity, scale"; value: 1 }  // incase a newly added image becomes displaced
+                NumberAnimation { properties: "x,y"; duration: 200 }
+            }
+            remove: Transition {
+                PropertyAction { property: "transformOrigin"; value: Item.Right}
+                NumberAnimation { property: "opacity"; from: 1.0; to: 0; duration: 200 }
+                NumberAnimation { property: "scale"; from: 1.0; to: 0; duration: 200 }
             }
         }  // listview
         Rectangle {
@@ -180,7 +252,7 @@ Item {
 
             }
             height: 100
-            color: appstyle.elevatedSurface_L5
+            color: appStyle.elevatedSurface_L5
             RowLayout {
                 spacing: 20
                 anchors {
@@ -197,6 +269,12 @@ Item {
                     onClicked: lvImages.updateAllChecks(true)
                 }
                 FramCamButton {
+                    id: btnSyncSelection
+                    text: "Sync\nSelected"
+                    Layout.preferredHeight: 75
+                    onClicked: lvImages.syncSelected()
+                }
+                FramCamButton {
                     id: btnClearSelection
                     text: "Clear\nSelection"
                     Layout.preferredHeight: 75
@@ -205,14 +283,15 @@ Item {
                 FramCamButton {
                     id: btnDeleteSelection
                     text: "Delete\nSelected"
-                    pressedColor: appstyle.errorColor
+                    pressedColor: appStyle.errorColor
                     Layout.preferredHeight: 75
-                    onClicked: lvImages.deleteSelected()
-                }
-                FramCamButton {
-                    id: btnSyncSelection
-                    text: "Sync\nSelected"
-                    Layout.preferredHeight: 75
+                    onClicked: {
+                        var selPhotos = lvImages.countSelected()
+                        if (selPhotos) {
+                            dlgDeletePhotos.message = selPhotos + " photo(s) are selected for deletion from this device."
+                            dlgDeletePhotos.open()
+                        }
+                    }
                 }
             }
         }

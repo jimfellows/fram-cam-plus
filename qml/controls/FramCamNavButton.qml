@@ -8,7 +8,7 @@ Button {
     Material.theme: Material.Dark
 
     id: btnLeftMenu
-    font.family: appstyle.fontFamily
+    font.family: appStyle.fontFamily
     font.italic: true
     text: qsTr("Left Menu Button Text")
     implicitWidth: 250
@@ -18,8 +18,9 @@ Button {
 
     //custom props
     property color colorDefault: '#55aaff';
-    property color colorMouseOver: '#0085CA';
+    property color colorMouseOver: appStyle.primaryColor;
     property color colorPressed: '#55aaff';
+    property color hoveredIconColor: appStyle.primaryFontColor
     property int iconWidth: 35;
     property int iconHeight: 35;
     property url iconSource: 'qrc:/svgs/menu_icon.svg'
@@ -35,8 +36,6 @@ Button {
                                        btnLeftMenu.hovered ? colorMouseOver : colorDefault
                                    }
     }
-//    flat:true
-//    highlighted:true
     background: Rectangle {
         id: rectBg
         color: internal.dynamicColor
@@ -47,9 +46,9 @@ Button {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.left: parent.left
-            width: 4
+            width: 8
             visible: btnLeftMenu.isActive
-            color: appstyle.primaryColor
+            color: appStyle.primaryColor
         }
         Rectangle {
             id: rectHighlightBarRight
@@ -58,7 +57,7 @@ Button {
             anchors.right: parent.right
             width: 6
             visible: btnLeftMenu.isActive
-            color: appstyle.elevatedSurface_L5
+            color: appStyle.elevatedSurface_L5
         }
     }
     contentItem: Item{
@@ -67,19 +66,20 @@ Button {
             source: btnLeftMenu.iconSource
             sourceSize.height: iconHeight
             sourceSize.width: iconWidth
-            anchors.leftMargin: 6
+            anchors.leftMargin: 18
             anchors.left: parent.left
             height: iconHeight
             anchors.verticalCenter: parent.verticalCenter
             width: iconWidth
             fillMode: Image.PreserveAspectFit
             antialiasing: true
+            mipmap: true
         }
 
         ColorOverlay {
             anchors.fill: imgMenuIcon
             source: imgMenuIcon
-            color: appstyle.iconColor
+            color: btnLeftMenu.hovered ? hoveredIconColor : appStyle.iconColor
             anchors.verticalCenter: parent.verticalCenter
             antialiasing: true
             width: iconWidth
@@ -94,7 +94,7 @@ Button {
 
             anchors.left: imgMenuIcon.right
             anchors.leftMargin: 40
-            color: appstyle.secondaryFontColor
+            color: appStyle.secondaryFontColor
         }
     }
 }

@@ -22,6 +22,7 @@ Window {
     //props
     property bool isWindowMaximized: false;
     property int windowMargin: 10;
+    property string activePage;
     property alias stackView: stackView
 
     //removing default title bar
@@ -72,11 +73,13 @@ Window {
 
     function navigateToPage(pageName) {
         console.info("Navigating to " + pageName)
+        windowMain.activePage = pageName;
         if (pageName.toLowerCase() === 'capture' && !btnCapturePage.isActive) {
             btnCapturePage.isActive = true;
             btnSpeciesPage.isActive = false;
             btnSettingsPage.isActive = false;
             btnImageManagerPage.isActive = false;
+            btnUploadPage.isActive = false;
             stackView.push(Qt.resolvedUrl('qrc:/pages/CapturePage.qml'))
         }
         else if (pageName.toLowerCase() === 'imagemanager' && !btnImageManagerPage.isActive) {
@@ -84,6 +87,7 @@ Window {
             btnSpeciesPage.isActive = false;
             btnSettingsPage.isActive = false;
             btnCapturePage.isActive = false;
+            btnUploadPage.isActive = false;
             stackView.push(Qt.resolvedUrl('qrc:/pages/ImageManagerPage.qml'))
         }
         else if (pageName.toLowerCase() === 'settings' && !btnSettingsPage.isActive) {
@@ -91,6 +95,7 @@ Window {
             btnSpeciesPage.isActive = false;
             btnSettingsPage.isActive = true;
             btnCapturePage.isActive = false;
+            btnUploadPage.isActive = false;
             stackView.push(Qt.resolvedUrl('qrc:/pages/SettingsPage.qml'))
         }
         else if (pageName.toLowerCase() === 'species' && !btnSpeciesPage.isActive) {
@@ -98,14 +103,23 @@ Window {
             btnSpeciesPage.isActive = true;
             btnSettingsPage.isActive = false;
             btnCapturePage.isActive = false;
+            btnUploadPage.isActive = false;
             stackView.push(Qt.resolvedUrl('qrc:/pages/SpeciesPage.qml'))
+        }
+        else if (pageName.toLowerCase() === 'upload' && !btnUploadPage.isActive) {
+            btnUploadPage.isActive = true;
+            btnImageManagerPage.isActive = false;
+            btnSpeciesPage.isActive = false;
+            btnSettingsPage.isActive = false;
+            btnCapturePage.isActive = false;
+            stackView.push(Qt.resolvedUrl('qrc:/pages/UploadPage.qml'))
         }
     }
 
     Rectangle {
         id: rectBg
         //color: "#0085ca"
-        color: appstyle.surfaceColor
+        color: appStyle.surfaceColor
         border.color: "#003087"
         border.width: 1
         anchors.fill: parent
@@ -118,8 +132,8 @@ Window {
         Rectangle {
             id: rectAppContainer
             //color: "#00ffffff"
-            //color: appstyle.surfaceColor
-            color: appstyle.elevatedSurface_L5
+            //color: appStyle.surfaceColor
+            color: appStyle.elevatedSurface_L5
             border.width: 5
             anchors.fill: parent
             anchors.rightMargin: 1
@@ -140,12 +154,12 @@ Window {
 
                 FramCamMenuButton {
                     id: btnToggleNavBar
-                    width: 70
+                    width: 100
                     height: 60
                     anchors.left: parent.left
                     anchors.top: parent.top
-                    colorMouseOver: appstyle.primaryColor
-                    colorDefault: appstyle.surfaceColor
+                    colorMouseOver: appStyle.primaryColor
+                    colorDefault: appStyle.surfaceColor
                     anchors.topMargin: 0
                     anchors.leftMargin: 0
                     onClicked: animationLeftMenu.running = true
@@ -153,7 +167,7 @@ Window {
 
                 Rectangle {
                     id: rectTitle
-                    color: appstyle.surfaceColor
+                    color: appStyle.surfaceColor
                     anchors.left: btnToggleNavBar.right
                     anchors.right: parent.right
                     anchors.top: parent.top
@@ -191,11 +205,12 @@ Window {
                         fillMode: Image.PreserveAspectFit
                         antialiasing: false
                         smooth: true
+                        mipmap: true
                     }
 
                     ColorOverlay {
                         source: imgAppLogo
-                        color: 'white'
+                        color: appStyle.primaryColor
 //                        anchors.verticalCenter: parent.verticalCenter
                         anchors.top: imgAppLogo.top
                         anchors.bottom: imgAppLogo.bottom
@@ -209,8 +224,8 @@ Window {
 
                     Label {
                         id: lblTitle
-                        text: qsTr("FRAMCam") + "<font color=\"" + appstyle.accentColor + "\">+</font>"
-                        color: appstyle.primaryFontColor
+                        text: qsTr("FRAMCam") + "<font color=\"" + appStyle.accentColor + "\">+</font>"
+                        color: appStyle.primaryFontColor
                         anchors.left: imgAppLogo.right
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
@@ -218,7 +233,7 @@ Window {
                         font.bold: true
                         font.italic: true
                         font.pointSize: 12
-                        font.family: appstyle.fontFamily
+                        font.family: appStyle.fontFamily
                         anchors.bottomMargin: 8
                         anchors.topMargin: 11
                         //anchors.leftMargin: 1
@@ -263,8 +278,8 @@ Window {
                             iconSource: "qrc:/svgs/close.svg"
                             iconColor: "white"
                             colorDefault: "#00000000"
-                            colorMouseOver: appstyle.errorColor
-                            colorPressed: appstyle.errorColor.darker(0.75)
+                            colorMouseOver: appStyle.errorColor
+                            colorPressed: appStyle.errorColor.darker(0.75)
                             onClicked: windowMain.close()
                         }
                     }
@@ -274,25 +289,45 @@ Window {
                     id: rectTitleDescr
                     y: 32
                     height: 25
-                    color: appstyle.elevatedSurface_L1
+                    color: appStyle.elevatedSurface_L1
                     anchors.left: btnToggleNavBar.right
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 0
                     anchors.rightMargin: 0
                     anchors.leftMargin: 0
-
                     Label {
                         id: lblDescr
                         y: 5
-                        color: appstyle.secondaryFontColor
-                        font.family: appstyle.fontFamily
+                        color: appStyle.secondaryFontColor
+                        font.family: appStyle.fontFamily
                         text: qsTr("Intelligent image capture for NOAA West Coast Groundfish Bottom Trawl Survey")
                         anchors.left: parent.left
                         font.italic: true
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
                         anchors.leftMargin: 5
+                    }
+                    Image {
+                        id: imgNoaaLogo
+                        //width: 35
+
+                        anchors {
+                            right: parent.right
+                            rightMargin: 15
+                            top: parent.top
+                            topMargin: 3
+                            bottom: parent.bottom
+                            bottomMargin: 3
+                        }
+
+                        source: "qrc:/pngs/noaa_fisheries_small.png"
+                        sourceSize.width: 32
+                        sourceSize.height: 32
+                        fillMode: Image.PreserveAspectFit
+                        antialiasing: true
+                        smooth: true
+                        mipmap: true
                     }
                 }
 
@@ -312,8 +347,8 @@ Window {
 
                 Rectangle {
                     id: rectLeftNavBar
-                    width: 70
-                    color: appstyle.surfaceColor
+                    width: 100
+                    color: appStyle.surfaceColor
                     anchors.left: parent.left
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
@@ -326,7 +361,7 @@ Window {
                         id: animationLeftMenu
                         target: rectLeftNavBar
                         property: "width"
-                        to: if(rectLeftNavBar.width === 70) return 250; else return 70;
+                        to: if(rectLeftNavBar.width === 100) return 250; else return 100;
                         duration:400
                         easing.type: Easing.InOutQuint
                     }
@@ -341,10 +376,13 @@ Window {
                         anchors.topMargin: 0
                         anchors.rightMargin: 0
                         anchors.leftMargin: 0
+
+                        property int buttonHeight: 80
+
                         FramCamNavButton {
                             id: btnCapturePage
                             width: rectLeftNavBar.width
-                            height: 75
+                            height: colNavButtons.buttonHeight
                             text: "Image Capture"
                             colorDefault: "transparent"
                             font.bold: true
@@ -356,7 +394,7 @@ Window {
                             id: btnImageManagerPage
                             width: rectLeftNavBar.width
                             text: "File Manager"
-                            height: 75
+                            height: colNavButtons.buttonHeight
                             colorDefault: "transparent"
                             font.bold: true
                             font.pointSize: 13
@@ -368,13 +406,25 @@ Window {
                             id: btnSpeciesPage
                             width: rectLeftNavBar.width
                             text: 'Species Select'
-                            height: 75
+                            height: colNavButtons.buttonHeight
                             colorDefault: "transparent"
                             font.bold: true
                             font.pointSize: 13
                             isActive: false
                             iconSource: "qrc:/svgs/coral.svg"
                             onClicked: windowMain.navigateToPage('species')
+                        }
+                        FramCamNavButton {
+                            id: btnUploadPage
+                            width: rectLeftNavBar.width
+                            text: 'Cloud Upload'
+                            height: colNavButtons.buttonHeight
+                            colorDefault: "transparent"
+                            font.bold: true
+                            font.pointSize: 13
+                            isActive: false
+                            iconSource: "qrc:/svgs/cloud_upload.svg"
+                            onClicked: windowMain.navigateToPage('upload')
                         }
                     }
 
@@ -384,7 +434,7 @@ Window {
                         width: rectLeftNavBar.width
                         text: 'Settings'
                         anchors.left: parent.left
-                        height: 75
+                        height: colNavButtons.buttonHeight
                         anchors.bottom: parent.bottom
                         colorDefault: "transparent"
                         anchors.leftMargin: 0
@@ -413,12 +463,13 @@ Window {
                         anchors.fill: parent
                         initialItem: Qt.resolvedUrl('qrc:/pages/CapturePage.qml')
                         Component.onCompleted: push(Qt.resolvedUrl('qrc:/pages/CapturePage.qml'))
+                        onCurrentItemChanged: console.info("CURRENT ITEM CHANGED TO " + currentItem)
                     }
                 }
 
                 Rectangle {
                     id: rectBottomBar
-                    color: appstyle.elevatedSurface_L1
+                    color: appStyle.elevatedSurface_L1
                     anchors.left: rectLeftNavBar.right
                     anchors.right: parent.right
                     anchors.top: rectScreens.bottom
@@ -431,22 +482,67 @@ Window {
                     Label {
                         id: lblActiveCamera
                         anchors.left: parent.left
-                        anchors.leftMargin: 10
+                        anchors.leftMargin: 5
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "Active Camera: " + camera_manager.active_camera_name
-                        color: appstyle.secondaryFontColor
-                        font.family: appstyle.fontFamily
+                        text: "Camera: " + camControls.curCameraName
+                        color: appStyle.secondaryFontColor
+                        font.family: appStyle.fontFamily
+                        font.pixelSize: 12
+                    }
+                    Label {
+                        id: lblWarning
+                        anchors.left: lblActiveCamera.right
+                        anchors.leftMargin: 25
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: ''
+                        color: appStyle.errorColor
+                        font.family: appStyle.fontFamily
+                        font.pixelSize: 12
+                        font.bold: color === appStyle.errorColor
+                        font.italic: color !== appStyle.errorColor
+                        Connections {
+                            target: imageManager
+                            function onBadDestinationPath(path) {
+                                lblWarning.color = appStyle.errorColor
+                                lblWarning.text = "Bad WH Sync Path: " + path
+                            }
+                            function onCopyStarted(no_of_files) {
+                                lblWarning.text = ''
+                            }
+                            function onCopyEnded(good, bad) {
+                                lblWarning.color = appStyle.secondaryFontColor
+                                lblWarning.text = "Copy to WH complete: " + good + " files copied, " + bad + " failed."
+                            }
+                        }
+                        Connections {
+                            target: dataSelector
+                            function onBackdeckPullResults(status, msg, rows) {
+                                //TODO: Clip this?
+                                lblWarning.color = status ? appStyle.secondaryFontColor : appStyle.errorColor
+                                lblWarning.text = msg
+                                lblWarning.visible = true
+                            }
+                        }
                     }
                     Label {
                         id: lblBarcode
                         font.bold: true
-                        font.family: appstyle.fontFamily
-                        color: appstyle.accentColor
-                        text: camera_manager.lastBarcodeDetected ? "Barcode Detected: " + camera_manager.lastBarcodeDetected : ''
-                        anchors.top: parent.top
+                        font.family: appStyle.fontFamily
+                        color: appStyle.primaryFontColor
                         anchors.right: parent.right
-                        anchors.rightMargin: 10
+                        anchors.rightMargin: 5
                         anchors.verticalCenter: parent.verticalCenter
+                        font.pixelSize: 14
+                        Connections {
+                            target: camControls
+                            function onBarcodeDetected(bc) {
+                                if (bc) {
+                                    lblBarcode.text = "Barcode: " + bc
+                                } else {
+                                    lblBarcode.text = ''
+                                }
+                            }
+                        }
                     }
                 }
             }

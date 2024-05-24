@@ -1,44 +1,38 @@
-[build-system]
-requires = ["setuptools >= 61.0"]
-build-backend = "setuptools.build_meta"
 
 [project]
 name = "fram-cam-plus"
-version = "2024.0.0"
+version = "1"
+description = "PySide6 + Qt Camera Tablet App"
+
+[tool.poetry]
+name = "fram-cam-plus"
+version = "2024.0+1"
+description = "PySide6 + Qt Camera Tablet App"
+authors = ["Jim Fellows <james.fellows@noaa.gov>"]
 readme = "README.md"
-authors = [
-  {name = "Jim Fellows", email = "james.fellows@noaa.gov"}
-]
-maintainers = [
-  {name = "Jim Fellows", email = "james.fellows@noaa.gov"}
-]
+package-mode = false
 
-description = "PySide + Qt + QML tablet app for intelligent image capture at sea."
-dependencies = []
-requires-python = ">= 3.10"
-classifiers = [
-  # How mature is this project? Common values are
-  #   3 - Alpha
-  #   4 - Beta
-  #   5 - Production/Stable
-  "Development Status :: 3 - Alpha",
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+pyside6 = "6.6.2"
+opencv-python = "4.9.0.80"
+numpy = "1.26.4"
+pyzbar = "^0.1.9"
+araviq6 = "^2.1.1"
+cx-freeze = "^6.15.16"
+piexif = "^1.1.3"
+pillow = "^10.2.0"
 
-  # Indicate who your project is intended for
-  "Intended Audience :: Developers",
-  "Topic :: Software Development :: Build Tools",
+[tool.poetry.scripts]
+build = "build.build_fram_cam:run"
 
-  # Pick your license as you wish (see also "license" above)
-  "License :: OSI Approved :: MIT License",
 
-  # Specify the Python versions you support here.
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12"
-]
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [project.urls]
-Repository = "https://github.com/jimfellows/fram-cam-plus"
+Repository = "https://github.nwfsc2.noaa.gov/jfellows/fram-cam-plus"
 
 [tool.cxfreeze]
 executables = [
@@ -47,11 +41,12 @@ executables = [
 
 [tool.cxfreeze.build_exe]
 excludes = []
-packages=["PySide6", "pyzbar", "cv2", 'araviq6', 'sqlite3',"shiboken6", "encodings"]
+ packages=["PySide6", "pyzbar", "cv2", 'araviq6', 'sqlite3',"shiboken6", "encodings"]
 include_files = [
   ['py', 'lib/py'],  # puts local py imports into lib
   ['qrc', 'lib/qrc'],
-  ['data/trawl_backdeck.db', 'data/lib/trawl_backdeck.db'],   # data also into lib
+  ['data/fram_cam.db', 'lib/data/fram_cam.db'],   # data also into lib
   ['venv/lib/shiboken6', 'lib/shiboken6'],  # WARNING: this is currently hardcoded.  CX freeze isntt hooking all shiboken DLLs
   ['C:/Users/jim-f/dev/fram-cam-plus/venv/Lib/site-packages/pyzbar/libiconv.dll', 'lib/libiconv.dll'],  # did adding opencv resolve the need for this?
+  ['resources/icons', 'lib/icons']
   ]

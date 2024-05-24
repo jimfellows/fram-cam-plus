@@ -6,6 +6,8 @@ This application is developed for usage on Panasonic Toughpads running Windows 1
 used by NOAA software used for at-sea data collection on the Northwest Fisheries Science Center's West Coast Groundfish
 Bottom Trawl Survey.
 
+![Panasonic Tablet](resources/images/how_to_pics/panasonic_example.jpg?raw=true)
+
 The front end of this application is written using Qt's QML framework, and generally attempts to follow Qt's Model/View architecture.
 
 * [Qt for Python](https://wiki.qt.io/Qt_for_Python)
@@ -38,36 +40,62 @@ but can also be executed (requires PySide6 install) as follows:
 Once compiled, these binary files are made available to the app via an import of qresources.py
 in py/app.py.  Newly created QML files or images/svgs/icons should be added to the qresources.qrc file.
 
-## Qt Creator Usage
-* [Qt Creator](https://doc.qt.io/qtcreator/)
+Note that files defined under a "prefix", must also have an alias defined in the qrc file (I wasn't able to make it work
+without defining an alias).
 
 ## Environment Setup
 
-For now, notes for myself, used pyenv-win to setup venv:
+This application uses [poetry](https://python-poetry.org/docs/basic-usage/) to manage package dependencies.
+
+To setup your virtual environment, you can use poetry's built in method, or roll with your own.  I often use 
+[pyenv-win](https://github.com/pyenv-win/pyenv-win) to manage versions and create venvs:
 ```commandline
 pyenv install 3.11.2
 pyenv shell 3.11.2
 pyenv exec python -m venv venv311
 .\venv311\scripts\activate
-python
+poetry install
 ```
+The final command should install poetry package dependencies listed in the pyproject.toml.  To maintain these
+dependencies, new packages should be installed via the following:
+```commandline
+poetry add <YOUR PACKAGE NAME>
+```
+To persist these dependency changes for others to use, the poetry.lock file changes should be committed.
+
+Note that a sqlite file called fram_cam.db is required for the app to run.  Please rename the data/fram_cam_test_copy.db to data/fram_cam.db
+for testing and development purposes.
 
 ## Running the App
+The application runs by initializing py.app.FramCamPlus().  At the root directory, developers should call: 
+```commandline
+python -m main.py
+```
+To compile QML / resource changes and have the UI reflect the latest code changes, developers should run the app via:
+```commandline
+python -m compile_and_run.py
+```
+This script uses PySide's pyside6-rcc.exe installed in your venv to compile files defined in your qresources.qrc file
+to allow import and usage into the backend python code.
 
 ## Building the App
 This app uses cx_Freeze to freeze and distribute an exectueable to run this application.
-See the link below, to date (March 2024), the latest release of cx_Freeze isn't compatible with ptyyhono 
+See the link below, to date (March 2024), the latest release of cx_Freeze isn't compatible with python 
 3.12, see link below:
 
 https://stackoverflow.com/questions/77861331/cant-create-a-a-exe-file-using-cxfreeze-keyerror-import-star
 
-Also, shiboken6 DLL files aren't fully copying to the bundled cx_Freeze app, so the entirety
-of lib/shiboken6 needs to be copied (TODO: fix this?)
+For  now I'm using 3.11 to avoid rolling a custom cxFreeze. Also, shiboken6 DLL files aren't fully copying to the bundled cx_Freeze app, so the entirety
+of lib/shiboken6 needs to be copied (TODO: fix this?).  To adjust build params, see the file build/build_fram_cam.py.
 
-cx_Freeze params are set in the pyproject.toml file, to build, call the following from the root dir:
+There's likely a better way to interface with poetry package manager, but, for the time being, to build, activate 
+your venv and run the following from the project root:
 
 ```commandline
-cxfreeze build
+python build/build_fram_cam.py build
 ```
+The cx freeze results are scooped up by a call to NSIS' makensis command.  To use, make sure NSIS is installed, with
+the makensis command available (update your Windows path).  The end result should be an NSIS isntaller exe in your
+build folder.
 
 [NSIS](https://nsis.sourceforge.io/Download)

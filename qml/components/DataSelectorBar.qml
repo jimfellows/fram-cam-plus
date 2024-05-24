@@ -8,9 +8,9 @@ import 'qrc:/controls'
 
 Rectangle {
     id: root
-    implicitHeight: 60
+    implicitHeight: 75
     implicitWidth: 500
-    color: "#00ffffff"
+    color: appStyle.elevatedSurface_L5
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: parent.top
@@ -18,127 +18,148 @@ Rectangle {
     anchors.rightMargin: 0
     anchors.topMargin: 0
 
+    function flashAllMenus() {
+        comboHauls.startFlash()
+        comboCatch.startFlash()
+        comboProject.startFlash()
+        comboBiolabel.startFlash()
+    }
+
+    Connections {
+        target: dataSelector
+        function onNewDropDownRows(dropdown) {
+            if (dropdown === 'hauls') comboHauls.startGlow();
+            if (dropdown === 'catches') comboCatch.startGlow();
+            if (dropdown === 'projects') comboProject.startGlow();
+            if (dropdown === 'bios') comboBiolabel.startGlow();
+        }
+        function onHaulSelectionRequired() {
+            comboHauls.startGlow(appStyle.errorColor)
+        }
+    }
+
     Row {
         anchors.fill: parent
+        anchors.verticalCenter: parent.verticalCenter
         spacing: 10
+        anchors.top: parent.top
+        anchors.topMargin: -5
         anchors.rightMargin: 50
         FramCamComboBox {
             id: comboHauls
-            backgroundColor: appstyle.elevatedSurface_L5
-            fontColor: appstyle.secondaryFontColor
-            borderColor: appstyle.iconColor
+            fontColor: appStyle.secondaryFontColor
+            borderColor: appStyle.iconColor
             height: parent.height
             maxPopupHeight: windowMain.height * 0.65
             width: parent.width * 0.15
             fontSize: 12
-            model: data_selector.hauls_model
+            model: dataSelector.hauls_model
             textRole: "haul_number"
-            placeholderText: data_selector.hauls_model.row_count === 0 ? 'N/A' : 'Select Haul...'
+            placeholderText: dataSelector.hauls_model.row_count === 0 ? 'N/A' : 'Select Haul...'
             onCurrentIndexChanged: {
-                model.currentIndex = currentIndex
+                model.selectedIndex = currentIndex
             }
             Component.onCompleted: {  // set ix based on settings saved value
-                comboHauls.currentIndex = model.currentIndex
+                comboHauls.currentIndex = model.selectedIndex
             }
             Connections {
-                target: data_selector.hauls_model
-                function onIndexSetSilently(new_index) {
-                    comboHauls.currentIndex = new_index
+                target: dataSelector.hauls_model
+                function onSelectIndexInUI(index) {
+                    comboHauls.currentIndex = index
                 }
             }
         }
 
         FramCamComboBox {
             id: comboCatch
-            backgroundColor: appstyle.elevatedSurface_L5
-            fontColor: appstyle.secondaryFontColor
-            borderColor: appstyle.iconColor
+            fontColor: appStyle.secondaryFontColor
+            borderColor: appStyle.iconColor
             height: parent.height
             maxPopupHeight: windowMain.height * 0.65
             width: parent.width * 0.225
-            model: data_selector.catches_proxy
-            textRole: "display_name"
-            placeholderText: data_selector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
+            model: dataSelector.catches_proxy
+            textRole: "catch_display_name"
+            placeholderText: dataSelector.catches_model.row_count === 0 ? 'N/A' : 'Select Catch...'
             fontSize: 12
             onCurrentIndexChanged: {
                 model.proxyIndex = currentIndex
             }
             Component.onCompleted: {  // set ix based on settings saved value
-                comboCatch.currentIndex = model.getProxyRowFromSource(data_selector.catches_model.currentIndex)
+                comboCatch.currentIndex = model.getProxyRowFromSource(dataSelector.catches_model.selectedIndex)
             }
             Connections {
-                target: data_selector.catches_model
-                function onIndexSetSilently(new_index) {
-                    comboCatch.currentIndex = model.getProxyRowFromSource(new_index)
+                target: dataSelector.catches_proxy
+                function onSelectIndexInUI(index) {
+                    comboCatch.currentIndex = index
                 }
             }
         }
         FramCamComboBox {
             id: comboProject
-            backgroundColor: appstyle.elevatedSurface_L5
-            fontColor: appstyle.secondaryFontColor
-            borderColor: appstyle.iconColor
+            fontColor: appStyle.secondaryFontColor
+            borderColor: appStyle.iconColor
             height: parent.height
             maxPopupHeight: windowMain.height * 0.65
             width: parent.width * 0.225
-            model: data_selector.projects_proxy
+            model: dataSelector.projects_proxy
             textRole: "project_name"
             fontSize: 12
-            placeholderText: data_selector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
+            placeholderText: dataSelector.projects_model.row_count === 0 ? 'N/A' : 'Select Project...'
             onCurrentIndexChanged: {
                 model.proxyIndex = currentIndex
             }
             Component.onCompleted: {  // set ix based on settings saved value
-                comboProject.currentIndex = model.getProxyRowFromSource(data_selector.projects_model.currentIndex)
+                comboProject.currentIndex = model.getProxyRowFromSource(dataSelector.projects_model.selectedIndex)
             }
             Connections {
-                target: data_selector.projects_model
-                function onIndexSetSilently(new_index) {
-                    comboProject.currentIndex = data_selector.projects_proxy.getProxyRowFromSource(new_index)
+                target: dataSelector.projects_proxy
+                function onSelectIndexInUI(index) {
+                    comboProject.currentIndex = index
                 }
             }
         }
         FramCamComboBox {
             id: comboBiolabel
-            backgroundColor: appstyle.elevatedSurface_L5
-            fontColor: appstyle.secondaryFontColor
-            borderColor: appstyle.iconColor
+            fontColor: appStyle.secondaryFontColor
+            borderColor: appStyle.iconColor
             height: parent.height
             maxPopupHeight: windowMain.height * 0.65
             width: parent.width * 0.2
-            model: data_selector.bios_proxy
+            model: dataSelector.bios_proxy
             textRole: "bio_label"
             fontSize: 12
-            placeholderText: data_selector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
+            placeholderText: dataSelector.bios_model.row_count === 0 ? 'N/A' : 'Select Bio Label...'
             onCurrentIndexChanged: {
                 model.proxyIndex = currentIndex
             }
             Component.onCompleted: {  // set ix based on settings saved value
-                comboBiolabel.currentIndex = model.getProxyRowFromSource(data_selector.bios_model.currentIndex)
+                comboBiolabel.currentIndex = model.getProxyRowFromSource(dataSelector.bios_model.selectedIndex)
             }
             Connections {
-                target: data_selector.bios_model
-                function onIndexSetSilently(new_index) {
-                    comboBiolabel.currentIndex = model.getProxyRowFromSource(new_index)
+                target: dataSelector.bios_proxy
+                function onSelectIndexInUI(index) {
+                    comboBiolabel.currentIndex = index
                 }
             }
         }
         FramCamButton {
             id: btnClear
-            implicitWidth: 60
-            implicitHeight: 60
+            implicitWidth: 75
+            implicitHeight: 75
             radius: 20
             iconSource: 'qrc:/svgs/sweep.svg'
             onClicked: {
                 comboHauls.currentIndex = -1
+                camControls.clearBarcode()
             }
         }
         FramCamButton {
             id: btnDownloadData
-            implicitWidth: 60
-            implicitHeight: 60
+            implicitWidth: 75
+            implicitHeight: 75
             radius: 20
             iconSource: 'qrc:/svgs/download.svg'
+            onClicked: dataSelector.getBackdeckBios()
         }
     }
 }

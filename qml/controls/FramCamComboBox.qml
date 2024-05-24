@@ -17,15 +17,50 @@ ComboBox {
     Material.theme: Material.Dark
 
     //custom props
-    property color backgroundColor: appstyle.elevatedSurface_L5;
-    property color borderColor: appstyle.iconColor
-    property color fontColor: appstyle.secondaryFontColor
-    property color hoveredColor: appstyle.elevatedSurface_L5.darker(0.7)
+    property color backgroundColor: appStyle.elevatedSurface_L9;
+    property color borderColor: appStyle.iconColor
+    property color fontColor: appStyle.secondaryFontColor
+    property color hoveredColor: appStyle.elevatedSurface_L5.darker(0.7)
     property int fontSize: 18
     property real radius: 12;
     property string placeholderText: "";
     property bool italicDisplay: false;
     property int maxPopupHeight: 10000;
+    property string titleLabelText;
+
+    SequentialAnimation {
+        id: glow
+        property int duration: 800
+        property int maxGlow: 15
+        PropertyAnimation { target: rectGlow; property: "visible"; to: true; }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: glow.maxGlow; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: 0; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: glow.maxGlow; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: 0; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: glow.maxGlow; duration: glow.duration }
+        NumberAnimation { target: rectGlow; property: "glowRadius"; to: 0; duration: glow.duration }
+        PropertyAnimation { target: rectGlow; property: "visible"; to: false; }
+    }
+
+    SequentialAnimation {
+        id: flash
+        property int duration: 100
+        property int maxSize: 7
+        PropertyAnimation { target: rectButton; property: "color"; to: root.fontColor; duration: 50 }
+        PropertyAnimation { target: rectButton; property: "color"; to: root.backgroundColor; duration: 100 }
+        PropertyAnimation { target: rectButton; property: "color"; to: root.fontColor; duration: 50 }
+        PropertyAnimation { target: rectButton; property: "color"; to: root.backgroundColor; duration: 3000}
+    }
+
+    function startFlash() {
+        flash.running = true;
+    }
+
+function startGlow(color) {
+        if (color === undefined) color = appStyle.accentColor
+        rectGlow.color = color;
+        glow.running = true;
+    }
 
     /*
     delegate here represents each item in the popup aka the drop down,
@@ -39,8 +74,9 @@ ComboBox {
 
         // popup row background rectangle
         background: Rectangle {
+            //color: "green"
             color: root.currentIndex === index || popupRow.hovered ? root.backgroundColor.darker(0.7) : root.backgroundColor
-            anchors.fill: parent
+            anchors.fill: popupRow
             anchors.leftMargin: -50
             anchors.rightMargin: -20
             radius: root.radius
@@ -50,20 +86,23 @@ ComboBox {
             anchors.fill: parent
             spacing: 2
             Rectangle {
-                Layout.preferredWidth: 5
+                Layout.leftMargin: -2
+                Layout.topMargin: -2
+                Layout.bottomMargin: -2
+                Layout.preferredWidth: 8
                 Layout.fillHeight: true
                 radius: root.radius
                 visible: root.currentIndex === index
-                color: appstyle.accentColor
+                color: appStyle.primaryColor
             }
             Label {
                 id: popupLabel
                 //opacity: 0.9
                 text: model[root.textRole]
-                color: popupRow.hovered ? appstyle.primaryFontColor : root.fontColor
+                color: popupRow.hovered ? appStyle.primaryFontColor : root.fontColor
                 font.bold: true
                 font.pixelSize: root.fontSize
-                font.family: appstyle.fontFamily
+                font.family: appStyle.fontFamily
                 Layout.leftMargin: 10
                 Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
             }
@@ -78,7 +117,7 @@ ComboBox {
                 layer {
                     enabled: true
                     effect: ColorOverlay {
-                        color: appstyle.accentColor
+                        color: appStyle.primaryColor
                     }
                 }
             }
@@ -116,19 +155,49 @@ ComboBox {
     popup/drop down that is displayed, displayed when combobox is collapsed
     */
     background: Rectangle {
-        id: rectButton
-        implicitWidth: root.width
-        implicitHeight: root.height
-        color: root.backgroundColor
-        radius: root.radius
-        border.color: root.borderColor
+        color: "transparent"
+            implicitWidth: root.width
+            implicitHeight: root.height
+            RectangularGlow {
+                id: rectGlow
+                anchors.fill: rectButton
+                glowRadius: 0
+                spread: 0.5
+                color: appStyle.accentColor
+                cornerRadius: rectButton.radius + glowRadius
+                visible: false
+            }
+            Rectangle {
+                id: rectButton
+                anchors.fill: parent
+                color: root.backgroundColor
+                radius: root.radius
+                border.color: root.borderColor
+            }
     }
+
+
+
     /*
     contentItem represents content of button shown when combobox is collapsed
     */
     contentItem: Item {
         id: ciButton
         anchors.fill: parent
+        // optional label to show above combobox
+        Label {
+            visible: root.titleLabelText
+            text: root.titleLabelText
+            anchors.bottom: parent.top
+            font.family: appStyle.fontFamily
+            font.underline: true
+            anchors.left: parent.left
+            anchors.leftMargin: root.radius / 2
+            color: root.fontColor
+            font.italic: true
+            font.pixelSize: 14
+            anchors.bottomMargin: -2  // make things nice and tight
+        }
         RowLayout {
             anchors.fill: parent
             spacing: 10
@@ -139,7 +208,7 @@ ComboBox {
                 color: root.fontColor
                 font.bold: true
                 font.pixelSize: root.fontSize
-                font.family: appstyle.fontFamily
+                font.family: appStyle.fontFamily
                 Layout.fillWidth: true
                 verticalAlignment: Image.AlignVCenter
                 Layout.leftMargin: 10

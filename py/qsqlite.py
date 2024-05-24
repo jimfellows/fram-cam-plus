@@ -36,15 +36,23 @@ class QSqlite(QObject):
     def open_connection(self):
         if self._db.open():
             self._logger.info(f"Successfully opened connection to {self._db_path}")
+            return True
         else:
             msg = f"Unable to connect to db: {LOCAL_DB_PATH}"
             self._logger.error(msg)
-            raise Exception(msg)
+            return False
+    def close_connection(self):
+        if self._db.open():
+            self._db.close()
 
-    def execute_query(self, sql):
+    def execute_query(self, sql: str, params=None):
         results = []
         self._query = QSqlQuery(self._db)
         self._query.prepare(sql)
+
+        for k, v in params.items():
+            self._query.bindValue(k, v)
+
         success = self._query.exec()
         if success:
             while self._query.next():
@@ -53,6 +61,12 @@ class QSqlite(QObject):
             self._logger.error(f"Error executing SQL {sql}; {self._db.lastError()}")
 
         return results
+
+    @staticmethod
+    def record_to_dict(r):
+        _keys = [r.fieldName(k) for k in range(r.count())]
+        _vals = [r.value(k) for k in _keys]
+        return dict(zip(_keys, _vals))
 
     def get_vessel_from_id(self):
         pass

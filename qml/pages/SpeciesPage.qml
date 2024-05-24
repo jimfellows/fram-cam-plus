@@ -1,10 +1,10 @@
-import QtQuick 2.0
+import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 
 Item {
     Rectangle {
         id: rectangle
-        color: appstyle.elevatedSurface_L5
+        color: appStyle.elevatedSurface_L5
         anchors.fill: parent
         anchors.rightMargin: 5
         anchors.leftMargin: 5
@@ -18,15 +18,15 @@ Item {
             source: "qrc:/svgs/construction_sign.svg"
             anchors.horizontalCenter: parent.horizontalCenter
             fillMode: Image.PreserveAspectFit
+            mipmap: true
             layer {
                 enabled: true
                 effect: ColorOverlay {
-                    color: appstyle.iconColor
+                    color: appStyle.iconColor
                 }
             }
         }
     }
-
 }
 
 /*##^##
