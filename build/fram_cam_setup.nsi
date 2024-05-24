@@ -38,7 +38,7 @@ RequestExecutionLevel user
 Unicode True
 
 ; Suggested install dir, profile gives us current user dir
-InstallDir $PROFILE\desktop\FramCam+
+InstallDir C:\FramCam+
 
 ;--------------------------------
 ;Interface Settings
